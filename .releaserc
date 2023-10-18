@@ -1,0 +1,26 @@
+{
+  "branches": [
+    "+([0-9])?(.{+([0-9]),x}).x",
+    "master",
+    "main",
+    "next",
+    "next-major",
+    { "name": "alpha", "channel": "alpha", "prerelease": "alpha" },
+    { "name": "beta", "channel": "beta", "prerelease": "beta" },
+    { "name": "rc", "channel": "rc", "prerelease": "rc" }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    [
+      "@semantic-release/git",
+      {
+        "assets": [],
+        "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
+        "successComment": false
+      }
+    ],
+    "@semantic-release/gitlab"
+  ]
+}
