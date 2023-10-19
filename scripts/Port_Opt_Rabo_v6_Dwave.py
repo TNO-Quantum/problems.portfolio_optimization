@@ -1,9 +1,9 @@
 import datetime
 
 import matplotlib.pyplot as plt
-import neal
 import numpy as np
 import pandas as pd
+from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
@@ -346,7 +346,7 @@ for counter1 in range(steps1):
                         sampler = FixedEmbeddingComposite(solver, emb)
                         response = sampler.sample_qubo(qubo, num_reads=20)
                 else:
-                    sampler = neal.SimulatedAnnealingSampler()
+                    sampler = SimulatedAnnealingSampler()
                     response = sampler.sample_qubo(qubo, num_sweeps=20, num_reads=10)
 
                 # Postprocess solution.Iterate over all found solutions.
@@ -544,7 +544,11 @@ ax.set_xlabel("Diversification")
 ax.set_ylabel("ROC")
 plt.grid()
 # Name to save the figure under.
-name = "figures/Port_Opt_Rabo_v6_Dwave_points_" + str(datetime.datetime.now()) + ".png"
+name = (
+    "figures/Port_Opt_Rabo_v6_Dwave_points_"
+    + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
+    + ".png"
+)
 # plt.savefig(name)
 print(name)
 plt.show()
@@ -564,7 +568,7 @@ ax.set_xlabel('Diversification')
 ax.set_ylabel('ROC')
 plt.grid()
 #Name to save the figure under.
-name = "figures/Port_Opt_Rabo_v6_Dwave_front_"+str(datetime.datetime.now())+".png"
+name = "figures/Port_Opt_Rabo_v6_Dwave_front_"+datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f") +".png"
 plt.savefig(name)
 print(name)
 #plt.show()
