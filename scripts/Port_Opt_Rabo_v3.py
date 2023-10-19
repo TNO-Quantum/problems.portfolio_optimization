@@ -8,6 +8,7 @@ from dwave.system.samplers import DWaveSampler  # Library to interact with the Q
 from minorminer import find_embedding
 from pyqubo import Array, Constraint, Placeholder
 
+import tno.quantum.problems.portfolio_optimization.qubo_factory as qubo_factory
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
 
@@ -80,14 +81,10 @@ var = Array.create("vector", size_of_variable_array, "BINARY")
 
 # Defining constraints/HHI2030tives in the model
 # HHI
-sumi = 0
-for i in range(N):
-    sumi += (
-        LB[i]
-        + (UB[i] - LB[i])
-        * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-        / maxk
-    )
+sumi = qubo_factory.calc_sumi(
+    var=var, N=N, LB=LB, UB=UB, kmin=kmin, kmax=kmax, maxk=maxk
+)
+
 minimize_HHI = Constraint(
     sum(
         (
