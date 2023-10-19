@@ -1,20 +1,13 @@
 import datetime
-from pprint import pprint
-from types import SimpleNamespace
 
 import matplotlib.pyplot as plt
 import neal
-import networkx as nx
 import numpy as np
 import pandas as pd
-from dwave.system import FixedEmbeddingComposite, LazyFixedEmbeddingComposite
-from dwave.system.composites import (
-    EmbeddingComposite,  # Library to embed our problem onto the QPU physical graph
-)
+from dwave.system import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
-from minorminer import find_embedding, minorminer
-from numpy import array, dot
-from pyqubo import Array, Constraint, Model, Placeholder, solve_qubo
+from minorminer import find_embedding
+from pyqubo import Array, Constraint, Placeholder
 
 
 def pareto_front_v3(x3, y3, res_ctr3):
