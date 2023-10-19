@@ -85,19 +85,15 @@ sumi = qubo_factory.calc_sumi(
     var=var, N=N, LB=LB, UB=UB, kmin=kmin, kmax=kmax, maxk=maxk
 )
 
-minimize_HHI = Constraint(
-    sum(
-        (
-            LB[i]
-            + (UB[i] - LB[i])
-            * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-            / maxk
-        )
-        ** 2
-        for i in range(N)
-    )
-    / (Exp_total_out2030**2),
-    label="minimize_HHI",
+minimize_HHI = qubo_factory.calc_minimize_HHI(
+    var=var,
+    N=N,
+    LB=LB,
+    UB=UB,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+    Exp_total_out2030=Exp_total_out2030,
 )
 
 # ROC
