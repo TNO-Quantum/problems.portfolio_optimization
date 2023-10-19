@@ -112,21 +112,19 @@ maximize_ROC = qubo_factory.calc_maximize_ROC(
 )
 
 # Emissions
-emission_model = 0
-for i in range(N):
-    emission_model += (
-        0.76
-        * e[i]
-        * (
-            LB[i]
-            + (UB[i] - LB[i])
-            * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-            / maxk
-        )
-        / emis2021
-    )
-emission_model += (-0.7 * bigE * sumi) / emis2021
-emission = Constraint(emission_model**2, label="minimize_emission")
+emission_model = qubo_factory.calc_emission(
+    var=var,
+    N=N,
+    LB=LB,
+    UB=UB,
+    e=e,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+    emis2021=emis2021,
+    bigE=bigE,
+    sumi=sumi,
+)
 
 # These are the variables to store 3 kinds of results.
 x1 = {}  # Emission target met

@@ -181,3 +181,33 @@ def calc_maximize_ROC4(
         label="maximize_ROC",
     )
     return maximize_ROC
+
+
+def calc_emission(
+    var: Array,
+    N: int,
+    LB: NDArray[np.float_],
+    UB: NDArray[np.float_],
+    e: NDArray[np.float_],
+    kmin: int,
+    kmax: int,
+    maxk: int,
+    emis2021: float,
+    bigE: float,
+    sumi,
+):
+    emission_model = 0
+    for i in range(N):
+        emission_model += (
+            0.76
+            * e[i]
+            * (
+                LB[i]
+                + (UB[i] - LB[i])
+                * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
+                / maxk
+            )
+            / emis2021
+        )
+    emission_model += (-0.7 * bigE * sumi) / emis2021
+    emission = Constraint(emission_model**2, label="minimize_emission")
