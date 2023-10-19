@@ -115,19 +115,19 @@ for i in range(N):
 reg_capital += -1 * capital_target
 stabilize_C = Constraint(reg_capital**2, label="stabilize_C")
 
-max_R = 0
-for i in range(N):
-    max_R += (
-        income[i]
-        * (
-            LB[i]
-            + (UB[i] - LB[i])
-            * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-            / maxk
-        )
-        / out2021[i]
-    )
-maximize_R = Constraint(max_R / capital_target, label="maximize_R")
+maximize_R = qubo_factory.calc_maximize_ROC2(
+    var=var,
+    N=N,
+    out2021=out2021,
+    LB=LB,
+    UB=UB,
+    income=income,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+    capital_target=capital_target,
+)
+
 
 # Emissions
 emission_model = 0

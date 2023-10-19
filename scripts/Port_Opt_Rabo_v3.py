@@ -97,21 +97,18 @@ minimize_HHI = qubo_factory.calc_minimize_HHI(
 )
 
 # ROC
-maximize_ROC = Constraint(
-    sum(
-        (
-            (
-                LB[i]
-                + (UB[i] - LB[i])
-                * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-                / maxk
-            )
-            * income[i]
-            / (capital[i] * out2021[i] * Exp_avr_growth_fac)
-        )
-        for i in range(N)
-    ),
-    label="maximize_ROC",
+maximize_ROC = qubo_factory.calc_maximize_ROC(
+    var=var,
+    N=N,
+    out2021=out2021,
+    LB=LB,
+    UB=UB,
+    income=income,
+    capital=capital,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+    Exp_avr_growth_fac=Exp_avr_growth_fac,
 )
 
 # Emissions

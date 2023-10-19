@@ -88,10 +88,6 @@ cap_growth_fac = 1 + sum(
     var[k] * (2 ** (solution_qubits - k - 1))
     for k in range(solution_qubits, size_of_variable_array)
 )
-app_inv_cap_growth_fac = 1 + sum(
-    var[k] * (2 ** (solution_qubits - k - 1)) * (-1 + (2 ** (solution_qubits - k - 1)))
-    for k in range(solution_qubits, size_of_variable_array)
-)
 capital2021 = sum(capital[i] for i in range(N))
 capital_target = cap_growth_fac * capital2021
 
@@ -110,21 +106,20 @@ for i in range(N):
 reg_capital += -1 * capital_target
 stabilize_C = Constraint(reg_capital**2, label="stabilize_C")
 
-max_R = 0
-for i in range(N):
-    max_R += (
-        income[i]
-        * (
-            LB[i]
-            + (UB[i] - LB[i])
-            * sum(2 ** (k + kmin) * var[i * kmax + k] for k in range(kmax))
-            / maxk
-        )
-        / out2021[i]
-    )
-maximize_R = Constraint(
-    app_inv_cap_growth_fac * max_R / capital2021, label="maximize_R"
+maximize_R = qubo_factory.calc_maximize_ROC3(
+    var=var,
+    N=N,
+    out2021=out2021,
+    LB=LB,
+    UB=UB,
+    income=income,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+    capital2021=capital2021,
+    ancilla_qubits=ancilla_qubits,
 )
+
 
 # Emissions
 emission_model = 0
