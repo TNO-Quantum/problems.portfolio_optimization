@@ -8,9 +8,9 @@ from dwave.system.samplers import DWaveSampler  # Library to interact with the Q
 from minorminer import find_embedding
 from pyqubo import Array, Constraint, Placeholder
 
-import tno.quantum.problems.portfolio_optimization.qubo_factory as qubo_factory
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
+from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
 
 # Number of assets
 N = 52
@@ -81,21 +81,9 @@ var = Array.create("vector", size_of_variable_array, "BINARY")
 
 # Defining constraints/HHI2030tives in the model
 # HHI
-sumi = qubo_factory.calc_sumi(
-    var=var, N=N, LB=LB, UB=UB, kmin=kmin, kmax=kmax, maxk=maxk
-)
-
-minimize_HHI = qubo_factory.calc_minimize_HHI(
-    var=var,
-    N=N,
-    LB=LB,
-    UB=UB,
-    kmin=kmin,
-    kmax=kmax,
-    maxk=maxk,
-    Exp_total_out2030=Exp_total_out2030,
-)
-
+qubo_factory = QUBOFactory(var=var, N=N, LB=LB, UB=UB, kmin=kmin, kmax=kmax, maxk=maxk)
+sumi = qubo_factory.calc_sumi()
+minimize_HHI = qubo_factory.calc_minimize_HHI(Exp_total_out2030=Exp_total_out2030)
 
 # ROC
 capital_growth_factor = 1.6
@@ -116,34 +104,19 @@ reg_capital += -1 * capital_target
 stabilize_C = Constraint(reg_capital**2, label="stabilize_C")
 
 maximize_R = qubo_factory.calc_maximize_ROC2(
-    var=var,
-    N=N,
     out2021=out2021,
-    LB=LB,
-    UB=UB,
     income=income,
-    kmin=kmin,
-    kmax=kmax,
-    maxk=maxk,
     capital_target=capital_target,
 )
 
 
 # Emissions
 emission = qubo_factory.calc_emission(
-    var=var,
-    N=N,
-    LB=LB,
-    UB=UB,
     e=e,
-    kmin=kmin,
-    kmax=kmax,
-    maxk=maxk,
     emis2021=emis2021,
     bigE=bigE,
     sumi=sumi,
 )
-
 
 # These are the variables to store 3 kinds of results.
 x1 = {}  # Emission target met

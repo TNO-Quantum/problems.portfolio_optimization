@@ -4,6 +4,9 @@ import pandas as pd
 def read_portfolio_data(filename: str):
     print("Status: reading data")
     r = pd.read_excel(filename)
+    # TODO remove hardcoded 52, this is a budge for the corrupt input data. Data should
+    # be fixend and the hardcoed 52 should be removed
+    r = r[:52]
     # Outstanding amounts of the portfolio in 2021
     out2021 = r["out_2021"]
     # Lower and Upper bound for the 2030 portfolio
