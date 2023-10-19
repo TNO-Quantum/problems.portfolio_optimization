@@ -97,7 +97,7 @@ maximize_ROC = qubo_factory.calc_maximize_ROC(
 )
 
 # Emissions
-emission_model = qubo_factory.calc_emission(
+minimize_emission = qubo_factory.calc_emission(
     e=e,
     emis2021=emis2021,
     bigE=bigE,
