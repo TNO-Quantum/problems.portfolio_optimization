@@ -96,16 +96,9 @@ maximize_ROC = qubo_factory.calc_maximize_ROC4()
 emission = qubo_factory.calc_emission()
 
 # These are the variables to store 3 kinds of results.
-x1 = {}  # Emission target met
-y1 = {}
-x2 = {}  # Reduced emission
-y2 = {}
-x3 = {}  # Targets not met
-y3 = {}
-# Counter variables for the numer of outcomes found.
-res_ctr1 = 0
-res_ctr2 = 0
-res_ctr3 = 0
+x1, y1 = [], []  # Emission target met
+x2, y2 = [], []  # Reduced emission
+x3, y3 = [], []  # Targets not met
 
 # Variables to combine the 3 HHI2030tives to optimize.
 labda1 = Placeholder("labda1")
@@ -194,19 +187,16 @@ for counter1, counter2, counter3 in tqdm(
 
         # Compare the emission with norm1 and norm 2 and store the results accordingly.
         if res_emis < norm1:
-            x1[res_ctr1] = 100 * (1 - (HHI2030 / HHI2021))
-            y1[res_ctr1] = 100 * (ROC / ROC2021 - 1)
-            res_ctr1 += 1
+            x1.append(100 * (1 - (HHI2030 / HHI2021)))
+            y1.append(100 * (ROC / ROC2021 - 1))
         elif res_emis < norm2:
-            x2[res_ctr2] = 100 * (1 - (HHI2030 / HHI2021))
-            y2[res_ctr2] = 100 * (ROC / ROC2021 - 1)
-            res_ctr2 += 1
+            x2.append(100 * (1 - (HHI2030 / HHI2021)))
+            y2.append(100 * (ROC / ROC2021 - 1))
         else:
-            x3[res_ctr3] = 100 * (1 - (HHI2030 / HHI2021))
-            y3[res_ctr3] = 100 * (ROC / ROC2021 - 1)
-            res_ctr3 += 1
+            x3.append(100 * (1 - (HHI2030 / HHI2021)))
+            y3.append(100 * (ROC / ROC2021 - 1))
 
-print("Number of generated samples: ", res_ctr1, res_ctr2, res_ctr3)
+print("Number of generated samples: ", len(x1), len(x2), len(x3))
 print("Time consumed:", datetime.datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.

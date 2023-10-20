@@ -119,12 +119,10 @@ emission = qubo_factory.calc_emission()
 
 
 # These are the variables to store 3 kinds of results.
-x1 = {}  # Emission target met
-y1 = {}
+x1, y1 = [], []  # Emission target met
 z1 = {}
 e1 = {}
 # Counter variables for the numer of outcomes found.
-res_ctr1 = 0
 res_ctr2 = 0
 res_ctr3 = 0
 
@@ -236,17 +234,16 @@ for counter1, counter2, counter3, counter4 in tqdm(
 
         # Compare the emission with norm1 and norm 2 and store the results accordingly.
         if res_emis < norm1:
-            x1[res_ctr1] = 100 * (1 - (HHI2030 / HHI2021))
-            y1[res_ctr1] = 100 * (ROC / ROC2021 - 1)
-            z1[counter1][counter2][counter4].append(res_ctr1)
+            x1.append(100 * (1 - (HHI2030 / HHI2021)))
+            y1.append(100 * (ROC / ROC2021 - 1))
+            z1[counter1][counter2][counter4].append(len(x1))
             e1[counter1][counter2][counter4] += Energy
-            res_ctr1 += 1
         elif res_emis < norm2:
             res_ctr2 += 1
         else:
             res_ctr3 += 1
 
-print("Number of generated samples: ", res_ctr1, res_ctr2, res_ctr3)
+print("Number of generated samples: ", len(x1), res_ctr2, res_ctr3)
 print("Time consumed:", datetime.datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.

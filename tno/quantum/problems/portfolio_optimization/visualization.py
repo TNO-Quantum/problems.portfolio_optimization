@@ -12,9 +12,9 @@ def plot_points(
 ) -> Figure:
     ax: Axes
     fig, ax = plt.subplots()
-    ax.scatter(list(x3.values()), list(y3.values()), color=color3)
-    ax.scatter(list(x2.values()), list(y2.values()), color=color2)
-    ax.scatter(list(x1.values()), list(y1.values()), color=color1)
+    ax.scatter(x3, y3, color=color3)
+    ax.scatter(x2, y2, color=color2)
+    ax.scatter(x1, y1, color=color1)
     ax.scatter(x_rabo1, y_rabo1, color="blue")
     ax.scatter(x_rabo2, y_rabo2, color="gray")
     ax.legend(
@@ -47,9 +47,9 @@ def plot_front(
     # Make a plot of the results.
     ax: Axes
     fig, ax = plt.subplots()
-    ax.scatter(list(x3.values()), list(y3.values()), color=color3)
-    ax.scatter(list(x2.values()), list(y2.values()), color=color2)
-    ax.scatter(list(x1.values()), list(y1.values()), color=color1)
+    ax.scatter(x3, y3, color=color3)
+    ax.scatter(x2, y2, color=color2)
+    ax.scatter(x1, y1, color=color1)
     ax.scatter(x_rabo1, y_rabo1, color="blue")
     ax.scatter(x_rabo2, y_rabo2, color="gray")
     ax.legend(

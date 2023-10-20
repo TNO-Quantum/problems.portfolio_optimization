@@ -46,9 +46,8 @@ def coef(j, n):
 
 def pareto_front(x, y, ctr):
     n = 41
-    rb = []
-    for i in range(n):
-        rb.append(0)
+    rb = [0 for _ in range(n)]
+
     for i in range(ctr):
         for j in range(n):
             if x[i] + coef(j, n) * y[i] > x[rb[j]] + coef(j, n) * y[rb[j]]:
@@ -89,4 +88,4 @@ def pareto_front(x, y, ctr):
     print(l1, l2, ctr, c)
     x, y = pareto_front_v3(u, v, c)
 
-    return x, y
+    return list(x.values()), list(y.values())
