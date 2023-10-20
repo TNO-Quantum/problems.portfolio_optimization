@@ -72,8 +72,8 @@ class QUBOFactory:
 
     def calc_maximize_ROC(
         self,
-        Exp_avr_growth_fac: float,
     ):
+        Exp_avr_growth_fac = np.sum((self.UB + self.LB) / (2 * self.out2021))
         maximize_ROC = Constraint(
             sum(
                 (

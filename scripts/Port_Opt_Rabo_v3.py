@@ -41,18 +41,6 @@ HHI2021 = np.sum(out2021**2) / np.sum(out2021) ** 2
 emis2021 = np.sum(e * out2021)
 bigE = emis2021 / Out2021
 
-
-# Estimate a average growth factor and its standard deviation for 2021-2030. This
-# consists of the (averaged) amount per asset in 2030, which is the outcome of the
-# optimization, divided by the amount for 2021.
-Exp_avr_growth_fac = np.sum((UB + LB) / (2 * out2021))
-Exp_stddev_avr_growth_fac = np.linalg.norm((UB - LB) / (2 * out2021))
-print(
-    f"Expected average growth factor: {Exp_avr_growth_fac}",
-    f"Std dev: {Exp_stddev_avr_growth_fac}",
-)
-
-
 # Creating the actual model to optimize using the annealer.
 print("Status: creating model")
 # Initialize variable vector of the required size
@@ -77,7 +65,7 @@ qubo_factory = QUBOFactory(
 minimize_HHI = qubo_factory.calc_minimize_HHI()
 
 # ROC
-maximize_ROC = qubo_factory.calc_maximize_ROC(Exp_avr_growth_fac=Exp_avr_growth_fac)
+maximize_ROC = qubo_factory.calc_maximize_ROC()
 
 # Emissions
 emission = qubo_factory.calc_emission()

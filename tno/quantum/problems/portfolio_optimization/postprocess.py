@@ -34,7 +34,7 @@ class Decoder:
 
     def decode_sample(self, sample: Mapping[str, int]):
         # Compute the 2030 portfolio
-        out2030 = {}
+        out2030 = np.zeros(self.N)
         for i in range(self.N):
             out2030[i] = (
                 self.LB[i]
@@ -48,8 +48,9 @@ class Decoder:
                 )
                 / self.maxk
             )
-            if (self.LB[i] > out2030[i]) | (self.UB[i] < out2030[i]):
-                print("Bounds not obeyed.\\", i, self.LB[i], out2030[i], self.UB[i])
-                quit()
+            if self.LB[i] > out2030[i] or self.UB[i] < out2030[i]:
+                raise ValueError(
+                    f"Bounds not obeyed. {i} {self.LB[i]} {self.out2030[i]} {self.UB[i]}"
+                )
 
         return out2030

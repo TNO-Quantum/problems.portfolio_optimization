@@ -39,3 +39,13 @@ def print_info(
         f"Expected total outstanding 2030: {Exp_total_out2030}",
         f"Std dev: {Exp_stddev_total_out2030}",
     )
+
+    # Estimate a average growth factor and its standard deviation for 2021-2030. This
+    # consists of the (averaged) amount per asset in 2030, which is the outcome of the
+    # optimization, divided by the amount for 2021.
+    Exp_avr_growth_fac = np.sum((UB + LB) / (2 * out2021))
+    Exp_stddev_avr_growth_fac = np.linalg.norm((UB - LB) / (2 * out2021))
+    print(
+        f"Expected average growth factor: {Exp_avr_growth_fac}",
+        f"Std dev: {Exp_stddev_avr_growth_fac}",
+    )
