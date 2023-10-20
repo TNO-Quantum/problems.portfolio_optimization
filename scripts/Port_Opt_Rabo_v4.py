@@ -117,18 +117,17 @@ for counter1, counter2, counter3, counter4 in tqdm(
     qubo, offset = qubo_factory.make_qubo(A, C, P, Q)
 
     # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
-    if useQPU:
-        if Option1:
-            sampler = LeapHybridSampler()
-            response = sampler.sample_qubo(qubo)
-        else:
-            if eerste:
-                solver = DWaveSampler()
-                __, target_edgelist, target_adjacency = solver.structure
-                emb = find_embedding(qubo, target_edgelist, verbose=1)
-                eerste = False
-            sampler = FixedEmbeddingComposite(solver, emb)
-            response = sampler.sample_qubo(qubo, num_reads=20)
+    if useQPU and Option1:
+        sampler = LeapHybridSampler()
+        response = sampler.sample_qubo(qubo)
+    elif useQPU:
+        if eerste:
+            solver = DWaveSampler()
+            __, target_edgelist, target_adjacency = solver.structure
+            emb = find_embedding(qubo, target_edgelist, verbose=1)
+            eerste = False
+        sampler = FixedEmbeddingComposite(solver, emb)
+        response = sampler.sample_qubo(qubo, num_reads=20)
     else:
         sampler = SimulatedAnnealingSampler()
         response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
