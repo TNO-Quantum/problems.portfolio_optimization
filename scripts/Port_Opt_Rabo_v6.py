@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +8,7 @@ from dwave.system import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
 from pyqubo import Array, Constraint, Placeholder
+from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
@@ -153,100 +155,89 @@ steps4 = 12
 
 print("Status: calculating")
 starttime = datetime.datetime.now()
-percent = 0
-for counter1 in range(steps1):
-    for counter2 in range(steps2):
-        for counter3 in range(steps3):
-            for counter4 in range(steps4):
+for counter1, counter2, counter3, counter4 in tqdm(
+    itertools.product(range(steps1), range(steps2), range(steps3), range(steps4)),
+    total=steps1 * steps2 * steps3 * steps4,
+):
 
-                # Progress estimation
-                if (100.0 * (steps2 * counter1 + counter2) * steps3 + counter3 + 1) / (
-                    steps1 * steps2 * steps3
-                ) >= percent + 5:
-                    percent += 5
-                    print("Iterations:", percent, "%")
+    # Set up penalty coefficients for the constraints
+    # Vary A
+    A = 10 ** (-4.25 + (2.5 / steps1) * counter1)
+    C = 10 ** (-4.0 + (1.5 / steps2) * counter2)
+    P = 1
+    Q = 10 ** (-11.0 + (1.5 / steps4) * counter4)
 
-                # Set up penalty coefficients for the constraints
-                # Vary A
-                A = 10 ** (-4.25 + (2.5 / steps1) * counter1)
-                C = 10 ** (-4.0 + (1.5 / steps2) * counter2)
-                P = 1
-                Q = 10 ** (-11.0 + (1.5 / steps4) * counter4)
+    # Compile the model and generate QUBO
+    qubo, offset = model.to_qubo(
+        feed_dict={"labda1": A, "labda2": C, "labda3": P, "labda4": Q}
+    )
 
-                # Compile the model and generate QUBO
-                qubo, offset = model.to_qubo(
-                    feed_dict={"labda1": A, "labda2": C, "labda3": P, "labda4": Q}
+    # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
+    if useQPU:
+        if Option1:
+            from dwave.system import LeapHybridSampler
+
+            sampler = LeapHybridSampler()
+            response = sampler.sample_qubo(qubo)
+        else:
+            if eerste:
+                solver = DWaveSampler()
+                __, target_edgelist, target_adjacency = solver.structure
+                emb = find_embedding(qubo, target_edgelist, verbose=1)
+                eerste = False
+            sampler = FixedEmbeddingComposite(solver, emb)
+            response = sampler.sample_qubo(qubo, num_reads=20)
+    else:
+        sampler = SimulatedAnnealingSampler()
+        response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
+
+    # Postprocess solution.Iterate over all found solutions.
+    for sample in response.samples():
+        # Compute the 2030 portfolio
+        Out2030 = 0
+        out2030 = {}
+        for i in range(N):
+            out2030[i] = (
+                LB[i]
+                + (UB[i] - LB[i])
+                * sum(
+                    (2 ** (k + kmin) * sample["vector[" + str(i * kmax + k) + "]"])
+                    for k in range(kmax)
                 )
+                / maxk
+            )
+            if (LB[i] > out2030[i]) | (UB[i] < out2030[i]):
+                print("Bounds not obeyed.\\", i, LB[i], out2030[i], UB[i])
+                quit()
+            Out2030 += out2030[i]
+        # Compute the 2030 HHI.
+        HHI2030 = 0
+        for i in range(N):
+            HHI2030 += out2030[i] ** 2
+        HHI2030 = HHI2030 / (Out2030**2)
+        # Compute the 2030 ROC
+        ROC = sum(out2030[i] * returns[i] for i in range(N)) / sum(
+            out2030[i] * capital[i] / out2021[i] for i in range(N)
+        )
+        # Compute the emissions from the resulting 2030 portfolio.
+        res_emis = 0
+        res_emis = 0.76 * sum(e[i] * out2030[i] for i in range(N))
+        norm1 = bigE * 0.70 * Out2030  # Out2021
+        norm2 = 1.020 * norm1
 
-                # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
-                if useQPU:
-                    if Option1:
-                        from dwave.system import LeapHybridSampler
-
-                        sampler = LeapHybridSampler()
-                        response = sampler.sample_qubo(qubo)
-                    else:
-                        if eerste:
-                            solver = DWaveSampler()
-                            __, target_edgelist, target_adjacency = solver.structure
-                            emb = find_embedding(qubo, target_edgelist, verbose=1)
-                            eerste = False
-                        sampler = FixedEmbeddingComposite(solver, emb)
-                        response = sampler.sample_qubo(qubo, num_reads=20)
-                else:
-                    sampler = SimulatedAnnealingSampler()
-                    response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
-
-                # Postprocess solution.Iterate over all found solutions.
-                for sample in response.samples():
-                    # Compute the 2030 portfolio
-                    Out2030 = 0
-                    out2030 = {}
-                    for i in range(N):
-                        out2030[i] = (
-                            LB[i]
-                            + (UB[i] - LB[i])
-                            * sum(
-                                (
-                                    2 ** (k + kmin)
-                                    * sample["vector[" + str(i * kmax + k) + "]"]
-                                )
-                                for k in range(kmax)
-                            )
-                            / maxk
-                        )
-                        if (LB[i] > out2030[i]) | (UB[i] < out2030[i]):
-                            print("Bounds not obeyed.\\", i, LB[i], out2030[i], UB[i])
-                            quit()
-                        Out2030 += out2030[i]
-                    # Compute the 2030 HHI.
-                    HHI2030 = 0
-                    for i in range(N):
-                        HHI2030 += out2030[i] ** 2
-                    HHI2030 = HHI2030 / (Out2030**2)
-                    # Compute the 2030 ROC
-                    ROC = sum(out2030[i] * returns[i] for i in range(N)) / sum(
-                        out2030[i] * capital[i] / out2021[i] for i in range(N)
-                    )
-                    # Compute the emissions from the resulting 2030 portfolio.
-                    res_emis = 0
-                    res_emis = 0.76 * sum(e[i] * out2030[i] for i in range(N))
-                    norm1 = bigE * 0.70 * Out2030  # Out2021
-                    norm2 = 1.020 * norm1
-
-                    # Compare the emission with norm1 and norm 2 and store the results accordingly.
-                    if res_emis < norm1:
-                        x1[res_ctr1] = 100 * (1 - (HHI2030 / HHI2021))
-                        y1[res_ctr1] = 100 * (ROC / ROC2021 - 1)
-                        res_ctr1 += 1
-                    elif res_emis < norm2:
-                        # x2[res_ctr2]=100*(1-(HHI2030/HHI2021))
-                        # y2[res_ctr2]=100*(ROC/ROC2021-1)
-                        res_ctr2 += 1
-                    else:
-                        # x3[res_ctr3]=100*(1-(HHI2030/HHI2021))
-                        # y3[res_ctr3]=100*(ROC/ROC2021-1)
-                        res_ctr3 += 1
+        # Compare the emission with norm1 and norm 2 and store the results accordingly.
+        if res_emis < norm1:
+            x1[res_ctr1] = 100 * (1 - (HHI2030 / HHI2021))
+            y1[res_ctr1] = 100 * (ROC / ROC2021 - 1)
+            res_ctr1 += 1
+        elif res_emis < norm2:
+            # x2[res_ctr2]=100*(1-(HHI2030/HHI2021))
+            # y2[res_ctr2]=100*(ROC/ROC2021-1)
+            res_ctr2 += 1
+        else:
+            # x3[res_ctr3]=100*(1-(HHI2030/HHI2021))
+            # y3[res_ctr3]=100*(ROC/ROC2021-1)
+            res_ctr3 += 1
 
 print("Number of generated samples: ", res_ctr1, res_ctr2, res_ctr3)
 print("Time consumed:", datetime.datetime.now() - starttime)
