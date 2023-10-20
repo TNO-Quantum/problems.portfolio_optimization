@@ -81,25 +81,26 @@ var = Array.create("vector", size_of_variable_array, "BINARY")
 
 # Defining constraints/HHI2030tives in the model
 # HHI
-qubo_factory = QUBOFactory(var=var, N=N, LB=LB, UB=UB, kmin=kmin, kmax=kmax, maxk=maxk)
-sumi = qubo_factory.calc_sumi()
-minimize_HHI = qubo_factory.calc_minimize_HHI(Exp_total_out2030=Exp_total_out2030)
-
-# ROC
-maximize_ROC = qubo_factory.calc_maximize_ROC(
+qubo_factory = QUBOFactory(
+    var=var,
+    N=N,
     out2021=out2021,
+    LB=LB,
+    UB=UB,
+    e=e,
     income=income,
     capital=capital,
-    Exp_avr_growth_fac=Exp_avr_growth_fac,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
 )
+minimize_HHI = qubo_factory.calc_minimize_HHI()
+
+# ROC
+maximize_ROC = qubo_factory.calc_maximize_ROC(Exp_avr_growth_fac=Exp_avr_growth_fac)
 
 # Emissions
-emission = qubo_factory.calc_emission(
-    e=e,
-    emis2021=emis2021,
-    bigE=bigE,
-    sumi=sumi,
-)
+emission = qubo_factory.calc_emission()
 
 
 # These are the variables to store 3 kinds of results.
