@@ -14,6 +14,7 @@ from tno.quantum.problems.portfolio_optimization.io import (
     read_portfolio_data,
 )
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
+from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
 from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_front,
@@ -31,40 +32,15 @@ maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
 out2021, LB, UB, e, income, capital = read_portfolio_data("rabodata.xlsx")
 
 # Compute the returns per outstanding amount in 2021.
-returns = {}
-for i in range(N):
-    returns[i] = income[i] / out2021[i]
+returns = income / out2021
 
-# Calculate the total outstanding amount in 2021
-Out2021 = sum(out2021[i] for i in range(N))
-print("Total outstanding 2021: ", Out2021)
-# Calculate the ROC for 2021
-ROC2021 = sum(income[i] for i in range(N)) / sum(capital[i] for i in range(N))
-print("ROC 2021: ", ROC2021)
-# Calculate the HHI diversification for 2021
-HHI2021 = sum(out2021[j] ** 2 for j in range(N)) / (
-    sum(out2021[j] for j in range(N)) ** 2
-)
-print("HHI 2021: ", HHI2021)
-# Calculate the total emissions for 2021
-emis2021 = sum(e[i] * out2021[i] for i in range(N))
-print("Emission 2021: ", emis2021)
-# Calculate the average emission intensity 2021
+print_info(out2021, LB, UB, e, income, capital)
+Out2021 = np.sum(out2021)
+ROC2021 = np.sum(income) / np.sum(capital)
+HHI2021 = np.sum(out2021**2) / np.sum(out2021) ** 2
+emis2021 = np.sum(e * out2021)
 bigE = emis2021 / Out2021
-print("Emission intensity 2021:", bigE)
 
-# Estimate the total outstanding amount and its standard deviation for 2030. This follows from the assumption of a symmetric probability distribution on the interval [LB,UB] and the central limit theorem. A correction factor can be used to tweak the results.
-Correctiefactor = 1.00
-Exp_total_out2030 = Correctiefactor * sum((UB[j] + LB[j]) / 2 for j in range(N))
-Exp_stddev_total_out2030 = Correctiefactor * np.sqrt(
-    sum((((UB[j] - LB[j]) / 2) ** 2) for j in range(N))
-)
-print(
-    "Expected total outstanding 2030: ",
-    Exp_total_out2030,
-    "Std dev:",
-    Exp_stddev_total_out2030,
-)
 
 # Creating the actual model to optimize using the annealer.
 print("Status: creating model")
