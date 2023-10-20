@@ -6,7 +6,7 @@ from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
-from pyqubo import Array, Placeholder
+from pyqubo import Array
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.io import (
