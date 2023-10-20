@@ -15,7 +15,7 @@ from tno.quantum.problems.portfolio_optimization.io import (
 )
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
-from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
+from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory4
 from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_front,
     plot_points,
@@ -49,7 +49,7 @@ var = Array.create("vector", size_of_variable_array, "BINARY")
 
 # Defining constraints/HHI2030tives in the model
 # HHI
-qubo_factory = QUBOFactory(
+qubo_factory = QUBOFactory4(
     var=var,
     N=N,
     out2021=out2021,
@@ -62,28 +62,13 @@ qubo_factory = QUBOFactory(
     kmax=kmax,
     maxk=maxk,
 )
-minimize_HHI = qubo_factory.calc_minimize_HHI()
-
-# ROC
-maximize_ROC = qubo_factory.calc_maximize_ROC4()
-
-# Emissions
-emission = qubo_factory.calc_emission()
 
 # These are the variables to store 3 kinds of results.
 x1, y1 = [], []  # Emission target met
 x2, y2 = [], []  # Reduced emission
 x3, y3 = [], []  # Targets not met
 
-# Variables to combine the 3 HHI2030tives to optimize.
-labda1 = Placeholder("labda1")
-labda2 = Placeholder("labda2")
-labda3 = Placeholder("labda3")
-
-# Define Hamiltonian as a weighted sum of individual constraints
-H = labda1 * minimize_HHI - labda2 * maximize_ROC + labda3 * emission
-model = H.compile()
-
+qubo_factory.compile()
 # Quantum computing options
 eerste = True
 useQPU = False  # true = QPU, false = SA
@@ -119,7 +104,7 @@ for counter1, counter2, counter3 in tqdm(
     P = 1
 
     # Compile the model and generate QUBO
-    qubo, offset = model.to_qubo(feed_dict={"labda1": A, "labda2": C, "labda3": P})
+    qubo, offset = qubo_factory.make_qubo(A, C, P)
 
     # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
     if useQPU:
