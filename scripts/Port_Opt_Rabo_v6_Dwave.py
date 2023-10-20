@@ -4,7 +4,7 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
-from dwave.system import FixedEmbeddingComposite
+from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
 from pyqubo import Array, Constraint, Placeholder
@@ -192,8 +192,6 @@ for counter1, counter2, counter3, counter4 in tqdm(
     # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
     if useQPU:
         if Option1:
-            from dwave.system import LeapHybridSampler
-
             sampler = LeapHybridSampler()
             response = sampler.sample_qubo(qubo)
         else:
