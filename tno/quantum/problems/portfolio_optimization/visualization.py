@@ -38,9 +38,9 @@ def plot_front(
 ) -> Figure:
     starttime = datetime.now()
 
-    x1, y1 = pareto_front(x1, y1, len(x1))
-    x2, y2 = pareto_front(x2, y2, len(x2))
-    x3, y3 = pareto_front(x3, y3, len(x3))
+    x1, y1 = pareto_front(x1, y1)
+    x2, y2 = pareto_front(x2, y2)
+    x3, y3 = pareto_front(x3, y3)
 
     print("Time consumed:", datetime.now() - starttime)
 

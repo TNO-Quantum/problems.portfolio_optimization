@@ -303,7 +303,7 @@ print(name)
 plt.show()
 """
 starttime = datetime.datetime.now()
-x1, y1 = pareto_front(x1,y1, res_ctr1)
+x1, y1 = pareto_front(x1,y1)
 print("Time consumed:", datetime.datetime.now()-starttime)
 
 #Make a plot of the results.
