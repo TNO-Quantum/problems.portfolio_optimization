@@ -1,7 +1,6 @@
 import datetime
 import itertools
 
-import matplotlib.pyplot as plt
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import FixedEmbeddingComposite
@@ -14,9 +13,12 @@ from tno.quantum.problems.portfolio_optimization.io import (
     get_rabo_fronts,
     read_portfolio_data,
 )
-from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
+from tno.quantum.problems.portfolio_optimization.visualization import (
+    plot_front,
+    plot_points,
+)
 
 # Number of assets
 N = 52
@@ -213,67 +215,50 @@ print("Time consumed:", datetime.datetime.now() - starttime)
 x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
 
 # Make a plot of the results.
-fig, ax = plt.subplots()
-ax.scatter(list(x3.values()), list(y3.values()), color="crimson")
-ax.scatter(list(x2.values()), list(y2.values()), color="mediumorchid")
-ax.scatter(list(x1.values()), list(y1.values()), color="mediumblue")
-ax.scatter(x_rabo1, y_rabo1, color="blue")
-ax.scatter(x_rabo2, y_rabo2, color="gray")
-ax.legend(
-    [
-        "QUBO constraint not met",
-        "QUBO reduced",
-        "QUBO constraint met",
-        "classical constrained",
-        "classical unconstrained",
-    ]
+fig = plot_points(
+    x1,
+    y1,
+    "mediumblue",
+    x2,
+    y2,
+    "mediumorchid",
+    x3,
+    y3,
+    "crimson",
+    x_rabo1,
+    y_rabo1,
+    x_rabo2,
+    y_rabo2,
 )
-ax.scatter(0, 0)
-ax.set_xlabel("Diversification")
-ax.set_ylabel("ROC")
-plt.grid()
 # Name to save the figure under.
 name = (
     "figures/Port_Opt_Rabo_v7_points_"
     + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
     + ".png"
 )
-plt.savefig(name)
+fig.savefig(name)
 print(name)
-# plt.show()
 
-starttime = datetime.datetime.now()
-x1, y1 = pareto_front(x1, y1, res_ctr1)
-x2, y2 = pareto_front(x2, y2, res_ctr2)
-x3, y3 = pareto_front(x3, y3, res_ctr3)
-print("Time consumed:", datetime.datetime.now() - starttime)
-
-# Make a plot of the results.
-fig, ax = plt.subplots()
-ax.scatter(list(x3.values()), list(y3.values()), color="crimson")
-ax.scatter(list(x2.values()), list(y2.values()), color="mediumorchid")
-ax.scatter(list(x1.values()), list(y1.values()), color="mediumblue")
-ax.scatter(x_rabo1, y_rabo1, color="blue")
-ax.scatter(x_rabo2, y_rabo2, color="gray")
-ax.legend(
-    [
-        "QUBO constraint not met",
-        "QUBO reduced",
-        "QUBO constraint met",
-        "classical constrained",
-        "classical unconstrained",
-    ]
+fig = plot_front(
+    x1,
+    y1,
+    "mediumblue",
+    x2,
+    y2,
+    "mediumorchid",
+    x3,
+    y3,
+    "crimson",
+    x_rabo1,
+    y_rabo1,
+    x_rabo2,
+    y_rabo2,
 )
-ax.scatter(0, 0)
-ax.set_xlabel("Diversification")
-ax.set_ylabel("ROC")
-plt.grid()
 # Name to save the figure under.
 name = (
     "figures/Port_Opt_Rabo_v7_front_"
     + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
     + ".png"
 )
-plt.savefig(name)
+fig.savefig(name)
 print(name)
-# plt.show()

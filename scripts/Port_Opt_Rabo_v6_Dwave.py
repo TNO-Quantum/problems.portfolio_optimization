@@ -266,7 +266,7 @@ for counter1 in range(steps1):
             for ctr in z1[counter1][counter2][counter4]:
                 X.append(x1[ctr])
                 Y.append(y1[ctr])
-            legend.append(str(counter1) + "," + str(counter2) + "," + str(counter4))
+            legend.append(f"{counter1},{counter2},{counter4}")
             print(
                 counter1,
                 counter2,
@@ -279,7 +279,7 @@ for counter1 in range(steps1):
                     else 0.0
                 ),
             )
-            ax.scatter(list(X), list(Y))
+            ax.scatter(X, Y)
 ax.scatter(x_rabo1, y_rabo1, color="blue")
 ax.scatter(x_rabo2, y_rabo2, color="gray")
 legend.append("cc")
