@@ -10,7 +10,10 @@ from minorminer import find_embedding
 from pyqubo import Array, Constraint, Placeholder
 from tqdm import tqdm
 
-from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
+from tno.quantum.problems.portfolio_optimization.io import (
+    get_rabo_fronts,
+    read_portfolio_data,
+)
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
@@ -246,107 +249,17 @@ print("Time consumed:", datetime.datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.
 # x/y_rabo1 corresponds to a front optimized including the emission target.
-x_rabo1 = {}
-y_rabo1 = {}
-if 1 == 1:
-    x_rabo1[0] = 3.44
-    y_rabo1[0] = 0.0
+# x/y_rabo2 corresponds to a front optimized without the emission target.
+x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
 
-    x_rabo1[1] = 3.66
-    y_rabo1[1] = 0.5
-
-    x_rabo1[2] = 3.84
-    y_rabo1[2] = 1.0
-
-    x_rabo1[3] = 3.96
-    y_rabo1[3] = 1.5
-
-    x_rabo1[4] = 4.01
-    y_rabo1[4] = 2.0
-
-    x_rabo1[5] = 3.99
-    y_rabo1[5] = 2.5
-
-    x_rabo1[6] = 3.94
-    y_rabo1[6] = 3.0
-
-    x_rabo1[7] = 3.83
-    y_rabo1[7] = 3.5
-
-    x_rabo1[8] = 3.62
-    y_rabo1[8] = 4.0
-
-    x_rabo1[9] = 3.31
-    y_rabo1[9] = 4.5
-
-    x_rabo1[10] = 2.90
-    y_rabo1[10] = 5.0
-
-    x_rabo1[11] = 0.40
-    y_rabo1[11] = 5.5
-
-    x_rabo1[12] = -3.53
-    y_rabo1[12] = 6.0
-
-    x_rabo1[13] = 0.90
-    y_rabo1[13] = -2.0
-
-    x_rabo1[14] = 2.02
-    y_rabo1[14] = -1.5
-
-    x_rabo1[15] = 2.73
-    y_rabo1[15] = -1.0
-
-    x_rabo1[16] = 3.14
-    y_rabo1[16] = -0.5
-
-# x/y_rabo1 corresponds to a front optimized without the emission target.
-x_rabo2 = {}
-y_rabo2 = {}
-if 1 == 1:
-    x_rabo2[0] = 3.275
-    y_rabo2[0] = 8
-
-    x_rabo2[1] = 3.634
-    y_rabo2[1] = 7.5
-
-    x_rabo2[2] = 3.89
-    y_rabo2[2] = 7
-
-    x_rabo2[3] = 4.293
-    y_rabo2[3] = 6.5
-
-    x_rabo2[4] = 4.447
-    y_rabo2[4] = 6.0
-
-    x_rabo2[5] = 4.753
-    y_rabo2[5] = 5.5
-
-    x_rabo2[6] = 4.897
-    y_rabo2[6] = 5.0
-
-    x_rabo2[7] = 5.034
-    y_rabo2[7] = 4.5
-
-    x_rabo2[8] = 5.148
-    y_rabo2[8] = 4.0
-
-    x_rabo2[9] = 5.149
-    y_rabo2[9] = 3.5
-
-    x_rabo2[10] = 5.198
-    y_rabo2[10] = 3.0
-
-    x_rabo2[11] = 5.179
-    y_rabo2[11] = 2.5
 
 # Make a plot of the results.
 fig, ax = plt.subplots()
 ax.scatter(list(x1.values()), list(y1.values()), color="dodgerblue")
 ax.scatter(list(x2.values()), list(y2.values()), color="gold")
 ax.scatter(list(x3.values()), list(y3.values()), color="coral")
-ax.scatter(list(x_rabo1.values()), list(y_rabo1.values()), color="blue")
-ax.scatter(list(x_rabo2.values()), list(y_rabo2.values()), color="gray")
+ax.scatter(x_rabo1, y_rabo1, color="blue")
+ax.scatter(x_rabo2, y_rabo2, color="gray")
 ax.legend(
     [
         "Growth",
@@ -382,8 +295,8 @@ fig, ax = plt.subplots()
 ax.scatter(list(x1.values()), list(y1.values()), color="dodgerblue")
 ax.scatter(list(x2.values()), list(y2.values()), color="gold")
 ax.scatter(list(x3.values()), list(y3.values()), color="coral")
-ax.scatter(list(x_rabo1.values()), list(y_rabo1.values()), color="blue")
-ax.scatter(list(x_rabo2.values()), list(y_rabo2.values()), color="gray")
+ax.scatter(x_rabo1, y_rabo1, color="blue")
+ax.scatter(x_rabo2, y_rabo2, color="gray")
 ax.legend(
     [
         "Growth",
