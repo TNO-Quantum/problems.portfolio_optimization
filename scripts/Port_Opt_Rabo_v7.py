@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
+from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.qubo_factory import QUBOFactory
 
 # Number of assets
@@ -122,6 +123,18 @@ steps3 = 1
 
 print("Status: calculating")
 starttime = datetime.datetime.now()
+decoder = Decoder(
+    N=N,
+    out2021=out2021,
+    LB=LB,
+    UB=UB,
+    e=e,
+    income=income,
+    capital=capital,
+    kmin=kmin,
+    kmax=kmax,
+    maxk=maxk,
+)
 for counter1, counter2, counter3 in tqdm(
     itertools.product(range(steps1), range(steps2), range(steps3)),
     total=steps1 * steps2 * steps3,
@@ -157,19 +170,8 @@ for counter1, counter2, counter3 in tqdm(
     # Postprocess solution.Iterate over all found solutions.
     for sample in response.samples():
         # Compute the 2030 portfolio
-        Out2030 = 0
-        out2030 = {}
-        for i in range(N):
-            out2030[i] = (
-                LB[i]
-                + (UB[i] - LB[i])
-                * sum(
-                    (2 ** (k + kmin) * sample["vector[" + str(i * kmax + k) + "]"])
-                    for k in range(kmax)
-                )
-                / maxk
-            )
-            Out2030 += out2030[i]
+        out2030 = decoder.decode_sample(sample)
+        Out2030 = sum(out2030[i] for i in range(N))
         # Compute the 2030 HHI.
         HHI2030 = 0
         for i in range(N):
