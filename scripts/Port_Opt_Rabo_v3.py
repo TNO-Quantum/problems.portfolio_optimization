@@ -1,4 +1,5 @@
 import itertools
+from collections import deque
 from datetime import datetime
 
 import numpy as np
@@ -48,13 +49,9 @@ qubo_factory = QUBOFactory1(
     portfolio_data=df, n_vars=size_of_variable_array, kmin=kmin, kmax=kmax
 )
 # These are the variables to store 3 kinds of results.
-x1, y1 = [], []  # Emission target met
-x2, y2 = [], []  # Reduced emission
-x3, y3 = [], []  # Targets not met
-
-x1n, y1n = [], []  # Emission target met
-x2n, y2n = [], []  # Reduced emission
-x3n, y3n = [], []  # Targets not met
+x1, y1 = deque(), deque()  # Emission target met
+x2, y2 = deque(), deque()  # Reduced emission
+x3, y3 = deque(), deque()  # Targets not met
 
 qubo_factory.compile()
 

@@ -1,4 +1,5 @@
 import itertools
+from collections import deque
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -50,7 +51,7 @@ qubo_factory = QUBOFactory3(
 )
 
 # These are the variables to store 3 kinds of results.
-x1, y1 = [], []  # Emission target met
+x1, y1 = deque(), deque()  # Emission target met
 z1 = {}
 e1 = {}
 # Counter variables for the numer of outcomes found.
