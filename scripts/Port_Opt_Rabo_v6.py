@@ -127,11 +127,11 @@ for counter1, counter2, counter3, counter4 in tqdm(
         sampler = SimulatedAnnealingSampler()
         response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
 
-    # Postprocess solution.Iterate over all found solutions.
-    for sample in response.samples():
-        # Compute the 2030 portfolio
-        out2030 = decoder.decode_sample(sample)
-        Out2030 = sum(out2030[i] for i in range(N))
+    # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
+    decoded_samples = decoder.decode_sampleset(response)
+
+    for out2030 in decoded_samples:
+        Out2030 = np.sum(out2030)
         # Compute the 2030 HHI.
         HHI2030 = 0
         for i in range(N):

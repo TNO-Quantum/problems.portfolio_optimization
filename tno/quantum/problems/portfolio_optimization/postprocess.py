@@ -1,6 +1,7 @@
 from typing import Mapping
 
 import numpy as np
+from dimod import SampleSet
 from numpy.typing import NDArray
 
 
@@ -34,20 +35,26 @@ class Decoder:
 
     def decode_sample(self, sample: Mapping[int, int]):
         # Compute the 2030 portfolio
-        out2030 = np.zeros(self.N)
-        for i in range(self.N):
-            out2030[i] = (
-                self.LB[i]
-                + (self.UB[i] - self.LB[i])
-                * sum(
-                    (2 ** (k + self.kmin) * sample[i * self.kmax + k])
-                    for k in range(self.kmax)
-                )
-                / self.maxk
-            )
-            if self.LB[i] > out2030[i] or self.UB[i] < out2030[i]:
-                raise ValueError(
-                    f"Bounds not obeyed. {i} {self.LB[i]} {self.out2030[i]} {self.UB[i]}"
-                )
+        sample = np.array(
+            [sample[i] for i in range(self.N * self.kmax)], dtype=np.uint8
+        )
+        mantissa = np.power(2, np.arange(self.kmax) - self.kmin)
+        ints = np.sum(sample.reshape((self.N, self.kmax)) * mantissa, axis=1)
+        out2030 = self.LB + (self.UB - self.LB) / self.maxk * ints
+        if (self.LB > out2030).any() or (self.UB < out2030).any():
+            raise ValueError("Bounds not obeyed.")
+
+        return out2030
+
+    def decode_sampleset(self, sampleset: SampleSet):
+        # Compute the 2030 portfolio
+        samples_matrix = sampleset.record.sample[: self.N * self.kmax]
+        samples_reshaped = samples_matrix.reshape((len(sampleset), self.N, self.kmax))
+        mantissa = np.power(2, np.arange(self.kmax) - self.kmin)
+        ints = np.sum(samples_reshaped * mantissa, axis=2)
+        out2030 = self.LB + (self.UB - self.LB) * ints / self.maxk
+
+        if (self.LB > out2030).any() or (self.UB < out2030).any():
+            raise ValueError("Bounds not obeyed.")
 
         return out2030
