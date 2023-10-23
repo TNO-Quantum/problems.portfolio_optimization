@@ -8,41 +8,24 @@ class QUBOFactory2(BaseQUBOFactory):
     def calc_maximize_ROC(self, capital_growth_factor: float):
         capital_target = capital_growth_factor * np.sum(self.capital)
 
-        qubo_diag = np.array(
-            [
-                (self.UB - self.LB)
-                * self.income
-                / (self.out2021 * self.maxk)
-                * 2 ** (k + self.kmin)
-                for k in range(self.kmax)
-            ]
-        ).flatten("F")
-        qubo = np.diag(qubo_diag / capital_target)
+        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = (self.UB - self.LB) * self.income / (self.out2021 * self.maxk)
+        qubo_diag = np.kron(multiplier, mantisse) / capital_target
+        qubo = np.diag(qubo_diag)
         offset = np.sum(self.LB * self.income / self.out2021) / capital_target
         return qubo, offset
 
     def calc_stabelize_c(self, capital_growth_factor: float):
         capital_target = capital_growth_factor * np.sum(self.capital)
         alpha = np.sum(self.capital * self.LB / self.out2021) - capital_target
-        beta = np.array(
-            [
-                self.capital
-                * (self.UB - self.LB)
-                / (self.maxk * self.out2021)
-                * 2 ** (k + self.kmin)
-                for k in range(self.kmax)
-            ]
-        ).T
 
-        qubo = np.zeros((self.n_vars, self.n_vars))
+        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = self.capital * (self.UB - self.LB) / (self.out2021 * self.maxk)
+        beta = np.kron(multiplier, mantisse)
+
+        qubo = np.triu(2 * np.outer(beta, beta), k=1)
+        np.fill_diagonal(qubo, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        for idx1 in range(self.N * self.kmax):
-            i, k = divmod(idx1, self.kmax)
-            qubo[idx1, idx1] = 2 * alpha * beta[i, k] + beta[i, k] ** 2
-            for idx2 in range(idx1 + 1, self.N * self.kmax):
-                j, l = divmod(idx2, self.kmax)
-                qubo[idx1, idx2] = 2 * beta[i, k] * beta[j, l]
-
         return qubo, offset
 
     def compile(self, capital_growth_factor):
