@@ -118,8 +118,8 @@ for counter1, counter2, counter3 in tqdm(
 
     norm1 = bigE * 0.70 * Out2030
     norm2 = 1.020 * norm1
-    x1_slice = res_emis < norm1
 
+    x1_slice = res_emis < norm1
     x1.extend(x[x1_slice])
     y1.extend(y[x1_slice])
 

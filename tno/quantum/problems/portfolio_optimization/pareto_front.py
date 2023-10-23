@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def pareto_front_v3(x3, y3):
     for j in range(len(x3)):
         if x3[j] <= 0 and y3[j] <= 0:
@@ -32,11 +35,12 @@ def coef(j, n):
 def pareto_front(x, y):
     ctr = len(x)
     n = 41
-    rb = [0 for _ in range(n)]
+    rb = np.zeros(n, dtype=np.int_)
 
+    coef = 0.25 * np.array([-(n // 2) + j for j in range(n)])
     for i in range(ctr):
         for j in range(n):
-            if x[i] + coef(j, n) * y[i] > x[rb[j]] + coef(j, n) * y[rb[j]]:
+            if x[i] - x[rb[j]] > x[rb[j]] + coef[j] * (y[rb[j]] - y[i]):
                 rb[j] = i
 
     u = []
