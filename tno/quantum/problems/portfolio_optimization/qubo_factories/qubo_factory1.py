@@ -9,40 +9,29 @@ from .base_qubo_factory import BaseQUBOFactory
 class QUBOFactory1(BaseQUBOFactory):
     def calc_maximize_ROC(self):
         Exp_avr_growth_fac = np.sum((self.UB + self.LB) / (2 * self.out2021))
-        qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.LB)
-        for i in range(self.N):
-            for k in range(self.kmax):
-                idx = i * self.kmax + k
-                qubo[idx, idx] += (
-                    (self.UB[i] - self.LB[i])
-                    * 2 ** (k + self.kmin)
-                    / self.maxk
-                    * self.income[i]
-                    / (self.capital[i] * self.out2021[i] * Exp_avr_growth_fac)
-                )
+        offset = np.sum(self.LB / (self.capital * self.out2021 * Exp_avr_growth_fac))
+        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = (
+            (self.UB - self.LB)
+            * self.income
+            / (self.maxk * self.capital * self.out2021 * Exp_avr_growth_fac)
+        )
+        qubo_diag = np.kron(multiplier, mantisse)
 
+        qubo = np.diag(qubo_diag)
         return qubo, offset
 
     def calc_growth_factor(self, Growth_target: float):
         out2021_tot = np.sum(self.out2021)
         alpha = np.sum(self.LB) / out2021_tot - Growth_target
-        beta = np.array(
-            [
-                (self.UB - self.LB) / (self.maxk * out2021_tot) * 2 ** (k + self.kmin)
-                for k in range(self.kmax)
-            ]
-        ).T
 
-        qubo = np.zeros((self.n_vars, self.n_vars))
+        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = (self.UB - self.LB) / (self.maxk * out2021_tot)
+        beta = np.kron(multiplier, mantisse)
+
+        qubo = np.triu(2 * np.outer(beta, beta), k=1)
+        np.fill_diagonal(qubo, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        for idx1 in range(self.N * self.kmax):
-            i, k = divmod(idx1, self.kmax)
-            qubo[idx1, idx1] = 2 * alpha * beta[i, k] + beta[i, k] ** 2
-            for idx2 in range(idx1 + 1, self.N * self.kmax):
-                j, l = divmod(idx2, self.kmax)
-                qubo[idx1, idx2] += 2 * beta[i, k] * beta[j, l]
-
         return qubo, offset
 
     def compile(self, Growth_target: Optional[float] = None):
