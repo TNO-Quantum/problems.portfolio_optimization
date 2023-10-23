@@ -112,9 +112,11 @@ for counter1, counter2, counter3, counter4 in tqdm(
     # Compute the 2030 HHI.
     HHI2030 = np.sum(out2030**2, axis=1) / Out2030**2
     # Compute the 2030 ROC
-    ROC = np.sum(out2030 * returns) / np.sum(out2030 * capital / out2021)
+    ROC = np.sum(out2030 * returns, axis=1) / np.sum(
+        out2030 * capital / out2021, axis=1
+    )
     # Compute the emissions from the resulting 2030 portfolio.
-    res_emis = 0.76 * np.sum(e * out2030)
+    res_emis = 0.76 * np.sum(e * out2030, axis=1)
     x = 100 * (1 - (HHI2030 / HHI2021))
     y = 100 * (ROC / ROC2021 - 1)
 
@@ -122,22 +124,16 @@ for counter1, counter2, counter3, counter4 in tqdm(
     norm2 = 1.020 * norm1
 
     x1_slice = res_emis < norm1
-    n_entries = np.count_nonzero(x1_slice)
-    if n_entries:
-        x1.extend(x[x1_slice])
-        y1.extend(np.full(n_entries, y))
+    x1.extend(x[x1_slice])
+    y1.extend(y[x1_slice])
 
     x2_slice = (res_emis >= norm1) & (res_emis < norm2)
-    n_entries = np.count_nonzero(x2_slice)
-    if n_entries:
-        x2.extend(x[x2_slice])
-        y2.extend(np.full(n_entries, y))
+    x2.extend(x[x2_slice])
+    y2.extend(y[x2_slice])
 
     x3_slice = res_emis >= norm2
-    n_entries = np.count_nonzero(x3_slice)
-    if n_entries:
-        x3.extend(x[x3_slice])
-        y3.extend(np.full(n_entries, y))
+    x3.extend(x[x3_slice])
+    y3.extend(y[x3_slice])
 
 print("Number of generated samples: ", len(x1), len(x2), len(x3))
 print("Time consumed:", datetime.now() - starttime)
