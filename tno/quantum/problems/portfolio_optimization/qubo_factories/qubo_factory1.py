@@ -10,53 +10,48 @@ from .base_qubo_factory import BaseQUBOFactory
 class QUBOFactory1(BaseQUBOFactory):
     def calc_maximize_ROC(self):
         Exp_avr_growth_fac = np.sum((self.UB + self.LB) / (2 * self.out2021))
-        maximize_ROC = Constraint(
-            sum(
-                (
-                    (
-                        self.LB[i]
-                        + (self.UB[i] - self.LB[i])
-                        * sum(
-                            2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                            for k in range(self.kmax)
-                        )
-                        / self.maxk
-                    )
+        qubo = np.zeros((len(self.var), len(self.var)))
+        offset = np.sum(self.LB)
+        for i in range(self.N):
+            for k in range(self.kmax):
+                idx = i * self.kmax + k
+                qubo[idx, idx] += (
+                    (self.UB[i] - self.LB[i])
+                    * 2 ** (k + self.kmin)
+                    / self.maxk
                     * self.income[i]
                     / (self.capital[i] * self.out2021[i] * Exp_avr_growth_fac)
                 )
-                for i in range(self.N)
-            ),
-            label="maximize_ROC",
-        )
-        return maximize_ROC
+
+        return qubo, offset
 
     def calc_growth_factor(self, Growth_target: float):
-        sumi = self._calc_sumi()
-        Out2021 = np.sum(self.out2021)
-        growth_factor = Constraint(
-            ((sumi / Out2021) - Growth_target) ** 2, label="growth_factor"
-        )
-        return growth_factor
+        out2021_tot = np.sum(self.out2021)
+        alpha = np.sum(self.LB) / out2021_tot - Growth_target
+        beta = np.array(
+            [
+                (self.UB - self.LB) / (self.maxk * out2021_tot) * 2 ** (k + self.kmin)
+                for k in range(self.kmax)
+            ]
+        ).T
+
+        qubo = np.zeros((len(self.var), len(self.var)))
+        offset = alpha**2
+        for idx1 in range(self.N * self.kmax):
+            i, k = divmod(idx1, self.kmax)
+            qubo[idx1, idx1] = 2 * alpha * beta[i, k] + beta[i, k] ** 2
+            for idx2 in range(idx1 + 1, self.N * self.kmax):
+                j, l = divmod(idx2, self.kmax)
+                qubo[idx1, idx2] += 2 * beta[i, k] * beta[j, l]
+
+        return qubo, offset
 
     def compile(self, Growth_target: Optional[float] = None):
-        minimize_HHI = self.calc_minimize_HHI()
-        maximize_ROC = self.calc_maximize_ROC()
-        emission = self.calc_emission()
-
-        # Variables to combine the objectives to optimize.
-        labda1 = Placeholder("labda1")
-        labda2 = Placeholder("labda2")
-        labda3 = Placeholder("labda3")
-
-        # Define Hamiltonian as a weighted sum of individual constraints
-        H = labda1 * minimize_HHI - labda2 * maximize_ROC + labda3 * emission
-
+        self.minimize_HHI, _ = self.calc_minimize_HHI()
+        self.maximize_ROC, _ = self.calc_maximize_ROC()
+        self.emission, _ = self.calc_emission()
         if Growth_target is not None:
-            growth_factor = self.calc_growth_factor(Growth_target)
-            labda4 = Placeholder("labda4")
-            H += labda4 * growth_factor
-        self.model = H.compile()
+            self.growth_factor, _ = self.calc_growth_factor(Growth_target)
 
     def make_qubo(
         self,
@@ -65,7 +60,11 @@ class QUBOFactory1(BaseQUBOFactory):
         labda3: float,
         labda4: Optional[float] = None,
     ):
-        feed_dict = {"labda1": labda1, "labda2": labda2, "labda3": labda3}
+        qubo = (
+            labda1 * self.minimize_HHI
+            - labda2 * self.maximize_ROC
+            + labda3 * self.emission
+        )
         if labda4 is not None:
-            feed_dict["labda4"] = labda4
-        return self.model.to_qubo(feed_dict=feed_dict)
+            qubo += labda4 * self.growth_factor
+        return qubo, float("nan")

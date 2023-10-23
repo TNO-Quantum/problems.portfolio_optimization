@@ -32,7 +32,7 @@ class Decoder:
         emis2021 = np.sum(e * out2021)
         self.bigE = emis2021 / np.sum(out2021)
 
-    def decode_sample(self, sample: Mapping[str, int]):
+    def decode_sample(self, sample: Mapping[int, int]):
         # Compute the 2030 portfolio
         out2030 = np.zeros(self.N)
         for i in range(self.N):
@@ -40,10 +40,7 @@ class Decoder:
                 self.LB[i]
                 + (self.UB[i] - self.LB[i])
                 * sum(
-                    (
-                        2 ** (k + self.kmin)
-                        * sample["vector[" + str(i * self.kmax + k) + "]"]
-                    )
+                    (2 ** (k + self.kmin) * sample[i * self.kmax + k])
                     for k in range(self.kmax)
                 )
                 / self.maxk

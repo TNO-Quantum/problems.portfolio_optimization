@@ -8,52 +8,29 @@ from .base_qubo_factory import BaseQUBOFactory
 class QUBOFactory4(BaseQUBOFactory):
     def calc_maximize_ROC(self):
         returns = self.income / self.out2021
-        maximize_ROC = Constraint(
-            sum(
-                (
-                    (
-                        self.LB[i]
-                        + (self.UB[i] - self.LB[i])
-                        * sum(
-                            2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                            for k in range(self.kmax)
-                        )
-                        / self.maxk
-                    )
-                    * returns[i]
-                )
-                for i in range(self.N)
-            )
-            / sum(
-                (
-                    ((self.LB[i] + self.UB[i]) / (2.0 * self.out2021[i]))
-                    * self.capital[i]
-                )
-                for i in range(self.N)
-            ),
-            label="maximize_ROC",
+        multiplier = 2 / (np.sum((self.LB + self.UB) * self.capital / self.out2021))
+        offset = np.sum(returns * self.LB) * multiplier
+        qubo_diag = (
+            np.array(
+                [
+                    returns * (self.UB - self.LB) / self.maxk * 2 ** (k + self.kmin)
+                    for k in range(self.kmax)
+                ]
+            ).flatten("F")
+            * multiplier
         )
+        qubo = np.diag(qubo_diag)
+        return qubo, offset
 
-        return maximize_ROC
-
-    def compile(self):
-        minimize_HHI = self.calc_minimize_HHI()
-        maximize_ROC = self.calc_maximize_ROC()
-        emission = self.calc_emission()
-
-        # Variables to combine the 3 HHI2030tives to optimize.
-        labda1 = Placeholder("labda1")
-        labda2 = Placeholder("labda2")
-        labda3 = Placeholder("labda3")
-
-        # Define Hamiltonian as a weighted sum of individual constraints
-        H = labda1 * minimize_HHI - labda2 * maximize_ROC + labda3 * emission
-        self.model = H.compile()
+    def compile(self) -> None:
+        self.minimize_HHI, _ = self.calc_minimize_HHI()
+        self.maximize_ROC, _ = self.calc_maximize_ROC()
+        self.emission, _ = self.calc_emission()
 
     def make_qubo(self, labda1: float, labda2: float, labda3: float):
-        feed_dict = {
-            "labda1": labda1,
-            "labda2": labda2,
-            "labda3": labda3,
-        }
-        return self.model.to_qubo(feed_dict=feed_dict)
+        qubo = (
+            labda1 * self.minimize_HHI
+            - labda2 * self.maximize_ROC
+            + labda3 * self.emission
+        )
+        return qubo, float("nan")

@@ -71,7 +71,7 @@ x1, y1 = [], []  # Emission target met
 x2, y2 = [], []  # Reduced emission
 x3, y3 = [], []  # Targets not met
 
-qubo_factory.compile()
+qubo_factory.compile(ancilla_qubits)
 
 # Quantum computing options
 eerste = True

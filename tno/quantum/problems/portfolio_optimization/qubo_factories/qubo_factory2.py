@@ -8,71 +8,55 @@ from .base_qubo_factory import BaseQUBOFactory
 class QUBOFactory2(BaseQUBOFactory):
     def calc_maximize_ROC(self, capital_growth_factor: float):
         capital_target = capital_growth_factor * np.sum(self.capital)
-        max_R = 0
-        for i in range(self.N):
-            max_R += (
-                self.income[i]
-                * (
-                    self.LB[i]
-                    + (self.UB[i] - self.LB[i])
-                    * sum(
-                        2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                        for k in range(self.kmax)
-                    )
-                    / self.maxk
-                )
-                / self.out2021[i]
-            )
-        maximize_R = Constraint(max_R / capital_target, label="maximize_R")
-        return maximize_R
+
+        qubo_diag = np.array(
+            [
+                (self.UB - self.LB)
+                * self.income
+                / (self.out2021 * self.maxk)
+                * 2 ** (k + self.kmin)
+                for k in range(self.kmax)
+            ]
+        ).flatten("F")
+        qubo = np.diag(qubo_diag / capital_target)
+        offset = np.sum(self.LB * self.income / self.out2021) / capital_target
+        return qubo, offset
 
     def calc_stabelize_c(self, capital_growth_factor: float):
         capital_target = capital_growth_factor * np.sum(self.capital)
-        reg_capital = 0
-        for i in range(self.N):
-            reg_capital += (
-                self.capital[i]
-                * (
-                    self.LB[i]
-                    + (self.UB[i] - self.LB[i])
-                    * sum(
-                        2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                        for k in range(self.kmax)
-                    )
-                    / self.maxk
-                )
-                / self.out2021[i]
-            )
-        reg_capital += -1 * capital_target
-        stabilize_C = Constraint(reg_capital**2, label="stabilize_C")
-        return stabilize_C
+        alpha = np.sum(self.capital * self.LB / self.out2021) - capital_target
+        beta = np.array(
+            [
+                self.capital
+                * (self.UB - self.LB)
+                / (self.maxk * self.out2021)
+                * 2 ** (k + self.kmin)
+                for k in range(self.kmax)
+            ]
+        ).T
+
+        qubo = np.zeros((len(self.var), len(self.var)))
+        offset = alpha**2
+        for idx1 in range(self.N * self.kmax):
+            i, k = divmod(idx1, self.kmax)
+            qubo[idx1, idx1] = 2 * alpha * beta[i, k] + beta[i, k] ** 2
+            for idx2 in range(idx1 + 1, self.N * self.kmax):
+                j, l = divmod(idx2, self.kmax)
+                qubo[idx1, idx2] = 2 * beta[i, k] * beta[j, l]
+
+        return qubo, offset
 
     def compile(self, capital_growth_factor):
-        minimize_HHI = self.calc_minimize_HHI()
-        stabilize_C = self.calc_stabelize_c(capital_growth_factor)
-        maximize_R = self.calc_maximize_ROC(capital_growth_factor)
-        emission = self.calc_emission()
-
-        # Variables to combine the 4 objectives to optimize.
-        labda1 = Placeholder("labda1")
-        labda2 = Placeholder("labda2")
-        labda3 = Placeholder("labda3")
-        labda4 = Placeholder("labda4")
-
-        # Define Hamiltonian as a weighted sum of individual constraints
-        H = (
-            labda1 * minimize_HHI
-            - labda2 * maximize_R
-            + labda4 * stabilize_C
-            + labda3 * emission
-        )
-        self.model = H.compile()
+        self.minimize_HHI, _ = self.calc_minimize_HHI()
+        self.maximize_ROC, _ = self.calc_maximize_ROC(capital_growth_factor)
+        self.emission, _ = self.calc_emission()
+        self.stabilize_C, _ = self.calc_stabelize_c(capital_growth_factor)
 
     def make_qubo(self, labda1: float, labda2: float, labda3: float, labda4: float):
-        feed_dict = {
-            "labda1": labda1,
-            "labda2": labda2,
-            "labda3": labda3,
-            "labda4": labda4,
-        }
-        return self.model.to_qubo(feed_dict=feed_dict)
+        qubo = (
+            labda1 * self.minimize_HHI
+            - labda2 * self.maximize_ROC
+            + labda3 * self.emission
+            + labda4 * self.stabilize_C
+        )
+        return qubo, float("nan")

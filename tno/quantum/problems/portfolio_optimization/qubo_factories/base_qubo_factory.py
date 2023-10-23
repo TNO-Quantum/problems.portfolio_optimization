@@ -34,43 +34,24 @@ class BaseQUBOFactory(ABC):
         self.kmax = kmax
         self.maxk = maxk
 
-    def _calc_sumi(self):
-        sumi = 0
-        for i in range(self.N):
-            sumi += (
-                self.LB[i]
-                + (self.UB[i] - self.LB[i])
-                * sum(
-                    2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                    for k in range(self.kmax)
-                )
-                / self.maxk
-            )
-
-        return sumi
-
     def calc_minimize_HHI(self):
-        Correctiefactor = 1.00
-        Exp_total_out2030 = Correctiefactor * np.sum((self.UB + self.LB)) / 2
+        Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2
 
-        minimize_HHI = Constraint(
-            sum(
-                (
-                    self.LB[i]
-                    + (self.UB[i] - self.LB[i])
-                    * sum(
-                        2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                        for k in range(self.kmax)
-                    )
-                    / self.maxk
-                )
-                ** 2
-                for i in range(self.N)
-            )
-            / (Exp_total_out2030**2),
-            label="minimize_HHI",
-        )
-        return minimize_HHI
+        qubo = np.zeros((len(self.var), len(self.var)))
+        offset = np.sum(self.LB**2) / Exp_total_out2030**2
+        for i in range(self.N):
+            multiplier = (self.UB[i] - self.LB[i]) / self.maxk
+            for k in range(self.kmax):
+                idx_1 = i * self.kmax + k
+                value_1 = multiplier * 2 ** (k + self.kmin)
+                qubo[idx_1, idx_1] = value_1 * (value_1 + 2 * self.LB[i])
+                for l in range(k + 1, self.kmax):
+                    idx_2 = i * self.kmax + l
+                    value_2 = multiplier * 2 ** (l + self.kmin)
+                    qubo[idx_1, idx_2] = 2 * value_1 * value_2
+
+        qubo = qubo / Exp_total_out2030**2
+        return qubo, offset
 
     @abstractmethod
     def calc_maximize_ROC(self):
@@ -79,24 +60,22 @@ class BaseQUBOFactory(ABC):
     def calc_emission(self):
         emis2021 = np.sum(self.e * self.out2021)
         bigE = emis2021 / np.sum(self.out2021)
-        sumi = self._calc_sumi()
 
-        emission_model = 0
-        for i in range(self.N):
-            emission_model += (
-                0.76
-                * self.e[i]
-                * (
-                    self.LB[i]
-                    + (self.UB[i] - self.LB[i])
-                    * sum(
-                        2 ** (k + self.kmin) * self.var[i * self.kmax + k]
-                        for k in range(self.kmax)
-                    )
-                    / self.maxk
-                )
-                / emis2021
-            )
-        emission_model += (-0.7 * bigE * sumi) / emis2021
-        emission = Constraint(emission_model**2, label="minimize_emission")
-        return emission
+        alpha = (0.76 * self.e - 0.7 * bigE) * self.LB
+        tmp = (0.76 * self.e - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
+        beta = np.array([tmp * 2 ** (k + self.kmin) for k in range(self.kmax)]).T
+
+        qubo = np.zeros((len(self.var), len(self.var)))
+
+        alpha_tot = np.sum(alpha)
+        offset = alpha_tot**2 / emis2021**2
+        for idx1 in range(self.N * self.kmax):
+            i, k = divmod(idx1, self.kmax)
+            qubo[idx1, idx1] += 2 * alpha_tot * beta[i, k] + beta[i, k] ** 2
+            for idx2 in range(idx1 + 1, self.N * self.kmax):
+                j, l = divmod(idx2, self.kmax)
+                qubo[idx1, idx2] += 2 * beta[i, k] * beta[j, l]
+
+        qubo = qubo / emis2021**2
+
+        return qubo, offset
