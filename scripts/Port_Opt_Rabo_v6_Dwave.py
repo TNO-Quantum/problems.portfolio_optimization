@@ -1,5 +1,5 @@
-import datetime
 import itertools
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,7 +77,7 @@ e1 = {
     for i in range(steps1)
 }
 decoder = Decoder(portfolio_data=df, kmin=kmin, kmax=kmax)
-starttime = datetime.datetime.now()
+starttime = datetime.now()
 
 # Choose sampler and solve qubo. This is the actual optimization with either a DWave
 # system or a simulated annealer.
@@ -140,7 +140,7 @@ for counter1, counter2, counter3, counter4 in tqdm(
             res_ctr3 += 1
 
 print("Number of generated samples: ", len(x1), res_ctr2, res_ctr3)
-print("Time consumed:", datetime.datetime.now() - starttime)
+print("Time consumed:", datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.
 # x/y_rabo1 corresponds to a front optimized including the emission target.
@@ -191,16 +191,16 @@ plt.grid()
 # Name to save the figure under.
 name = (
     "figures/Port_Opt_Rabo_v6_Dwave_points_"
-    + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
+    + datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
     + ".png"
 )
 # plt.savefig(name)
 print(name)
 plt.show()
 """
-starttime = datetime.datetime.now()
+starttime = datetime.now()
 x1, y1 = pareto_front(x1,y1)
-print("Time consumed:", datetime.datetime.now()-starttime)
+print("Time consumed:", datetime.now()-starttime)
 
 #Make a plot of the results.
 fig, ax = plt.subplots()
@@ -213,7 +213,7 @@ ax.set_xlabel('Diversification')
 ax.set_ylabel('ROC')
 plt.grid()
 #Name to save the figure under.
-name = "figures/Port_Opt_Rabo_v6_Dwave_front_"+datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f") +".png"
+name = "figures/Port_Opt_Rabo_v6_Dwave_front_"+datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f") +".png"
 plt.savefig(name)
 print(name)
 #plt.show()

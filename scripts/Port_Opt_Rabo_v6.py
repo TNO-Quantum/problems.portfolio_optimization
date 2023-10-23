@@ -1,5 +1,5 @@
-import datetime
 import itertools
+from datetime import datetime
 
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
@@ -69,7 +69,7 @@ steps3 = 1
 steps4 = 12
 
 print("Status: calculating")
-starttime = datetime.datetime.now()
+starttime = datetime.now()
 decoder = Decoder(portfolio_data=df, kmin=kmin, kmax=kmax)
 
 # Choose sampler and solve qubo. This is the actual optimization with either a DWave
@@ -140,7 +140,7 @@ for counter1, counter2, counter3, counter4 in tqdm(
         y3.extend(np.full(n_entries, y))
 
 print("Number of generated samples: ", len(x1), len(x2), len(x3))
-print("Time consumed:", datetime.datetime.now() - starttime)
+print("Time consumed:", datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.
 # x/y_rabo1 corresponds to a front optimized including the emission target.
@@ -164,11 +164,8 @@ fig = plot_points(
     y_rabo2,
 )
 # Name to save the figure under.
-name = (
-    "figures/Port_Opt_Rabo_v6_points_"
-    + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
-    + ".png"
-)
+string_format = r"%Y-%m-%d %H_%M_%S.%f"
+name = f"figures/Port_Opt_Rabo_v6_points_{datetime.now().strftime(string_format)}.png"
 fig.savefig(name)
 print(name)
 
@@ -188,10 +185,6 @@ fig = plot_front(
     y_rabo2,
 )
 # Name to save the figure under.
-name = (
-    "figures/Port_Opt_Rabo_v6_front_"
-    + datetime.datetime.now().strftime("%Y-%m-%d %H_%M_%S.%f")
-    + ".png"
-)
+name = f"figures/Port_Opt_Rabo_v6_front_{datetime.now().strftime(string_format)}.png"
 fig.savefig(name)
 print(name)
