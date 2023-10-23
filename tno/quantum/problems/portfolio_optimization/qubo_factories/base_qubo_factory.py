@@ -4,13 +4,12 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from numpy.typing import NDArray
-from pyqubo import Array, Constraint
 
 
 class BaseQUBOFactory(ABC):
     def __init__(
         self,
-        var: Array,
+        n_vars: int,
         N: int,
         out2021: NDArray[np.float_],
         LB: NDArray[np.float_],
@@ -22,7 +21,7 @@ class BaseQUBOFactory(ABC):
         kmax: int,
         maxk: int,
     ) -> None:
-        self.var = var
+        self.n_vars = n_vars
         self.N = N
         self.out2021 = out2021
         self.LB = LB
@@ -37,7 +36,7 @@ class BaseQUBOFactory(ABC):
     def calc_minimize_HHI(self):
         Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2
 
-        qubo = np.zeros((len(self.var), len(self.var)))
+        qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.LB**2) / Exp_total_out2030**2
         for i in range(self.N):
             multiplier = (self.UB[i] - self.LB[i]) / self.maxk
@@ -65,7 +64,7 @@ class BaseQUBOFactory(ABC):
         tmp = (0.76 * self.e - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
         beta = np.array([tmp * 2 ** (k + self.kmin) for k in range(self.kmax)]).T
 
-        qubo = np.zeros((len(self.var), len(self.var)))
+        qubo = np.zeros((self.n_vars, self.n_vars))
 
         alpha_tot = np.sum(alpha)
         offset = alpha_tot**2 / emis2021**2

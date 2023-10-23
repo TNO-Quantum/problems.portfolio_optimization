@@ -23,7 +23,7 @@ class QUBOFactory3(BaseQUBOFactory):
             [(2 ** (-l - 1)) * (-1 + (2 ** (-l - 1))) for l in range(ancilla_qubits)]
         )
 
-        qubo = np.zeros((len(self.var), len(self.var)))
+        qubo = np.zeros((self.n_vars, self.n_vars))
         offset = alpha / capital2021
         for idx1 in range(self.N * self.kmax):
             i, k = divmod(idx1, self.kmax)
@@ -57,7 +57,7 @@ class QUBOFactory3(BaseQUBOFactory):
             self.capital
         )
 
-        qubo = np.zeros((len(self.var), len(self.var)))
+        qubo = np.zeros((self.n_vars, self.n_vars))
         offset = alpha**2
         for idx1 in range(self.N * self.kmax):
             i, k = divmod(idx1, self.kmax)

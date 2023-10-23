@@ -6,7 +6,6 @@ from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
-from pyqubo import Array
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.io import (
@@ -50,12 +49,11 @@ print("Growth target:", round(100.0 * (Growth_target - 1), 1), "%")
 print("Status: creating model")
 # Initialize variable vector of the required size
 size_of_variable_array = N * kmax
-var = Array.create("vector", size_of_variable_array, "BINARY")
 
 # Defining constraints/HHI2030tives in the model
 # HHI
 qubo_factory = QUBOFactory1(
-    var=var,
+    n_vars=size_of_variable_array,
     N=N,
     out2021=out2021,
     LB=LB,

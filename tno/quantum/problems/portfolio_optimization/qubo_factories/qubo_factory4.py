@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.typing import NDArray
-from pyqubo import Constraint, Placeholder
 
 from .base_qubo_factory import BaseQUBOFactory
 

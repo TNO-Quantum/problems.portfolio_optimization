@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.typing import NDArray
-from pyqubo import Constraint, Placeholder
 
 from .base_qubo_factory import BaseQUBOFactory
 
@@ -35,7 +34,7 @@ class QUBOFactory2(BaseQUBOFactory):
             ]
         ).T
 
-        qubo = np.zeros((len(self.var), len(self.var)))
+        qubo = np.zeros((self.n_vars, self.n_vars))
         offset = alpha**2
         for idx1 in range(self.N * self.kmax):
             i, k = divmod(idx1, self.kmax)
