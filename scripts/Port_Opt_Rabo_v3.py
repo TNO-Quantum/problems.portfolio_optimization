@@ -64,6 +64,11 @@ qubo_factory = QUBOFactory1(
 x1, y1 = [], []  # Emission target met
 x2, y2 = [], []  # Reduced emission
 x3, y3 = [], []  # Targets not met
+
+x1n, y1n = [], []  # Emission target met
+x2n, y2n = [], []  # Reduced emission
+x3n, y3n = [], []  # Targets not met
+
 qubo_factory.compile()
 
 # Quantum computing options
@@ -119,38 +124,40 @@ for counter1, counter2, counter3 in tqdm(
         sampler = SimulatedAnnealingSampler()
         response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
 
-    # Postprocess solution.Iterate over all found solutions.
-    decoded_samples = decoder.decode_sampleset(response)
+    # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
+    out2030 = decoder.decode_sampleset(response)
 
-    for out2030 in decoded_samples:
-        Out2030 = np.sum(out2030)
+    Out2030 = np.sum(out2030, axis=1)
+    # Compute the 2030 HHI.
+    HHI2030 = (out2030.T**2 / Out2030).T
+    # Compute the 2030 ROC
+    ROC = np.sum(out2030 * returns) / np.sum(out2030 * capital / out2021)
+    # Compute the emissions from the resulting 2030 portfolio.
+    res_emis = 0.76 * np.sum(e * out2030)
+    x = 100 * (1 - (HHI2030 / HHI2021))
+    y = 100 * (ROC / ROC2021 - 1)
 
-        # Compute the 2030 HHI.
-        HHI2030 = 0
-        for i in range(N):
-            HHI2030 += out2030[i] ** 2
-        HHI2030 = HHI2030 / (Out2030**2)
-        # Compute the 2030 ROC
-        ROC = sum(out2030[i] * returns[i] for i in range(N)) / sum(
-            out2030[i] * capital[i] / out2021[i] for i in range(N)
-        )
+    norm1 = bigE * 0.70 * Out2030
+    norm2 = 1.020 * norm1
 
-        # Compute the emissions from the resulting 2030 portfolio.
-        res_emis = 0
-        res_emis = 0.76 * sum(e[i] * out2030[i] for i in range(N))
-        norm1 = bigE * 0.70 * Out2030  # Out2021
-        norm2 = 1.020 * norm1
+    x1_slice = res_emis < norm1
+    n_entries = np.count_nonzero(x1_slice)
+    if n_entries:
+        x1.extend(x[x1_slice])
+        y1.extend(np.full(n_entries, y))
 
-        # Compare the emission with norm1 and norm 2 and store the results accordingly.
-        if res_emis < norm1:
-            x1.append(100 * (1 - (HHI2030 / HHI2021)))
-            y1.append(100 * (ROC / ROC2021 - 1))
-        elif res_emis < norm2:
-            x2.append(100 * (1 - (HHI2030 / HHI2021)))
-            y2.append(100 * (ROC / ROC2021 - 1))
-        else:
-            x3.append(100 * (1 - (HHI2030 / HHI2021)))
-            y3.append(100 * (ROC / ROC2021 - 1))
+    x2_slice = (res_emis >= norm1) & (res_emis < norm2)
+    n_entries = np.count_nonzero(x2_slice)
+    if n_entries:
+        x2.extend(x[x2_slice])
+        y2.extend(np.full(n_entries, y))
+
+    x3_slice = res_emis >= norm2
+    n_entries = np.count_nonzero(x3_slice)
+    if n_entries:
+        x3.extend(x[x3_slice])
+        y3.extend(np.full(n_entries, y))
+
 
 print("Number of generated samples: ", len(x1), len(x2), len(x3))
 print("Time consumed:", datetime.datetime.now() - starttime)

@@ -142,19 +142,12 @@ for counter1, counter2, counter3, counter4 in tqdm(
         dummy_ctr += 1
         # Compute the 2030 portfolio
         out2030 = decoder.decode_sample(sample)
-        Out2030 = sum(out2030[i] for i in range(N))
-        # Compute the 2030 HHI.
-        HHI2030 = 0
-        for i in range(N):
-            HHI2030 += out2030[i] ** 2
-        HHI2030 = HHI2030 / (Out2030**2)
+        Out2030 = np.sum(out2030)
+        HHI2030 = out2030**2 / Out2030
         # Compute the 2030 ROC
-        ROC = sum(out2030[i] * returns[i] for i in range(N)) / sum(
-            out2030[i] * capital[i] / out2021[i] for i in range(N)
-        )
+        ROC = np.sum(out2030 * returns) / np.sum(out2030 * capital / out2021)
         # Compute the emissions from the resulting 2030 portfolio.
-        res_emis = 0
-        res_emis = 0.76 * sum(e[i] * out2030[i] for i in range(N))
+        res_emis = 0.76 * np.sum(e * out2030)
         norm1 = bigE * 0.70 * Out2030  # Out2021
         norm2 = 1.020 * norm1
 

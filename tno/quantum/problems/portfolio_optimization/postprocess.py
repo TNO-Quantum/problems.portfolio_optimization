@@ -48,7 +48,7 @@ class Decoder:
 
     def decode_sampleset(self, sampleset: SampleSet):
         # Compute the 2030 portfolio
-        samples_matrix = sampleset.record.sample[: self.N * self.kmax]
+        samples_matrix = sampleset.record.sample[:, : self.N * self.kmax]
         samples_reshaped = samples_matrix.reshape((len(sampleset), self.N, self.kmax))
         mantissa = np.power(2, np.arange(self.kmax) - self.kmin)
         ints = np.sum(samples_reshaped * mantissa, axis=2)

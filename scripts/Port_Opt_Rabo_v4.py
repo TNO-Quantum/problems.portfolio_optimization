@@ -131,39 +131,41 @@ for counter1, counter2, counter3, counter4 in tqdm(
         response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
 
     # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
-    decoded_samples = decoder.decode_sampleset(response)
+    out2030 = decoder.decode_sampleset(response)
 
-    for out2030 in decoded_samples:
-        Out2030 = np.sum(out2030)
-        # Compute the 2030 HHI.
-        HHI2030 = 0
-        for i in range(N):
-            HHI2030 += out2030[i] ** 2
-        HHI2030 = HHI2030 / (Out2030**2)
-        # Compute the 2030 ROC
-        ROC = sum(out2030[i] * returns[i] for i in range(N)) / sum(
-            out2030[i] * capital[i] / out2021[i] for i in range(N)
-        )
-        # Compute the emissions from the resulting 2030 portfolio.
-        res_emis = 0
-        res_emis = 0.76 * sum(e[i] * out2030[i] for i in range(N))
-        norm1 = bigE * 0.70 * Out2030  # Out2021
-        norm2 = 1.020 * norm1
+    Out2030 = np.sum(out2030, axis=1)
+    # Compute the 2030 HHI.
+    HHI2030 = (out2030.T**2 / Out2030).T
+    # Compute the 2030 ROC
+    ROC = np.sum(out2030 * returns) / np.sum(out2030 * capital / out2021)
+    # Compute the emissions from the resulting 2030 portfolio.
+    res_emis = 0.76 * np.sum(e * out2030)
+    x = 100 * (1 - (HHI2030 / HHI2021))
+    y = 100 * (ROC / ROC2021 - 1)
 
-        Realized_growth = Out2030 / Out2021
+    norm1 = bigE * 0.70 * Out2030
+    Realized_growth = Out2030 / Out2021
 
-        # Compare the emission with norm1 and norm 2 and store the results accordingly.
-        if res_emis < norm1:
-            if Realized_growth > Growth_target:
-                x1.append(100 * (1 - (HHI2030 / HHI2021)))
-                y1.append(100 * (ROC / ROC2021 - 1))
-                parameters.append([counter1, counter2, counter4].copy())
-            elif Realized_growth > 0.98 * Growth_target:
-                x2.append(100 * (1 - (HHI2030 / HHI2021)))
-                y2.append(100 * (ROC / ROC2021 - 1))
-            else:
-                x3.append(100 * (1 - (HHI2030 / HHI2021)))
-                y3.append(100 * (ROC / ROC2021 - 1))
+    x1_slice = Realized_growth > Growth_target
+    n_entries = np.count_nonzero(x1_slice)
+    if n_entries:
+        x1.extend(x[x1_slice])
+        y1.extend(np.full(n_entries, y))
+
+    x2_slice = (Realized_growth <= Growth_target) & (
+        Realized_growth > 0.98 * Growth_target
+    )
+    n_entries = np.count_nonzero(x2_slice)
+    if n_entries:
+        x2.extend(x[x2_slice])
+        y2.extend(np.full(n_entries, y))
+
+    x3_slice = Realized_growth <= 0.98 * Growth_target
+    n_entries = np.count_nonzero(x3_slice)
+    if n_entries:
+        x3.extend(x[x3_slice])
+        y3.extend(np.full(n_entries, y))
+
 
 print("Number of generated samples: ", len(x1), len(x2), len(x3))
 print("Time consumed:", datetime.datetime.now() - starttime)
