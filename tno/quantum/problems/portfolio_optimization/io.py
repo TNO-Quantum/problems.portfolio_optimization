@@ -26,7 +26,7 @@ def read_portfolio_data(filename: str):
     e = (e / 100).astype(float)
     income = income.to_numpy()
     capital = capital.to_numpy()
-    return out2021, LB, UB, e, income, capital
+    return out2021, LB, UB, e, income, capital, r
 
 
 def get_rabo_fronts() -> tuple[list[float], list[float], list[float], list[float]]:

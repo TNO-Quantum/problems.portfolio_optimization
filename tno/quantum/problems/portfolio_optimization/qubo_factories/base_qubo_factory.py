@@ -4,34 +4,28 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from numpy.typing import NDArray
+from pandas import DataFrame
 
 
 class BaseQUBOFactory(ABC):
     def __init__(
         self,
+        portfolio_data: DataFrame,
         n_vars: int,
-        N: int,
-        out2021: NDArray[np.float_],
-        LB: NDArray[np.float_],
-        UB: NDArray[np.float_],
-        e: NDArray[np.float_],
-        income: NDArray[np.float_],
-        capital: NDArray[np.float_],
         kmin: int,
         kmax: int,
-        maxk: int,
     ) -> None:
         self.n_vars = n_vars
-        self.N = N
-        self.out2021 = out2021
-        self.LB = LB
-        self.UB = UB
-        self.e = e
-        self.income = income
-        self.capital = capital
+        self.N = len(portfolio_data)
+        self.out2021 = portfolio_data["out_2021"].to_numpy()
+        self.LB = portfolio_data["out_2030_min"].to_numpy()
+        self.UB = portfolio_data["out_2030_max"].to_numpy()
+        self.e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
+        self.income = portfolio_data["income_2021"].to_numpy()
+        self.capital = portfolio_data["regcap_2021"].to_numpy()
         self.kmin = kmin
         self.kmax = kmax
-        self.maxk = maxk
+        self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
 
     def calc_minimize_HHI(self):
         Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2

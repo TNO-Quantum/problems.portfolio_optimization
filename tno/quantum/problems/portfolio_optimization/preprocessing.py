@@ -1,15 +1,15 @@
 import numpy as np
-from numpy.typing import NDArray
+from pandas import DataFrame
 
 
-def print_info(
-    out2021: NDArray[np.float_],
-    LB: NDArray[np.float_],
-    UB: NDArray[np.float_],
-    e: NDArray[np.float_],
-    income: NDArray[np.float_],
-    capital: NDArray[np.float_],
-) -> None:
+def print_info(portfolio_data: DataFrame) -> None:
+    out2021 = portfolio_data["out_2021"].to_numpy()
+    LB = portfolio_data["out_2030_min"].to_numpy()
+    UB = portfolio_data["out_2030_max"].to_numpy()
+    e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
+    income = portfolio_data["income_2021"].to_numpy()
+    capital = portfolio_data["regcap_2021"].to_numpy()
+
     # Calculate the total outstanding amount in 2021
     Out2021 = np.sum(out2021)
     print(f"Total outstanding 2021: {Out2021}")

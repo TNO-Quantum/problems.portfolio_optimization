@@ -26,19 +26,16 @@ N = 52
 # Define the precision of the portfolio sizes.
 kmax = 2  # 2 #number of values
 kmin = 0  # minimal value 2**kmin
-maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
 
-out2021, LB, UB, e, income, capital = read_portfolio_data("rabodata.xlsx")
+out2021, _, _, e, income, capital, df = read_portfolio_data("rabodata.xlsx")
 
 # Compute the returns per outstanding amount in 2021.
 returns = income / out2021
 
-print_info(out2021, LB, UB, e, income, capital)
-Out2021 = np.sum(out2021)
+print_info(df)
 ROC2021 = np.sum(income) / np.sum(capital)
 HHI2021 = np.sum(out2021**2) / np.sum(out2021) ** 2
-emis2021 = np.sum(e * out2021)
-bigE = emis2021 / Out2021
+bigE = np.sum(e * out2021) / np.sum(out2021)
 
 # Creating the actual model to optimize using the annealer.
 print("Status: creating model")
@@ -48,17 +45,7 @@ size_of_variable_array = N * kmax
 # Defining constraints/HHI2030tives in the model
 # HHI
 qubo_factory = QUBOFactory1(
-    n_vars=size_of_variable_array,
-    N=N,
-    out2021=out2021,
-    LB=LB,
-    UB=UB,
-    e=e,
-    income=income,
-    capital=capital,
-    kmin=kmin,
-    kmax=kmax,
-    maxk=maxk,
+    portfolio_data=df, n_vars=size_of_variable_array, kmin=kmin, kmax=kmax
 )
 # These are the variables to store 3 kinds of results.
 x1, y1 = [], []  # Emission target met
@@ -72,7 +59,6 @@ x3n, y3n = [], []  # Targets not met
 qubo_factory.compile()
 
 # Quantum computing options
-eerste = True
 useQPU = False  # true = QPU, false = SA
 Option1 = False
 
@@ -83,18 +69,25 @@ steps3 = 1
 
 print("Status: calculating")
 starttime = datetime.datetime.now()
-decoder = Decoder(
-    N=N,
-    out2021=out2021,
-    LB=LB,
-    UB=UB,
-    e=e,
-    income=income,
-    capital=capital,
-    kmin=kmin,
-    kmax=kmax,
-    maxk=maxk,
-)
+decoder = Decoder(portfolio_data=df, kmin=kmin, kmax=kmax)
+
+# Choose sampler and solve qubo. This is the actual optimization with either a DWave
+# system or a simulated annealer.
+if useQPU and Option1:
+    sampler = LeapHybridSampler()
+    sampler_kwargs = {}
+elif useQPU:
+    qubo, _ = qubo_factory.make_qubo(1, 1, 1)
+    solver = DWaveSampler()
+    __, target_edgelist, target_adjacency = solver.structure
+    emb = find_embedding(qubo, target_edgelist, verbose=1)
+    sampler = FixedEmbeddingComposite(solver, emb)
+    sampler_kwargs = {"num_reads": 20}
+else:
+    sampler = SimulatedAnnealingSampler()
+    sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
+
+
 for counter1, counter2, counter3 in tqdm(
     itertools.product(range(steps1), range(steps2), range(steps3)),
     total=steps1 * steps2 * steps3,
@@ -108,38 +101,24 @@ for counter1, counter2, counter3 in tqdm(
     # Compile the model and generate QUBO
     qubo, offset = qubo_factory.make_qubo(A, C, P)
 
-    # Choose sampler and solve qubo. This is the actual optimization with either a DWave system or a simulated annealer.
-    if useQPU and Option1:
-        sampler = LeapHybridSampler()
-        response = sampler.sample_qubo(qubo)
-    elif useQPU:
-        if eerste:
-            solver = DWaveSampler()
-            __, target_edgelist, target_adjacency = solver.structure
-            emb = find_embedding(qubo, target_edgelist, verbose=1)
-            eerste = False
-        sampler = FixedEmbeddingComposite(solver, emb)
-        response = sampler.sample_qubo(qubo, num_reads=20)
-    else:
-        sampler = SimulatedAnnealingSampler()
-        response = sampler.sample_qubo(qubo, num_sweeps=200, num_reads=20)
+    # Solve the QUBO
+    response = sampler.sample_qubo(qubo, **sampler_kwargs)
 
     # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
     out2030 = decoder.decode_sampleset(response)
 
     Out2030 = np.sum(out2030, axis=1)
     # Compute the 2030 HHI.
-    HHI2030 = (out2030.T**2 / Out2030).T
+    HHI2030 = np.sum(out2030**2, axis=1) / Out2030**2
     # Compute the 2030 ROC
     ROC = np.sum(out2030 * returns) / np.sum(out2030 * capital / out2021)
     # Compute the emissions from the resulting 2030 portfolio.
-    res_emis = 0.76 * np.sum(e * out2030)
+    res_emis = 0.76 * np.sum(e * out2030, axis=1)
     x = 100 * (1 - (HHI2030 / HHI2021))
     y = 100 * (ROC / ROC2021 - 1)
 
     norm1 = bigE * 0.70 * Out2030
     norm2 = 1.020 * norm1
-
     x1_slice = res_emis < norm1
     n_entries = np.count_nonzero(x1_slice)
     if n_entries:
@@ -157,6 +136,7 @@ for counter1, counter2, counter3 in tqdm(
     if n_entries:
         x3.extend(x[x3_slice])
         y3.extend(np.full(n_entries, y))
+    breakpoint()
 
 
 print("Number of generated samples: ", len(x1), len(x2), len(x3))
