@@ -84,18 +84,16 @@ else:
     sampler = SimulatedAnnealingSampler()
     sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
-for counter1, counter2, counter3 in tqdm(
-    itertools.product(range(steps1), range(steps2), range(steps3)),
-    total=steps1 * steps2 * steps3,
-):
+# Set up penalty coefficients for the constraints
+labdas1 = np.logspace(-17, 2, steps1, endpoint=False, base=10.0)
+labdas2 = np.logspace(-17, -2, steps2, endpoint=False, base=10.0)
+labdas3 = np.array([1])
+total_steps = steps1 * steps2 * steps3
+labdas_iterator = tqdm(itertools.product(labdas1, labdas2, labdas3), total=total_steps)
 
-    # Set up penalty coefficients for the constraints
-    A = 10 ** (-17.0 + (18.0 / steps1) * counter1)
-    C = 10 ** (-17.0 + (18.0 / steps2) * counter2)
-    P = 1
-
+for labdas in labdas_iterator:
     # Compile the model and generate QUBO
-    qubo, offset = qubo_factory.make_qubo(A, C, P)
+    qubo, offset = qubo_factory.make_qubo(*labdas)
 
     response = sampler.sample_qubo(qubo, **sampler_kwargs)
 
