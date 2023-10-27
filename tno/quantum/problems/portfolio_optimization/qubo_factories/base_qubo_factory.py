@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import Optional, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -52,6 +52,12 @@ class BaseQUBOFactory(ABC):
 
     @abstractmethod
     def compile(self: BaseQUBOFactoryT) -> BaseQUBOFactoryT:
+        ...
+
+    @abstractmethod
+    def make_qubo(
+        self, labda1: float, labda2: float, labda3: float, labda4: Optional[float]
+    ) -> tuple[NDArray[np.float_], float]:
         ...
 
     def calc_emission(self):

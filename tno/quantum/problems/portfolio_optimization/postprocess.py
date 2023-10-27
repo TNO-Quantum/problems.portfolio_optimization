@@ -5,6 +5,8 @@ from dimod import SampleSet
 from numpy.typing import NDArray
 from pandas import DataFrame
 
+from tno.quantum.problems.portfolio_optimization.qubo_factories import BaseQUBOFactory
+
 
 class Decoder:
     def __init__(
@@ -20,8 +22,8 @@ class Decoder:
         self.mantissa = np.power(2, np.arange(kmax) - kmin)
 
         self.LB = portfolio_data["out_2030_min"].to_numpy()
-        UB = portfolio_data["out_2030_max"].to_numpy()
-        self.multiplier = (UB - self.LB) / maxk
+        self.UB = portfolio_data["out_2030_max"].to_numpy()
+        self.multiplier = (self.UB - self.LB) / maxk
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
         # Compute the 2030 portfolio

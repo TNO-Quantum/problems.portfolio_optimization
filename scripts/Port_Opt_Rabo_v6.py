@@ -6,10 +6,12 @@ from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
-from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
+from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
+    PortfolioOptimizer,
+)
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory3
@@ -70,20 +72,20 @@ labdas1 = np.logspace(-4.25, -1.75, steps1, endpoint=False, base=10.0)
 labdas2 = np.logspace(-4, -2.5, steps2, endpoint=False, base=10.0)
 labdas3 = np.array([1])
 labdas4 = np.logspace(-11, -9.5, steps4, endpoint=False, base=10.0)
-total_steps = steps1 * steps2 * steps3 * steps4
-labdas_iterator = tqdm(
-    itertools.product(labdas1, labdas2, labdas3, labdas4), total=total_steps
+
+
+portfolio_optimizer = PortfolioOptimizer(
+    qubo_factory,
+    sampler,
+    sampler_kwargs,
+    decoder,
+    results,
+    labdas1,
+    labdas2,
+    labdas3,
+    labdas4,
 )
-
-for labdas in labdas_iterator:
-    # Compile the model and generate QUBO
-    qubo, offset = qubo_factory.make_qubo(*labdas)
-
-    response = sampler.sample_qubo(qubo, **sampler_kwargs)
-
-    # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
-    out2030 = decoder.decode_sampleset(response)
-    results.add_result(out2030)
+results = portfolio_optimizer.run()
 
 print(
     "Number of generated samples: ", len(results.x1), len(results.x2), len(results.x3)
