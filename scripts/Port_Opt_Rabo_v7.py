@@ -1,5 +1,4 @@
 import itertools
-from collections import deque
 from datetime import datetime
 
 import numpy as np
@@ -9,6 +8,7 @@ from dwave.system.samplers import DWaveSampler  # Library to interact with the Q
 from minorminer import find_embedding
 from tqdm import tqdm
 
+from tno.quantum.problems.portfolio_optimization.containers import Results
 from tno.quantum.problems.portfolio_optimization.io import (
     get_rabo_fronts,
     read_portfolio_data,
@@ -49,10 +49,7 @@ qubo_factory = QUBOFactory4(
     portfolio_data=df, n_vars=size_of_variable_array, kmin=kmin, kmax=kmax
 )
 
-# These are the variables to store 3 kinds of results.
-x1, y1 = deque(), deque()  # Emission target met
-x2, y2 = deque(), deque()  # Reduced emission
-x3, y3 = deque(), deque()  # Targets not met
+results = Results(df)
 
 qubo_factory.compile()
 # Quantum computing options
@@ -99,35 +96,11 @@ for labdas in labdas_iterator:
 
     # Postprocess solution.Iterate over all found solutions. (Compute 2030 portfolios)
     out2030 = decoder.decode_sampleset(response)
+    results.add_result(out2030)
 
-    Out2030 = np.sum(out2030, axis=1)
-    # Compute the 2030 HHI.
-    HHI2030 = np.sum(out2030**2, axis=1) / Out2030**2
-    # Compute the 2030 ROC
-    ROC = np.sum(out2030 * returns, axis=1) / np.sum(
-        out2030 * capital / out2021, axis=1
-    )
-    # Compute the emissions from the resulting 2030 portfolio.
-    res_emis = 0.76 * np.sum(e * out2030, axis=1)
-    x = 100 * (1 - (HHI2030 / HHI2021))
-    y = 100 * (ROC / ROC2021 - 1)
-
-    norm1 = bigE * 0.70 * Out2030
-    norm2 = 1.020 * norm1
-
-    x1_slice = res_emis < norm1
-    x1.extend(x[x1_slice])
-    y1.extend(y[x1_slice])
-
-    x2_slice = (res_emis >= norm1) & (res_emis < norm2)
-    x2.extend(x[x2_slice])
-    y2.extend(y[x2_slice])
-
-    x3_slice = res_emis >= norm2
-    x3.extend(x[x3_slice])
-    y3.extend(y[x3_slice])
-
-print("Number of generated samples: ", len(x1), len(x2), len(x3))
+print(
+    "Number of generated samples: ", len(results.x1), len(results.x2), len(results.x3)
+)
 print("Time consumed:", datetime.now() - starttime)
 
 # Comparing with Rabobank's fronts.
@@ -137,19 +110,7 @@ x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
 
 # Make a plot of the results.
 fig = plot_points(
-    x1,
-    y1,
-    "mediumblue",
-    x2,
-    y2,
-    "mediumorchid",
-    x3,
-    y3,
-    "crimson",
-    x_rabo1,
-    y_rabo1,
-    x_rabo2,
-    y_rabo2,
+    results, "mediumblue", "mediumorchid", "crimson", x_rabo1, y_rabo1, x_rabo2, y_rabo2
 )
 # Name to save the figure under.
 string_format = r"%Y-%m-%d %H_%M_%S.%f"
@@ -158,19 +119,7 @@ fig.savefig(name)
 print(name)
 
 fig = plot_front(
-    x1,
-    y1,
-    "mediumblue",
-    x2,
-    y2,
-    "mediumorchid",
-    x3,
-    y3,
-    "crimson",
-    x_rabo1,
-    y_rabo1,
-    x_rabo2,
-    y_rabo2,
+    results, "mediumblue", "mediumorchid", "crimson", x_rabo1, y_rabo1, x_rabo2, y_rabo2
 )
 # Name to save the figure under.
 name = f"figures/Port_Opt_Rabo_v7_front_{datetime.now().strftime(string_format)}.png"

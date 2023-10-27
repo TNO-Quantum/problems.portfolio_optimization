@@ -1,8 +1,9 @@
 import numpy as np
+from tqdm import tqdm
 
 
 def pareto_front_v3(x3, y3):
-    for j in range(len(x3)):
+    for j in tqdm(range(len(x3))):
         if x3[j] <= 0 and y3[j] <= 0:
             continue
         for k in range(len(x3)):
