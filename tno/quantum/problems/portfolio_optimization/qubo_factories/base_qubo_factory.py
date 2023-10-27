@@ -1,22 +1,21 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 from pandas import DataFrame
 
+BaseQUBOFactoryT = TypeVar("BaseQUBOFactoryT", bound="BaseQUBOFactory")
+
 
 class BaseQUBOFactory(ABC):
     def __init__(
-        self,
-        portfolio_data: DataFrame,
-        n_vars: int,
-        kmin: int,
-        kmax: int,
+        self, portfolio_data: DataFrame, kmin: int, kmax: int, ancilla_qubits: int = 0
     ) -> None:
-        self.n_vars = n_vars
         self.N = len(portfolio_data)
+        self.n_vars = self.N * kmax + ancilla_qubits
         self.out2021 = portfolio_data["out_2021"].to_numpy()
         self.LB = portfolio_data["out_2030_min"].to_numpy()
         self.UB = portfolio_data["out_2030_max"].to_numpy()
@@ -26,6 +25,7 @@ class BaseQUBOFactory(ABC):
         self.kmin = kmin
         self.kmax = kmax
         self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
+        self.ancilla_qubits = ancilla_qubits
 
     def calc_minimize_HHI(self):
         Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2
@@ -48,6 +48,10 @@ class BaseQUBOFactory(ABC):
 
     @abstractmethod
     def calc_maximize_ROC(self):
+        ...
+
+    @abstractmethod
+    def compile(self: BaseQUBOFactoryT) -> BaseQUBOFactoryT:
         ...
 
     def calc_emission(self):

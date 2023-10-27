@@ -5,12 +5,15 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
+from tno.quantum.problems.portfolio_optimization.io import get_rabo_fronts
 from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
 
 
-def plot_points(
-    results: Results, color1, color2, color3, x_rabo1, y_rabo1, x_rabo2, y_rabo2
-) -> Figure:
+def plot_points(results: Results, color1, color2, color3) -> Figure:
+    # Comparing with Rabobank's fronts.
+    # x/y_rabo1 corresponds to a front optimized including the emission target.
+    # x/y_rabo2 corresponds to a front optimized without the emission target.
+    x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
     ax: Axes
     fig, ax = plt.subplots()
     ax.scatter(results.x3, results.y3, color=color3)
@@ -34,9 +37,11 @@ def plot_points(
     return fig
 
 
-def plot_front(
-    results: Results, color1, color2, color3, x_rabo1, y_rabo1, x_rabo2, y_rabo2
-) -> Figure:
+def plot_front(results: Results, color1, color2, color3) -> Figure:
+    # Comparing with Rabobank's fronts.
+    # x/y_rabo1 corresponds to a front optimized including the emission target.
+    # x/y_rabo2 corresponds to a front optimized without the emission target.
+    x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
     starttime = datetime.now()
 
     x1, y1 = pareto_front(results.x1, results.y1)

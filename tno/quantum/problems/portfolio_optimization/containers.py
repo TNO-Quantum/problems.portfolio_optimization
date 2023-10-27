@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Literal, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -14,10 +14,10 @@ class Results:
     ) -> None:
         self._out2021 = portfolio_data["out_2021"].to_numpy()
         self._e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
-        self._income = portfolio_data["income_2021"].to_numpy()
+        income = portfolio_data["income_2021"].to_numpy()
         self._capital = portfolio_data["regcap_2021"].to_numpy()
-        self._returns = self._income / self._out2021
-        self._ROC2021 = np.sum(self._income) / np.sum(self._capital)
+        self._returns = income / self._out2021
+        self._ROC2021 = np.sum(income) / np.sum(self._capital)
         self._HHI2021 = np.sum(self._out2021**2) / np.sum(self._out2021) ** 2
         self._Growth_target = Growth_target
         self._bigE = np.sum(self._e * self._out2021) / np.sum(self._out2021)

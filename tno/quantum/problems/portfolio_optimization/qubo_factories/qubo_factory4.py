@@ -1,7 +1,11 @@
+from typing import TypeVar
+
 import numpy as np
 from numpy.typing import NDArray
 
 from .base_qubo_factory import BaseQUBOFactory
+
+QUBOFactory4T = TypeVar("QUBOFactory4T", bound="QUBOFactory4")
 
 
 class QUBOFactory4(BaseQUBOFactory):
@@ -21,10 +25,11 @@ class QUBOFactory4(BaseQUBOFactory):
         qubo = np.diag(qubo_diag)
         return qubo, offset
 
-    def compile(self) -> None:
+    def compile(self: QUBOFactory4T) -> QUBOFactory4T:
         self.minimize_HHI, _ = self.calc_minimize_HHI()
         self.maximize_ROC, _ = self.calc_maximize_ROC()
         self.emission, _ = self.calc_emission()
+        return self
 
     def make_qubo(self, labda1: float, labda2: float, labda3: float):
         qubo = (

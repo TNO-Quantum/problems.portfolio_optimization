@@ -19,14 +19,26 @@ from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory3
 
-# Number of assets
-N = 52
+# Quantum computing options
+useQPU = True  # true = QPU, false = SA
+Option1 = False
 
 # Define the precision of the portfolio sizes.
 kmax = 2  # 4#2 #number of values
 kmin = 0  # minimal value 2**kmin
+ancilla_qubits = 5
 
-out2021, _, _, e, income, capital, df = read_portfolio_data("rabodata.xlsx")
+# Algorithm variables
+steps1 = 2
+steps2 = 2
+steps3 = 1
+steps4 = 2
+
+df = read_portfolio_data("rabodata.xlsx")
+out2021 = df["out_2021"].to_numpy()
+e = (df["emis_intens_2021"] / 100).to_numpy(dtype=float)
+income = df["income_2021"].to_numpy()
+capital = df["regcap_2021"].to_numpy()
 
 # Compute the returns per outstanding amount in 2021.
 returns = income / out2021
@@ -39,16 +51,9 @@ bigE = np.sum(e * out2021) / np.sum(out2021)
 
 # Creating the actual model to optimize using the annealer.
 print("Status: creating model")
-# Initialize variable vector of the required size
-solution_qubits = N * kmax
-ancilla_qubits = 5
-size_of_variable_array = solution_qubits + ancilla_qubits
-
-# Defining constraints/HHI2030tives in the model
-# HHI
 qubo_factory = QUBOFactory3(
-    portfolio_data=df, n_vars=size_of_variable_array, kmin=kmin, kmax=kmax
-)
+    portfolio_data=df, kmin=kmin, kmax=kmax, ancilla_qubits=ancilla_qubits
+).compile()
 
 # These are the variables to store 3 kinds of results.
 x1, y1 = deque(), deque()  # Emission target met
@@ -58,17 +63,6 @@ e1 = {}
 res_ctr2 = 0
 res_ctr3 = 0
 
-qubo_factory.compile(ancilla_qubits)
-
-# Quantum computing options
-useQPU = True  # true = QPU, false = SA
-Option1 = False
-
-# Algorithm variables
-steps1 = 2
-steps2 = 2
-steps3 = 1
-steps4 = 2
 
 z1 = {
     i: {j: {k: [] for k in range(steps4)} for j in range(steps2)} for i in range(steps1)

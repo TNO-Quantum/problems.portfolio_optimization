@@ -9,10 +9,7 @@ from minorminer import find_embedding
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
-from tno.quantum.problems.portfolio_optimization.io import (
-    get_rabo_fronts,
-    read_portfolio_data,
-)
+from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory2
@@ -21,51 +18,32 @@ from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_points,
 )
 
-# Number of assets
-N = 52
+# Quantum computing options
+useQPU = False  # true = QPU, false = SA
+Option1 = False
 
 # Define the precision of the portfolio sizes.
 kmax = 2  # 2 #number of values
 kmin = 0  # minimal value 2**kmin
-
-out2021, _, _, e, income, capital, df = read_portfolio_data("rabodata.xlsx")
-
-# Compute the returns per outstanding amount in 2021.
-returns = income / out2021
-
-
-print_info(df)
-ROC2021 = np.sum(income) / np.sum(capital)
-HHI2021 = np.sum(out2021**2) / np.sum(out2021) ** 2
-bigE = np.sum(e * out2021) / np.sum(out2021)
-
-
-# Creating the actual model to optimize using the annealer.
-print("Status: creating model")
-# Initialize variable vector of the required size
-size_of_variable_array = N * kmax
-
-# Defining constraints/HHI2030tives in the model
-# HHI
-qubo_factory = QUBOFactory2(
-    portfolio_data=df, n_vars=size_of_variable_array, kmin=kmin, kmax=kmax
-)
 capital_growth_factor = 1.6
-
-# These are the variables to store 3 kinds of results.
-results = Results(df)
-
-qubo_factory.compile(capital_growth_factor)
-
-# Quantum computing options
-useQPU = False  # true = QPU, false = SA
-Option1 = False
 
 # Algorithm variables
 steps1 = 15
 steps2 = 15
 steps3 = 1
 steps4 = 15
+
+df = read_portfolio_data("rabodata.xlsx")
+print_info(df)
+
+
+# Creating the actual model to optimize using the annealer.
+print("Status: creating model")
+qubo_factory = QUBOFactory2(portfolio_data=df, kmin=kmin, kmax=kmax).compile(
+    capital_growth_factor
+)
+
+results = Results(df)
 
 print("Status: calculating")
 starttime = datetime.now()
@@ -113,24 +91,16 @@ print(
 )
 print("Time consumed:", datetime.now() - starttime)
 
-# Comparing with Rabobank's fronts.
-# x/y_rabo1 corresponds to a front optimized including the emission target.
-# x/y_rabo2 corresponds to a front optimized without the emission target.
-x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
 
 # Make a plot of the results.
-fig = plot_points(
-    results, "turquoise", "goldenrod", "salmon", x_rabo1, y_rabo1, x_rabo2, y_rabo2
-)
+fig = plot_points(results, "turquoise", "goldenrod", "salmon")
 # Name to save the figure under.
 string_format = r"%Y-%m-%d %H_%M_%S.%f"
 name = f"figures/Port_Opt_Rabo_v5_Cgf{int(100 * capital_growth_factor)}_points_"
 name += f"{datetime.now().strftime(string_format)}.png"
 fig.savefig(name)
 
-fig = plot_front(
-    results, "turquoise", "goldenrod", "salmon", x_rabo1, y_rabo1, x_rabo2, y_rabo2
-)
+fig = plot_front(results, "turquoise", "goldenrod", "salmon")
 # Name to save the figure under.
 name = f"figures/Port_Opt_Rabo_v5_Cgf{int(100 * capital_growth_factor)}_front_"
 name += f"{datetime.now().strftime(string_format)}.png"
