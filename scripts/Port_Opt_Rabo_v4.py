@@ -1,4 +1,3 @@
-import itertools
 from datetime import datetime
 
 import numpy as np
@@ -7,12 +6,10 @@ from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
 from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
 from minorminer import find_embedding
 
-from tno.quantum.problems.portfolio_optimization.containers import Results
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
     PortfolioOptimizer,
 )
-from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory1
 from tno.quantum.problems.portfolio_optimization.visualization import (
@@ -45,12 +42,9 @@ print("Status: creating model")
 qubo_factory = QUBOFactory1(portfolio_data=df, kmin=kmin, kmax=kmax).compile(
     Growth_target
 )
-results = Results(df, Growth_target)
-
 
 print("Status: calculating")
 starttime = datetime.now()
-decoder = Decoder(portfolio_data=df, kmin=kmin, kmax=kmax)
 
 # Choose sampler and solve qubo. This is the actual optimization with either a DWave
 # system or a simulated annealer.
@@ -76,15 +70,17 @@ labdas4 = np.logspace(-16, 0, steps4, endpoint=False, base=10.0)
 
 
 portfolio_optimizer = PortfolioOptimizer(
+    df,
+    kmin,
+    kmax,
     qubo_factory,
     sampler,
     sampler_kwargs,
-    decoder,
-    results,
     labdas1,
     labdas2,
     labdas3,
     labdas4,
+    Growth_target,
 )
 results = portfolio_optimizer.run()
 

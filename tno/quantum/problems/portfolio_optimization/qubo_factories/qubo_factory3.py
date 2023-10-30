@@ -13,35 +13,20 @@ class QUBOFactory3(BaseQUBOFactory):
         capital2021 = np.sum(self.capital)
 
         alpha = np.sum(self.LB * self.income / self.out2021)
-        beta = np.array(
-            [
-                self.income
-                / self.out2021
-                * (self.UB - self.LB)
-                / self.maxk
-                * 2 ** (k + self.kmin)
-                for k in range(self.kmax)
-            ]
-        ).T
-        gamma = np.array(
-            [
-                (2 ** (-l - 1)) * (-1 + (2 ** (-l - 1)))
-                for l in range(self.ancilla_qubits)
-            ]
-        )
+        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = self.income * (self.UB - self.LB) / (self.out2021 * self.maxk)
+        beta = np.kron(multiplier, mantisse)
+
+        gamma = np.power(2.0, np.arange(-1, -self.ancilla_qubits - 1, -1))
+        gamma = gamma**2 - gamma
 
         qubo = np.zeros((self.n_vars, self.n_vars))
+        np.fill_diagonal(qubo[: self.N * self.kmax, : self.N * self.kmax], beta)
+        qubo[: self.N * self.kmax, self.N * self.kmax :] += np.outer(beta, gamma)
+        np.fill_diagonal(
+            qubo[self.N * self.kmax :, self.N * self.kmax :], alpha * gamma
+        )
         offset = alpha / capital2021
-        for idx1 in range(self.N * self.kmax):
-            i, k = divmod(idx1, self.kmax)
-            qubo[idx1, idx1] = beta[i, k]
-            for l in range(self.ancilla_qubits):
-                idx2 = self.N * self.kmax + l
-                qubo[idx1, idx2] = gamma[l] * beta[i, k]
-
-        for l in range(self.ancilla_qubits):
-            idx2 = self.N * self.kmax + l
-            qubo[idx2, idx2] = gamma[l] * alpha
 
         qubo = qubo / capital2021
 
@@ -50,38 +35,27 @@ class QUBOFactory3(BaseQUBOFactory):
     def calc_stabalize_c(self):
 
         alpha = np.sum(self.capital * self.LB / self.out2021) - np.sum(self.capital)
-        beta = np.array(
-            [
-                self.capital
-                / self.out2021
-                * (self.UB - self.LB)
-                / self.maxk
-                * 2 ** (k + self.kmin)
-                for k in range(self.kmax)
-            ]
-        ).T
-        gamma = -np.array(
-            [(2 ** (-n - 1)) for n in range(self.ancilla_qubits)]
-        ) * np.sum(self.capital)
+
+        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = self.capital * (self.UB - self.LB) / (self.out2021 * self.maxk)
+        beta = np.kron(multiplier, mantisse)
+
+        gamma = -np.power(2.0, np.arange(-1, -self.ancilla_qubits - 1, -1)) * np.sum(
+            self.capital
+        )
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = alpha**2
-        for idx1 in range(self.N * self.kmax):
-            i, k = divmod(idx1, self.kmax)
-            qubo[idx1, idx1] = 2 * alpha * beta[i, k] + beta[i, k] ** 2
-            for idx2 in range(idx1 + 1, self.N * self.kmax):
-                j, l = divmod(idx2, self.kmax)
-                qubo[idx1, idx2] = 2 * beta[i, k] * beta[j, l]
-            for n in range(self.ancilla_qubits):
-                idx2 = n + self.N * self.kmax
-                qubo[idx1, idx2] = 2 * beta[i, k] * gamma[n]
+        qubo_upper_left = qubo[: self.N * self.kmax, : self.N * self.kmax]
+        qubo_upper_left += np.triu(2 * np.outer(beta, beta), k=1)
+        np.fill_diagonal(qubo_upper_left, 2 * alpha * beta + beta**2)
 
-        for n in range(self.ancilla_qubits):
-            idx1 = n + self.N * self.kmax
-            qubo[idx1, idx1] = gamma[n] ** 2 + 2 * alpha * gamma[n]
-            for m in range(n + 1, self.ancilla_qubits):
-                idx2 = m + self.N * self.kmax
-                qubo[idx1, idx2] = 2 * gamma[n] * gamma[m]
+        qubo_upper_right = qubo[: self.N * self.kmax, self.N * self.kmax :]
+        qubo_upper_right += 2 * np.outer(beta, gamma)
+
+        qubo_lower_right = qubo[self.N * self.kmax :, self.N * self.kmax :]
+        qubo_lower_right += np.triu(2 * np.outer(gamma, gamma), k=1)
+        np.fill_diagonal(qubo_lower_right, 2 * alpha * gamma + gamma**2)
+        offset = alpha**2
 
         return qubo, offset
 

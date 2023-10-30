@@ -17,21 +17,21 @@ from tno.quantum.problems.portfolio_optimization.qubo_factories import BaseQUBOF
 class PortfolioOptimizer:
     def __init__(
         self,
+        portfolio_data: DataFrame,
+        kmin: int,
+        kmax: int,
         qubo_factory: BaseQUBOFactory,
         sampler: Sampler,
         sampler_kwargs: dict[str, Any],
-        decoder: Decoder,
-        results: Results,
         labdas1: NDArray[np.float_],
         labdas2: NDArray[np.float_],
         labdas3: NDArray[np.float_],
         labdas4: Optional[NDArray[np.float_]] = None,
+        growth_target: float = 0,
     ) -> None:
         self.qubo_factory = qubo_factory
         self.sampler = sampler
         self.sampler_kwargs = sampler_kwargs
-        self.decoder = decoder
-        self.results = results
         if labdas4 is None:
             total_steps = len(labdas1) * len(labdas2) * len(labdas3)
             self.labdas_iterator = tqdm(
@@ -42,6 +42,11 @@ class PortfolioOptimizer:
             self.labdas_iterator = tqdm(
                 itertools.product(labdas1, labdas2, labdas3, labdas4), total=total_steps
             )
+        self.decoder = Decoder(portfolio_data, kmin, kmax)
+        if growth_target <= 0:
+            self.results = Results(portfolio_data)
+        else:
+            self.results = Results(portfolio_data, growth_target)
 
     def run(self):
         for labdas in self.labdas_iterator:

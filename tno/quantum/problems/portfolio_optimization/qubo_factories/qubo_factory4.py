@@ -11,18 +11,14 @@ QUBOFactory4T = TypeVar("QUBOFactory4T", bound="QUBOFactory4")
 class QUBOFactory4(BaseQUBOFactory):
     def calc_maximize_ROC(self):
         returns = self.income / self.out2021
-        multiplier = 2 / (np.sum((self.LB + self.UB) * self.capital / self.out2021))
-        offset = np.sum(returns * self.LB) * multiplier
-        qubo_diag = (
-            np.array(
-                [
-                    returns * (self.UB - self.LB) / self.maxk * 2 ** (k + self.kmin)
-                    for k in range(self.kmax)
-                ]
-            ).flatten("F")
-            * multiplier
-        )
-        qubo = np.diag(qubo_diag)
+        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = returns * (self.UB - self.LB) / self.maxk
+        beta = np.kron(multiplier, mantisse)
+        scaling = 2 / (np.sum((self.LB + self.UB) * self.capital / self.out2021))
+
+        qubo = np.diag(beta) * scaling
+        offset = np.sum(returns * self.LB) * scaling
+
         return qubo, offset
 
     def compile(self: QUBOFactory4T) -> QUBOFactory4T:
