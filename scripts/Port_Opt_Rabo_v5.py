@@ -45,14 +45,15 @@ labdas4 = np.array([1])
 labdas3 = np.logspace(-16, 0, steps4, endpoint=False, base=10.0)
 
 
-portfolio_optimizer = PortfolioOptimizer(
-    df, kmin, kmax, labdas1, labdas2, labdas3, labdas4
-)
-portfolio_optimizer.add_minimize_HHI()
+portfolio_optimizer = PortfolioOptimizer(df, kmin, kmax)
+portfolio_optimizer.add_minimize_HHI(weights=labdas1)
 portfolio_optimizer.add_maximize_ROC(
-    formulation=2, capital_growth_factor=capital_growth_factor
+    formulation=2,
+    capital_growth_factor=capital_growth_factor,
+    weights_roc=labdas2,
+    weights_stabilize=labdas3,
 )
-portfolio_optimizer.add_emission_constraint()
+portfolio_optimizer.add_emission_constraint(weights=labdas4)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
 
 
