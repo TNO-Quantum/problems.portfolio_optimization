@@ -84,6 +84,9 @@ def pareto_front_scipy(
     min_points = 100
     points = np.vstack((x, y)).T
     points = np.unique(points, axis=0)
+    if len(points) < 3:
+        return points.T[0], points.T[1]
+
     hull = ConvexHull(points)
     pareto_points = points[hull.vertices]
 
