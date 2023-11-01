@@ -7,15 +7,10 @@ from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
     PortfolioOptimizer,
 )
-from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_front,
     plot_points,
 )
-
-# Quantum computing options
-useQPU = False  # true = QPU, false = SA
-Option1 = False
 
 # Define the precision of the portfolio sizes.
 kmax = 2  # 4#2 #number of values
@@ -29,14 +24,7 @@ steps3 = 1
 steps4 = 12
 
 df = read_portfolio_data("rabodata.xlsx")
-print_info(df)
 
-
-# Creating the actual model to optimize using the annealer.
-print("Status: creating model")
-
-print("Status: calculating")
-starttime = datetime.now()
 
 # Choose sampler and solve qubo.
 sampler = SimulatedAnnealingSampler()
@@ -59,11 +47,6 @@ portfolio_optimizer.add_maximize_ROC(
 )
 portfolio_optimizer.add_emission_constraint(weights=labdas4)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
-
-print(
-    "Number of generated samples: ", len(results.x1), len(results.x2), len(results.x3)
-)
-print("Time consumed:", datetime.now() - starttime)
 
 
 # Make a plot of the results.

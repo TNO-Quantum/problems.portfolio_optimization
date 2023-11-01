@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import math
+from datetime import datetime
 from typing import Any, Literal, Optional
 
 import numpy as np
@@ -12,17 +13,13 @@ from pandas import DataFrame
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
-from tno.quantum.problems.portfolio_optimization.new_qubo_factories import QuboCompiler
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
+from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
+from tno.quantum.problems.portfolio_optimization.qubos import QuboCompiler
 
 
 class PortfolioOptimizer:
-    def __init__(
-        self,
-        portfolio_data: DataFrame,
-        kmin: int,
-        kmax: int,
-    ) -> None:
+    def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
         self.portfolio_data = portfolio_data
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.decoder = Decoder(portfolio_data, kmin, kmax)
@@ -77,12 +74,18 @@ class PortfolioOptimizer:
         sampler: Optional[Sampler] = None,
         sampler_kwargs: Optional[dict[str, Any]] = None,
         result_type: Literal["emission"] | Literal["growth"] = "emission",
+        verbose: bool = True,
     ) -> Results:
+        if verbose:
+            print_info(self.portfolio_data)
+
         sampler = SimulatedAnnealingSampler() if sampler is None else sampler
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
 
-        total_steps = math.prod(map(len, self._all_labdas))
-        labdas_iterator = tqdm(itertools.product(*self._all_labdas), total=total_steps)
+        if verbose:
+            print("Status: creating model")
+            if self._growth_target is not None:
+                print(f"Growth target: {self._growth_target - 1:.1%})")
         self._qubo_compiler.compile()
 
         if result_type == "emission":
@@ -92,6 +95,13 @@ class PortfolioOptimizer:
         else:
             raise ValueError("Unknown result_type")
 
+        if verbose:
+            print("Status: calculating")
+            starttime = datetime.now()
+
+        total_steps = math.prod(map(len, self._all_labdas))
+        labdas_iterator = tqdm(itertools.product(*self._all_labdas), total=total_steps)
+
         for labdas in labdas_iterator:
             # Compile the model and generate QUBO
             qubo, offset = self._qubo_compiler.make_qubo(*labdas)
@@ -100,6 +110,15 @@ class PortfolioOptimizer:
             # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)
             out2030 = self.decoder.decode_sampleset(response)
             results.add_result(out2030)
+
+        if verbose:
+            print(
+                "Number of generated samples: ",
+                len(results.x1),
+                len(results.x2),
+                len(results.x3),
+            )
+            print("Time consumed:", datetime.now() - starttime)
         return results
 
     @staticmethod
