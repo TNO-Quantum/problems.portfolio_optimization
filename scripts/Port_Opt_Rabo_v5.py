@@ -3,10 +3,8 @@ from datetime import datetime
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
 
-from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
+from tno.quantum.problems.portfolio_optimization import (
     PortfolioOptimizer,
-)
-from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_front,
     plot_points,
 )

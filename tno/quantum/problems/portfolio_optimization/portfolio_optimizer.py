@@ -12,11 +12,13 @@ from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
 from tqdm import tqdm
 
-from tno.quantum.problems.portfolio_optimization.containers import Results
-from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
-from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
-from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
-from tno.quantum.problems.portfolio_optimization.qubos import QuboCompiler
+from tno.quantum.problems.portfolio_optimization.components import (
+    Decoder,
+    QuboCompiler,
+    Results,
+    print_info,
+    read_portfolio_data,
+)
 
 
 class PortfolioOptimizer:

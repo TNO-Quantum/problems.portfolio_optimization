@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from tno.quantum.problems.portfolio_optimization.containers import Results
-from tno.quantum.problems.portfolio_optimization.io import get_rabo_fronts
-from tno.quantum.problems.portfolio_optimization.pareto_front import pareto_front
+from tno.quantum.problems.portfolio_optimization.components.containers import Results
+from tno.quantum.problems.portfolio_optimization.components.io import get_rabo_fronts
+from tno.quantum.problems.portfolio_optimization.components.pareto_front import (
+    pareto_front,
+)
 
 
 def plot_points(results: Results, color1, color2, color3) -> Figure:

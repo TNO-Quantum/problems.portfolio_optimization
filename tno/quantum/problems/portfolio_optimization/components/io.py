@@ -8,7 +8,7 @@ import pandas as pd
 def read_portfolio_data(filename: str | Path) -> pd.DataFrame:
     print("Status: reading data")
     if str(filename) == "rabobank":
-        filename = Path(__file__).parent / "datasets" / "rabodata.xlsx"
+        filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
     return pd.read_excel(str(filename))
 
 
