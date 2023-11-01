@@ -12,7 +12,6 @@ from tqdm import tqdm
 from tno.quantum.problems.portfolio_optimization.containers import Results
 from tno.quantum.problems.portfolio_optimization.new_qubo_factories import QuboCompiler
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
-from tno.quantum.problems.portfolio_optimization.qubo_factories import BaseQUBOFactory
 
 
 class PortfolioOptimizer:
@@ -21,9 +20,6 @@ class PortfolioOptimizer:
         portfolio_data: DataFrame,
         kmin: int,
         kmax: int,
-        qubo_factory: BaseQUBOFactory,
-        sampler: Sampler,
-        sampler_kwargs: dict[str, Any],
         labdas1: NDArray[np.float_],
         labdas2: NDArray[np.float_],
         labdas3: NDArray[np.float_],
@@ -31,9 +27,6 @@ class PortfolioOptimizer:
         growth_target: float = 0,
     ) -> None:
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
-        self.qubo_factory = qubo_factory
-        self.sampler = sampler
-        self.sampler_kwargs = sampler_kwargs
         if labdas4 is None:
             total_steps = len(labdas1) * len(labdas2) * len(labdas3)
             self.labdas_iterator = tqdm(
@@ -80,16 +73,13 @@ class PortfolioOptimizer:
         """Add constaint: total_out2030/total_out2021 = growth_target"""
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
-    def run(self):
+    def run(self, sampler: Sampler, sampler_kwargs: dict[str, Any]) -> Results:
         self._qubo_compiler.compile()
         for labdas in self.labdas_iterator:
             # Compile the model and generate QUBO
-            qubo, offset = self.qubo_factory.make_qubo(*labdas)
-            qubo2, offset2 = self._qubo_compiler.make_qubo(*labdas)
-            np.testing.assert_allclose(qubo, qubo2)
-            np.testing.assert_allclose(offset, offset2)
+            qubo, offset = self._qubo_compiler.make_qubo(*labdas)
             # Solve the QUBO
-            response = self.sampler.sample_qubo(qubo, **self.sampler_kwargs)
+            response = sampler.sample_qubo(qubo, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)
             out2030 = self.decoder.decode_sampleset(response)
             self.results.add_result(out2030)

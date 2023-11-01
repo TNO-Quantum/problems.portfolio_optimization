@@ -5,8 +5,6 @@ from dimod import SampleSet
 from numpy.typing import NDArray
 from pandas import DataFrame
 
-from tno.quantum.problems.portfolio_optimization.qubo_factories import BaseQUBOFactory
-
 
 class Decoder:
     def __init__(

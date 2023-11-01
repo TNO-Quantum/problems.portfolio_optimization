@@ -2,24 +2,16 @@ from datetime import datetime
 
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
-from dwave.system import FixedEmbeddingComposite, LeapHybridSampler
-from dwave.system.samplers import DWaveSampler  # Library to interact with the QPU
-from minorminer import find_embedding
 
 from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
     PortfolioOptimizer,
 )
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
-from tno.quantum.problems.portfolio_optimization.qubo_factories import QUBOFactory1
 from tno.quantum.problems.portfolio_optimization.visualization import (
     plot_front,
     plot_points,
 )
-
-# Quantum computing options
-useQPU = False  # true = QPU, false = SA
-Option1 = False
 
 # Define the precision of the portfolio sizes.
 kmax = 2  # 2 # number of values
@@ -35,26 +27,14 @@ print_info(df)
 
 # Creating the actual model to optimize using the annealer.
 print("Status: creating model")
-qubo_factory = QUBOFactory1(portfolio_data=df, kmin=kmin, kmax=kmax).compile()
 
 print("Status: calculating")
 starttime = datetime.now()
 
 # Choose sampler and solve qubo. This is the actual optimization with either a DWave
 # system or a simulated annealer.
-if useQPU and Option1:
-    sampler = LeapHybridSampler()
-    sampler_kwargs = {}
-elif useQPU:
-    qubo, _ = qubo_factory.make_qubo(1, 1, 1)
-    solver = DWaveSampler()
-    __, target_edgelist, target_adjacency = solver.structure
-    emb = find_embedding(qubo, target_edgelist, verbose=1)
-    sampler = FixedEmbeddingComposite(solver, emb)
-    sampler_kwargs = {"num_reads": 20}
-else:
-    sampler = SimulatedAnnealingSampler()
-    sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
+sampler = SimulatedAnnealingSampler()
+sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
 
 # Set up penalty coefficients for the constraints
@@ -63,13 +43,11 @@ labdas2 = np.logspace(-16, 1, steps2, endpoint=False, base=10.0)
 labdas3 = np.array([1])
 
 
-portfolio_optimizer = PortfolioOptimizer(
-    df, kmin, kmax, qubo_factory, sampler, sampler_kwargs, labdas1, labdas2, labdas3
-)
+portfolio_optimizer = PortfolioOptimizer(df, kmin, kmax, labdas1, labdas2, labdas3)
 portfolio_optimizer.add_minimize_HHI()
 portfolio_optimizer.add_maximize_ROC(formulation=1)
 portfolio_optimizer.add_emission_constraint()
-results = portfolio_optimizer.run()
+results = portfolio_optimizer.run(sampler, sampler_kwargs)
 
 
 print(
