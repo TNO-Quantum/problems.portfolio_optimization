@@ -10,6 +10,7 @@ from pandas import DataFrame
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
+from tno.quantum.problems.portfolio_optimization.new_qubo_factories import QuboCompiler
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.qubo_factories import BaseQUBOFactory
 
@@ -29,6 +30,7 @@ class PortfolioOptimizer:
         labdas4: Optional[NDArray[np.float_]] = None,
         growth_target: float = 0,
     ) -> None:
+        self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.qubo_factory = qubo_factory
         self.sampler = sampler
         self.sampler_kwargs = sampler_kwargs
@@ -48,10 +50,44 @@ class PortfolioOptimizer:
         else:
             self.results = Results(portfolio_data, growth_target)
 
+    def add_minimize_HHI(self) -> None:
+        self._qubo_compiler.add_minimize_HHI()
+
+    def add_maximize_ROC(
+        self,
+        formulation: int,
+        capital_growth_factor: float = 0,
+        ancilla_qubits: int = 0,
+    ) -> None:
+        """
+        formulation 1:
+            add 1 qubo term
+        formulation 2:
+            add 2 qubo terms, requires extra arg capital_growth_factor
+        formulation 3:
+            add 2 qubo terms, requires extra arg ancilla_qubits
+        formulation 4:
+            add 1 qubo term
+        """
+        self._qubo_compiler.add_maximize_ROC(
+            formulation, capital_growth_factor, ancilla_qubits
+        )
+
+    def add_emission_constraint(self) -> None:
+        self._qubo_compiler.add_emission_constraint()
+
+    def add_growth_factor_constraint(self, growth_target: float) -> None:
+        """Add constaint: total_out2030/total_out2021 = growth_target"""
+        self._qubo_compiler.add_growth_factor_constraint(growth_target)
+
     def run(self):
+        self._qubo_compiler.compile()
         for labdas in self.labdas_iterator:
             # Compile the model and generate QUBO
             qubo, offset = self.qubo_factory.make_qubo(*labdas)
+            qubo2, offset2 = self._qubo_compiler.make_qubo(*labdas)
+            np.testing.assert_allclose(qubo, qubo2)
+            np.testing.assert_allclose(offset, offset2)
             # Solve the QUBO
             response = self.sampler.sample_qubo(qubo, **self.sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)

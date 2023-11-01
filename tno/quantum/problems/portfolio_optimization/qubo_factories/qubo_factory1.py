@@ -10,13 +10,14 @@ QUBOFactory1T = TypeVar("QUBOFactory1T", bound="QUBOFactory1")
 
 class QUBOFactory1(BaseQUBOFactory):
     def calc_maximize_ROC(self):
-        Exp_avr_growth_fac = np.sum((self.UB + self.LB) / (2 * self.out2021))
+        Exp_avr_growth_fac = 0.5 * np.sum((self.UB + self.LB) / self.out2021)
+        returns = self.income / self.out2021
         offset = np.sum(self.LB / (self.capital * self.out2021 * Exp_avr_growth_fac))
         mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
         multiplier = (
             (self.UB - self.LB)
-            * self.income
-            / (self.maxk * self.capital * self.out2021 * Exp_avr_growth_fac)
+            * returns
+            / (self.maxk * self.capital * Exp_avr_growth_fac)
         )
         qubo_diag = np.kron(multiplier, mantisse)
 

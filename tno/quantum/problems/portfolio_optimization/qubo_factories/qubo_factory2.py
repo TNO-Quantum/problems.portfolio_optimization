@@ -43,7 +43,7 @@ class QUBOFactory2(BaseQUBOFactory):
         qubo = (
             labda1 * self.minimize_HHI
             - labda2 * self.maximize_ROC
-            + labda3 * self.emission
-            + labda4 * self.stabilize_C
+            + labda4 * self.emission
+            + labda3 * self.stabilize_C
         )
         return qubo, float("nan")
