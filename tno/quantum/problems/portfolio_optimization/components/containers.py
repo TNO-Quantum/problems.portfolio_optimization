@@ -10,7 +10,7 @@ from pandas import DataFrame
 
 class Results:
     def __init__(
-        self, portfolio_data: DataFrame, Growth_target: Optional[float] = None
+        self, portfolio_data: DataFrame, growth_target: Optional[float] = None
     ) -> None:
         self._out2021 = portfolio_data["out_2021"].to_numpy()
         self._e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
@@ -19,7 +19,7 @@ class Results:
         self._returns = income / self._out2021
         self._ROC2021 = np.sum(income) / np.sum(self._capital)
         self._HHI2021 = np.sum(self._out2021**2) / np.sum(self._out2021) ** 2
-        self._Growth_target = Growth_target
+        self._Growth_target = growth_target
         self._bigE = np.sum(self._e * self._out2021) / np.sum(self._out2021)
         self._Out2021 = np.sum(self._out2021)
 

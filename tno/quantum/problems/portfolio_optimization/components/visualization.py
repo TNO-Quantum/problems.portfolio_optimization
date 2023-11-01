@@ -8,6 +8,7 @@ from tno.quantum.problems.portfolio_optimization.components.containers import Re
 from tno.quantum.problems.portfolio_optimization.components.io import get_rabo_fronts
 from tno.quantum.problems.portfolio_optimization.components.pareto_front import (
     pareto_front,
+    pareto_front_scipy,
 )
 
 
@@ -46,9 +47,11 @@ def plot_front(results: Results, color1, color2, color3) -> Figure:
     x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
     starttime = datetime.now()
 
-    x1, y1 = pareto_front(results.x1, results.y1)
-    x2, y2 = pareto_front(results.x2, results.y2)
-    x3, y3 = pareto_front(results.x3, results.y3)
+    x1, y1 = pareto_front_scipy(results.x1, results.y1)
+    x2, y2 = pareto_front_scipy(results.x2, results.y2)
+    x3, y3 = pareto_front_scipy(results.x3, results.y3)
+
+    print(len(x1), len(x2), len(x3))
 
     print("Time consumed:", datetime.now() - starttime)
 

@@ -1,4 +1,6 @@
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
+from scipy.spatial import ConvexHull
 from tqdm import tqdm
 
 
@@ -74,3 +76,24 @@ def pareto_front(x, y):
     print(l1, l2, ctr, len(u))
     x, y = pareto_front_v3(u, v)
     return x, y
+
+
+def pareto_front_scipy(
+    x: ArrayLike, y: ArrayLike
+) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
+    min_points = 100
+    points = np.vstack((x, y)).T
+    points = np.unique(points, axis=0)
+    hull = ConvexHull(points)
+    pareto_points = points[hull.vertices]
+
+    for _ in range(min_points):
+        if len(pareto_points) > min_points:
+            break
+        points = np.delete(points, hull.vertices, axis=0)
+        if len(points) < 3:
+            break
+        hull = ConvexHull(points)
+        pareto_points = np.vstack((pareto_points, points[hull.vertices]))
+
+    return pareto_points.T[0], pareto_points.T[1]
