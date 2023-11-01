@@ -37,7 +37,6 @@ print_info(df)
 print("Status: creating model")
 qubo_factory = QUBOFactory1(portfolio_data=df, kmin=kmin, kmax=kmax).compile()
 
-
 print("Status: calculating")
 starttime = datetime.now()
 
@@ -67,6 +66,9 @@ labdas3 = np.array([1])
 portfolio_optimizer = PortfolioOptimizer(
     df, kmin, kmax, qubo_factory, sampler, sampler_kwargs, labdas1, labdas2, labdas3
 )
+portfolio_optimizer.add_minimize_HHI()
+portfolio_optimizer.add_maximize_ROC(formulation=1)
+portfolio_optimizer.add_emission_constraint()
 results = portfolio_optimizer.run()
 
 

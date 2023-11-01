@@ -64,8 +64,8 @@ else:
 # Set up penalty coefficients for the constraints
 labdas1 = np.logspace(-4.25, -1.75, steps1, endpoint=False, base=10.0)
 labdas2 = np.logspace(-4, -2.5, steps2, endpoint=False, base=10.0)
-labdas3 = np.array([1])
-labdas4 = np.logspace(-11, -9.5, steps4, endpoint=False, base=10.0)
+labdas4 = np.array([1])
+labdas3 = np.logspace(-11, -9.5, steps4, endpoint=False, base=10.0)
 
 
 portfolio_optimizer = PortfolioOptimizer(
@@ -80,6 +80,9 @@ portfolio_optimizer = PortfolioOptimizer(
     labdas3,
     labdas4,
 )
+portfolio_optimizer.add_minimize_HHI()
+portfolio_optimizer.add_maximize_ROC(formulation=3, ancilla_qubits=ancilla_qubits)
+portfolio_optimizer.add_emission_constraint()
 results = portfolio_optimizer.run()
 
 print(

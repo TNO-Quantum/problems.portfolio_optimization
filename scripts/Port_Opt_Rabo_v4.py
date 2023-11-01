@@ -82,6 +82,10 @@ portfolio_optimizer = PortfolioOptimizer(
     labdas4,
     Growth_target,
 )
+portfolio_optimizer.add_minimize_HHI()
+portfolio_optimizer.add_maximize_ROC(formulation=1)
+portfolio_optimizer.add_emission_constraint()
+portfolio_optimizer.add_growth_factor_constraint(Growth_target)
 results = portfolio_optimizer.run()
 
 
