@@ -47,12 +47,12 @@ labdas3 = np.array([1])
 labdas4 = np.logspace(-16, 0, steps4, endpoint=False, base=10.0)
 
 
-portfolio_optimizer = PortfolioOptimizer(df, kmin, kmax, Growth_target)
+portfolio_optimizer = PortfolioOptimizer(df, kmin, kmax)
 portfolio_optimizer.add_minimize_HHI(weights=labdas1)
 portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=labdas2)
 portfolio_optimizer.add_emission_constraint(weights=labdas3)
 portfolio_optimizer.add_growth_factor_constraint(Growth_target, weights=labdas4)
-results = portfolio_optimizer.run(sampler, sampler_kwargs)
+results = portfolio_optimizer.run(sampler, sampler_kwargs, "growth")
 
 print(
     f"Number of generated samples: ", len(results.x1), len(results.x2), len(results.x3)

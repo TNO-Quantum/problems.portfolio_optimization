@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import numpy as np
 from dimod import Sampler
@@ -22,15 +22,12 @@ class PortfolioOptimizer:
         portfolio_data: DataFrame,
         kmin: int,
         kmax: int,
-        growth_target: float = 0,
     ) -> None:
+        self.portfolio_data = portfolio_data
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.decoder = Decoder(portfolio_data, kmin, kmax)
         self._all_labdas: list[NDArray[np.float_]] = []
-        if growth_target <= 0:
-            self.results = Results(portfolio_data)
-        else:
-            self.results = Results(portfolio_data, growth_target)
+        self._growth_target = None
 
     def add_minimize_HHI(self, weights: Optional[ArrayLike] = None) -> None:
         self._all_labdas.append(self._parse_weight(weights))
@@ -71,6 +68,7 @@ class PortfolioOptimizer:
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
         """Add constaint: total_out2030/total_out2021 = growth_target"""
+        self._growth_target = growth_target
         self._all_labdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
@@ -78,6 +76,7 @@ class PortfolioOptimizer:
         self,
         sampler: Optional[Sampler] = None,
         sampler_kwargs: Optional[dict[str, Any]] = None,
+        result_type: Literal["emission"] | Literal["growth"] = "emission",
     ) -> Results:
         sampler = SimulatedAnnealingSampler() if sampler is None else sampler
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
@@ -85,6 +84,14 @@ class PortfolioOptimizer:
         total_steps = math.prod(map(len, self._all_labdas))
         labdas_iterator = tqdm(itertools.product(*self._all_labdas), total=total_steps)
         self._qubo_compiler.compile()
+
+        if result_type == "emission":
+            results = Results(self.portfolio_data)
+        elif result_type == "growth":
+            results = Results(self.portfolio_data, self._growth_target)
+        else:
+            raise ValueError("Unknown result_type")
+
         for labdas in labdas_iterator:
             # Compile the model and generate QUBO
             qubo, offset = self._qubo_compiler.make_qubo(*labdas)
@@ -92,8 +99,8 @@ class PortfolioOptimizer:
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)
             out2030 = self.decoder.decode_sampleset(response)
-            self.results.add_result(out2030)
-        return self.results
+            results.add_result(out2030)
+        return results
 
     @staticmethod
     def _parse_weight(weights: Optional[ArrayLike]) -> NDArray[np.float_]:
