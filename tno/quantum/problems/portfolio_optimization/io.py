@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 
 
-def read_portfolio_data(filename: str) -> pd.DataFrame:
+def read_portfolio_data(filename: str | Path) -> pd.DataFrame:
     print("Status: reading data")
-    portfolio_data = pd.read_excel(filename)
-    # TODO remove hardcoded 52, this is a budge for the corrupt input data. Data should
-    # be fixend and the hardcoed 52 should be removed
-    portfolio_data = portfolio_data[:52]
-    return portfolio_data
+    if str(filename) == "rabobank":
+        filename = Path(__file__).parent / "datasets" / "rabodata.xlsx"
+    return pd.read_excel(str(filename))
 
 
 def get_rabo_fronts() -> tuple[list[float], list[float], list[float], list[float]]:

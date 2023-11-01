@@ -3,23 +3,25 @@ from __future__ import annotations
 import itertools
 import math
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal, Optional
 
 import numpy as np
 from dimod import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
-from pandas import DataFrame
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.containers import Results
+from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.postprocess import Decoder
 from tno.quantum.problems.portfolio_optimization.preprocessing import print_info
 from tno.quantum.problems.portfolio_optimization.qubos import QuboCompiler
 
 
 class PortfolioOptimizer:
-    def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
+    def __init__(self, filename: str | Path, kmin: int, kmax: int) -> None:
+        portfolio_data = read_portfolio_data(filename)
         self.portfolio_data = portfolio_data
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.decoder = Decoder(portfolio_data, kmin, kmax)

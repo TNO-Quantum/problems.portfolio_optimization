@@ -3,7 +3,6 @@ from datetime import datetime
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
 
-from tno.quantum.problems.portfolio_optimization.io import read_portfolio_data
 from tno.quantum.problems.portfolio_optimization.portfolio_optimizer import (
     PortfolioOptimizer,
 )
@@ -16,24 +15,17 @@ from tno.quantum.problems.portfolio_optimization.visualization import (
 kmax = 2  # 2 #number of values
 kmin = 0  # minimal value 2**kmin
 
-# Algorithm variables
-steps1 = 99
-steps2 = 99
-steps3 = 1
-
-df = read_portfolio_data("rabodata.xlsx")
-
 # Choose sampler and solve qubo.
 sampler = SimulatedAnnealingSampler()
 sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
 # Set up penalty coefficients for the constraints
-labdas1 = np.logspace(-17, 2, steps1, endpoint=False, base=10.0)
-labdas2 = np.logspace(-17, -2, steps2, endpoint=False, base=10.0)
+labdas1 = np.logspace(-17, 2, 99, endpoint=False, base=10.0)
+labdas2 = np.logspace(-17, -2, 99, endpoint=False, base=10.0)
 labdas3 = np.array([1])
 
 
-portfolio_optimizer = PortfolioOptimizer(df, kmin, kmax)
+portfolio_optimizer = PortfolioOptimizer("rabobank", kmin, kmax)
 portfolio_optimizer.add_minimize_HHI(weights=labdas1)
 portfolio_optimizer.add_maximize_ROC(formulation=4, weights_roc=labdas2)
 portfolio_optimizer.add_emission_constraint(weights=labdas3)
