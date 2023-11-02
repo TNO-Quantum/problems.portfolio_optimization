@@ -25,16 +25,16 @@ class Decoder:
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
         # Compute the 2030 portfolio
-        sample = np.array(
+        sample_array = np.array(
             [sample[i] for i in range(self.N * self.kmax)], dtype=np.uint8
         )
-        sample_reshaped = sample.reshape((self.N, self.kmax))
+        sample_reshaped = sample_array.reshape((self.N, self.kmax))
         ints = np.sum(sample_reshaped * self.mantissa, axis=1)
         out2030 = self.LB + self.multiplier * ints
         if (self.LB > out2030).any() or (self.UB < out2030).any():
             raise ValueError("Bounds not obeyed.")
 
-        return out2030
+        return np.asarray(out2030, dtype=np.float_)
 
     def decode_sampleset(self, sampleset: SampleSet) -> NDArray[np.float_]:
         # Compute the 2030 portfolio
@@ -47,4 +47,4 @@ class Decoder:
         if (self.LB > out2030).any() or (self.UB < out2030).any():
             raise ValueError("Bounds not obeyed.")
 
-        return out2030
+        return np.asarray(out2030, dtype=np.float_)

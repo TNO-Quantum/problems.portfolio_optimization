@@ -12,7 +12,7 @@ from tno.quantum.problems.portfolio_optimization.components.pareto_front import 
 )
 
 
-def plot_points(results: Results, color1, color2, color3) -> Figure:
+def plot_points(results: Results, color1: str, color2: str, color3: str) -> Figure:
     # Comparing with Rabobank's fronts.
     # x/y_rabo1 corresponds to a front optimized including the emission target.
     # x/y_rabo2 corresponds to a front optimized without the emission target.
@@ -40,7 +40,7 @@ def plot_points(results: Results, color1, color2, color3) -> Figure:
     return fig
 
 
-def plot_front(results: Results, color1, color2, color3) -> Figure:
+def plot_front(results: Results, color1: str, color2: str, color3: str) -> Figure:
     # Comparing with Rabobank's fronts.
     # x/y_rabo1 corresponds to a front optimized including the emission target.
     # x/y_rabo2 corresponds to a front optimized without the emission target.

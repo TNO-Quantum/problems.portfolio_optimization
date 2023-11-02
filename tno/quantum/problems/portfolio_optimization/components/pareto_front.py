@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+from typing import MutableSequence
+
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.spatial import ConvexHull
 from tqdm import tqdm
 
 
-def pareto_front_v3(x3, y3):
+def pareto_front_v3(
+    x3: list[float], y3: list[float]
+) -> tuple[list[float], list[float]]:
     for j in tqdm(range(len(x3))):
         if x3[j] <= 0 and y3[j] <= 0:
             continue
@@ -31,11 +37,13 @@ def pareto_front_v3(x3, y3):
     return x3, y3
 
 
-def coef(j, n):
+def coef(j: int, n: int) -> float:
     return 0.25 * (-(n // 2) + j)
 
 
-def pareto_front(x, y):
+def pareto_front(
+    x: MutableSequence[float], y: MutableSequence[float]
+) -> tuple[list[float], list[float]]:
     ctr = len(x)
     n = 41
     rb = np.zeros(n, dtype=np.int_)

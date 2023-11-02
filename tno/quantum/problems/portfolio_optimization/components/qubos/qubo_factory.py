@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import numpy as np
+from numpy.typing import NDArray
 from pandas import DataFrame
 
 
@@ -16,7 +19,7 @@ class QuboFactory:
         self.kmax = kmax
         self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
 
-    def calc_minimize_HHI(self):
+    def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
         Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
@@ -35,7 +38,7 @@ class QuboFactory:
         qubo = qubo / Exp_total_out2030**2
         return qubo, offset
 
-    def calc_emission_constraint(self):
+    def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
         emis2021 = np.sum(self.e * self.out2021)
         bigE = emis2021 / np.sum(self.out2021)
 
@@ -58,7 +61,9 @@ class QuboFactory:
 
         return qubo, offset
 
-    def calc_growth_factor_constraint(self, growth_target: float):
+    def calc_growth_factor_constraint(
+        self, growth_target: float
+    ) -> tuple[NDArray[np.float_], float]:
         out2021_tot = np.sum(self.out2021)
         alpha = np.sum(self.LB) / out2021_tot - growth_target
 
@@ -77,7 +82,7 @@ class QuboFactory:
         offset = alpha**2
         return qubo, offset
 
-    def calc_maximize_ROC1(self):
+    def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:
         Exp_avr_growth_fac = 0.5 * np.sum((self.UB + self.LB) / self.out2021)
         returns = self.income / self.out2021
         offset = np.sum(self.LB / (self.capital * self.out2021 * Exp_avr_growth_fac))
@@ -92,7 +97,9 @@ class QuboFactory:
         qubo = np.diag(qubo_diag)
         return qubo, -offset
 
-    def calc_maximize_ROC2(self, capital_growth_factor: float):
+    def calc_maximize_ROC2(
+        self, capital_growth_factor: float
+    ) -> tuple[NDArray[np.float_], float]:
         capital_target = capital_growth_factor * np.sum(self.capital)
 
         mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
@@ -102,7 +109,7 @@ class QuboFactory:
         offset = np.sum(self.LB * self.income / self.out2021) / capital_target
         return qubo, -offset
 
-    def calc_maximize_ROC3(self):
+    def calc_maximize_ROC3(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.kmax * self.N
         capital2021 = np.sum(self.capital)
 
@@ -126,7 +133,7 @@ class QuboFactory:
 
         return -qubo, -offset
 
-    def calc_maximize_ROC4(self):
+    def calc_maximize_ROC4(self) -> tuple[NDArray[np.float_], float]:
         returns = self.income / self.out2021
         mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
         multiplier = returns * (self.UB - self.LB) / self.maxk
@@ -138,7 +145,9 @@ class QuboFactory:
 
         return qubo, offset
 
-    def calc_stabilize_c1(self, capital_growth_factor: float):
+    def calc_stabilize_c1(
+        self, capital_growth_factor: float
+    ) -> tuple[NDArray[np.float_], float]:
         capital_target = capital_growth_factor * np.sum(self.capital)
         alpha = np.sum(self.capital * self.LB / self.out2021) - capital_target
 
@@ -151,7 +160,7 @@ class QuboFactory:
         offset = alpha**2
         return qubo, offset
 
-    def calc_stabilize_c2(self):
+    def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.kmax * self.N
         alpha = np.sum(self.capital * self.LB / self.out2021) - np.sum(self.capital)
 
