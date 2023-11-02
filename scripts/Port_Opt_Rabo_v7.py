@@ -31,15 +31,10 @@ results = portfolio_optimizer.run(sampler, sampler_kwargs)
 
 
 # Make a plot of the results.
+timestamp = datetime.now().strftime(r"%Y-%m-%d %H_%M_%S.%f")
+
 fig = plot_points(results, "mediumblue", "mediumorchid", "crimson")
-# Name to save the figure under.
-string_format = r"%Y-%m-%d %H_%M_%S.%f"
-name = f"figures/Port_Opt_Rabo_v7_points_{datetime.now().strftime(string_format)}.png"
-fig.savefig(name)
-print(name)
+fig.savefig(f"figures/Port_Opt_Rabo_v7_points_{timestamp}.png")
 
 fig = plot_front(results, "mediumblue", "mediumorchid", "crimson")
-# Name to save the figure under.
-name = f"figures/Port_Opt_Rabo_v7_front_{datetime.now().strftime(string_format)}.png"
-fig.savefig(name)
-print(name)
+fig.savefig(f"figures/Port_Opt_Rabo_v7_front_{timestamp}.png")

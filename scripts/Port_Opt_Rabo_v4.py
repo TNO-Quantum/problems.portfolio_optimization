@@ -35,15 +35,10 @@ results = portfolio_optimizer.run(sampler, sampler_kwargs, "growth")
 
 
 # Make a plot of the results.
+timestamp = datetime.now().strftime(r"%Y-%m-%d %H_%M_%S.%f")
+
 fig = plot_points(results, "coral", "gold", "dodgerblue")
-# Name to save the figure under.
-string_format = r"%Y-%m-%d %H_%M_%S.%f"
-name = f"figures/Port_Opt_Rabo_v4_GT{Growth_target}_points_"
-name += f"{datetime.now().strftime(string_format)}.png"
-fig.savefig(name)
+fig.savefig(f"figures/Port_Opt_Rabo_v4_GT{Growth_target}_points_{timestamp}.png")
 
 fig = plot_front(results, "coral", "gold", "dodgerblue")
-# Name to save the figure under.
-name = f"figures/Port_Opt_Rabo_v4_GT{Growth_target}_fronts_"
-name += f"{datetime.now().strftime(string_format)}.png"
-fig.savefig(name)
+fig.savefig(f"figures/Port_Opt_Rabo_v4_GT{Growth_target}_fronts_{timestamp}.png")
