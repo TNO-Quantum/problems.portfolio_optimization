@@ -1,3 +1,4 @@
+"""This module contains the ``QuboFactory`` class."""
 from __future__ import annotations
 
 import numpy as np
