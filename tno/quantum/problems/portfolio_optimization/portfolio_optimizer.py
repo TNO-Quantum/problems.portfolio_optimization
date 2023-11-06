@@ -77,7 +77,6 @@ class PortfolioOptimizer:
         self,
         sampler: Optional[Sampler] = None,
         sampler_kwargs: Optional[dict[str, Any]] = None,
-        result_type: Literal["emission"] | Literal["growth"] = "emission",
         verbose: bool = True,
     ) -> Results:
         if verbose:
@@ -92,12 +91,7 @@ class PortfolioOptimizer:
                 print(f"Growth target: {self._growth_target - 1:.1%})")
         self._qubo_compiler.compile()
 
-        if result_type == "emission":
-            results = Results(self.portfolio_data)
-        elif result_type == "growth":
-            results = Results(self.portfolio_data, self._growth_target)
-        else:
-            raise ValueError("Unknown result_type")
+        results = Results(self.portfolio_data)
 
         if verbose:
             print("Status: calculating")
@@ -123,6 +117,8 @@ class PortfolioOptimizer:
                 len(results.x3),
             )
             print("Time consumed:", datetime.now() - starttime)
+
+        results.aggregate()
         return results
 
     @staticmethod

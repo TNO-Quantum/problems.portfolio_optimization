@@ -30,6 +30,7 @@ portfolio_optimizer.add_minimize_HHI(weights=labdas1)
 portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=labdas1)
 portfolio_optimizer.add_emission_constraint(weights=labdas3)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
+results.slice_results()
 
 
 # Make a plot of the results.
@@ -39,4 +40,4 @@ fig = plot_points(results, "green", "orange", "red")
 fig.savefig(f"figures/Port_Opt_Rabo_v3_points_{timestamp}.png")
 
 fig = plot_front(results, "green", "orange", "red")
-fig.savefig(f"figures/Port_Opt_Rabo_v3_points_{timestamp}.png")
+fig.savefig(f"figures/Port_Opt_Rabo_v3_front_{timestamp}.png")

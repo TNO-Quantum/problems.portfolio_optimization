@@ -35,6 +35,7 @@ portfolio_optimizer.add_maximize_ROC(
 )
 portfolio_optimizer.add_emission_constraint(weights=labdas4)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
+results.slice_results()
 
 
 # Make a plot of the results.

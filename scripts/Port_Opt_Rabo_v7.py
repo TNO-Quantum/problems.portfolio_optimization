@@ -28,7 +28,7 @@ portfolio_optimizer.add_minimize_HHI(weights=labdas1)
 portfolio_optimizer.add_maximize_ROC(formulation=4, weights_roc=labdas2)
 portfolio_optimizer.add_emission_constraint(weights=labdas3)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
-
+results.slice_results()
 
 # Make a plot of the results.
 timestamp = datetime.now().strftime(r"%Y-%m-%d %H_%M_%S.%f")
