@@ -11,7 +11,7 @@ from pandas import DataFrame
 class Results:
     def __init__(self, portfolio_data: DataFrame) -> None:
         self._out2021 = portfolio_data["out_2021"].to_numpy()
-        self._e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
+        self._e = portfolio_data["emis_intens_2021"].to_numpy()
         income = portfolio_data["income_2021"].to_numpy()
         self._capital = portfolio_data["regcap_2021"].to_numpy()
         self._returns = income / self._out2021

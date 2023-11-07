@@ -8,12 +8,12 @@ from pandas import DataFrame
 
 class QuboFactory:
     def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
+        self.portfolio_data = portfolio_data
         self.N = len(portfolio_data)
         self.n_vars = self.N * kmax
         self.out2021 = portfolio_data["out_2021"].to_numpy()
         self.LB = portfolio_data["out_2030_min"].to_numpy()
         self.UB = portfolio_data["out_2030_max"].to_numpy()
-        self.e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
         self.income = portfolio_data["income_2021"].to_numpy()
         self.capital = portfolio_data["regcap_2021"].to_numpy()
         self.kmin = kmin
@@ -40,11 +40,14 @@ class QuboFactory:
         return qubo, offset
 
     def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
-        emis2021 = np.sum(self.e * self.out2021)
+        e_intens_2021 = self.portfolio_data["emis_intens_2021"].to_numpy()
+        e_intens_2030 = self.portfolio_data["emis_intens_2030"].to_numpy()
+
+        emis2021 = np.sum(e_intens_2021 * self.out2021)
         bigE = emis2021 / np.sum(self.out2021)
 
-        alpha = (0.76 * self.e - 0.7 * bigE) * self.LB
-        tmp = (0.76 * self.e - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
+        alpha = (e_intens_2030 - 0.7 * bigE) * self.LB
+        tmp = (e_intens_2030 - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
         beta = np.array([tmp * 2 ** (k + self.kmin) for k in range(self.kmax)]).T
 
         qubo = np.zeros((self.n_vars, self.n_vars))

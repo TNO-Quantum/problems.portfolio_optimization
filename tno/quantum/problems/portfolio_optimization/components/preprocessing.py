@@ -6,7 +6,7 @@ def print_info(portfolio_data: DataFrame) -> None:
     out2021 = portfolio_data["out_2021"].to_numpy()
     LB = portfolio_data["out_2030_min"].to_numpy()
     UB = portfolio_data["out_2030_max"].to_numpy()
-    e = (portfolio_data["emis_intens_2021"].to_numpy() / 100).astype(float)
+    e = portfolio_data["emis_intens_2021"].to_numpy()
     income = portfolio_data["income_2021"].to_numpy()
     capital = portfolio_data["regcap_2021"].to_numpy()
 
