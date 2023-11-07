@@ -1,3 +1,4 @@
+"""This module contains tests for the ``QuboFactory`` class."""
 import numpy as np
 import pytest
 from pandas import DataFrame
@@ -18,8 +19,8 @@ def qubo_factory_fixture() -> QuboFactory:
     ]
     index = ["asset 1", "asset 2"]
     data = [
-        [1.0, 10.0, 19.0, 100.0, 76.0, 0.0, 0.0],
-        [2.0, 30.0, 39.0, 200.0, 152.0, 0.0, 0.0],
+        [1.0, 10.0, 19.0, 100.0, 76.0, 1.0, 1.0],
+        [2.0, 30.0, 39.0, 200.0, 152.0, 1.0, 1.0],
     ]
     portfolio_data = DataFrame(data=data, columns=columns, index=index)
     return QuboFactory(portfolio_data, 0, 2)
@@ -37,7 +38,7 @@ def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
 
-def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
+def test_calc_emission_constraint(qubo_factory: QuboFactory) -> None:
     expected_qubo = (
         np.array(
             [
@@ -51,6 +52,30 @@ def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
     )
     expected_offset = 960_400 / 562_500
     qubo, offset = qubo_factory.calc_emission_constraint()
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_growth_factor_constraint(qubo_factory: QuboFactory) -> None:
+    expected_qubo = np.array(
+        [
+            [25, 4, 2, 4],
+            [0, 52, 4, 8],
+            [0, 0, 25, 4],
+            [0, 0, 0, 52],
+        ]
+    )
+    expected_offset = 144
+    qubo, offset = qubo_factory.calc_growth_factor_constraint(4 / 3)
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+def test_calc_maximize_ROC1(qubo_factory: QuboFactory) -> None:
+    expected_qubo = np.diag([-12, -24, -6, -12]) /127
+    expected_offset = -100/127
+    qubo, offset = qubo_factory.calc_maximize_ROC1()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)

@@ -41,6 +41,7 @@ class QuboFactory:
         return qubo, offset
 
     def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
+        r"""$\frac{\left(\sum_i(e2030_i-0.7\frac{e2021_j*out2021_j}{\sum_j out2021_j}(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^kx_{ik}))\right)^2}{\left(\sum_i e2021_i*out2021_i\right)^2}$"""
         e_intens_2021 = self.portfolio_data["emis_intens_2021"].to_numpy()
         e_intens_2030 = self.portfolio_data["emis_intens_2030"].to_numpy()
 
@@ -68,6 +69,7 @@ class QuboFactory:
     def calc_growth_factor_constraint(
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
+        r"""$\left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{maxk}\sum_k x_{ik}}{\sum_i out2021_i} - growth\_factor\right)^2$"""
         out2021_tot = np.sum(self.out2021)
         alpha = np.sum(self.LB) / out2021_tot - growth_target
 
@@ -87,6 +89,7 @@ class QuboFactory:
         return qubo, offset
 
     def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:
+        r"""$-\left(\sum_i\frac{2*out2021_i}{UB_i+LB_i}\right)\sum_i\frac{income_i}{capital_i*out2021_i}\left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)$"""
         Exp_avr_growth_fac = 0.5 * np.sum((self.UB + self.LB) / self.out2021)
         returns = self.income / self.out2021
         offset = np.sum(self.LB / (self.capital * self.out2021 * Exp_avr_growth_fac))
