@@ -21,6 +21,7 @@ class QuboFactory:
         self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
 
     def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
+        r"""$\frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)^2}{\left(\frac{1}{2}\sum_iUB_i-LB_i\right)^2}$"""
         Exp_total_out2030 = np.sum((self.UB + self.LB)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
@@ -46,20 +47,19 @@ class QuboFactory:
         emis2021 = np.sum(e_intens_2021 * self.out2021)
         bigE = emis2021 / np.sum(self.out2021)
 
-        alpha = (e_intens_2030 - 0.7 * bigE) * self.LB
-        tmp = (e_intens_2030 - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
-        beta = np.array([tmp * 2 ** (k + self.kmin) for k in range(self.kmax)]).T
+        alpha = np.sum((e_intens_2030 - 0.7 * bigE) * self.LB)
+
+        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        multiplier = (e_intens_2030 - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
+        beta = np.kron(multiplier, mantisse)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        alpha_tot = np.sum(alpha)
-        offset = alpha_tot**2 / emis2021**2
+        offset = alpha**2 / emis2021**2
         for idx1 in range(self.N * self.kmax):
-            i, k = divmod(idx1, self.kmax)
-            qubo[idx1, idx1] += 2 * alpha_tot * beta[i, k] + beta[i, k] ** 2
+            qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
             for idx2 in range(idx1 + 1, self.N * self.kmax):
-                j, l = divmod(idx2, self.kmax)
-                qubo[idx1, idx2] += 2 * beta[i, k] * beta[j, l]
+                qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
         qubo = qubo / emis2021**2
 
