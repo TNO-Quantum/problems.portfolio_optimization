@@ -107,6 +107,7 @@ class QuboFactory:
     def calc_maximize_ROC2(
         self, capital_growth_factor: float
     ) -> tuple[NDArray[np.float_], float]:
+        r"""$\sum_i\frac{income_i}{out2021_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)$"""
         capital_target = capital_growth_factor * np.sum(self.capital)
 
         mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
@@ -141,6 +142,7 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_maximize_ROC4(self) -> tuple[NDArray[np.float_], float]:
+        r"""$\frac{\sum_i\frac{income_i}{out2021_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^k x_{ik}\right)}{\sum_i \frac{LB_i+UB_i}{2out2021_i}*capital_i}$"""
         returns = self.income / self.out2021
         mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
         multiplier = returns * (self.UB - self.LB) / self.maxk

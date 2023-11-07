@@ -58,24 +58,61 @@ def test_calc_emission_constraint(qubo_factory: QuboFactory) -> None:
 
 
 def test_calc_growth_factor_constraint(qubo_factory: QuboFactory) -> None:
-    expected_qubo = np.array(
-        [
-            [25, 4, 2, 4],
-            [0, 52, 4, 8],
-            [0, 0, 25, 4],
-            [0, 0, 0, 52],
-        ]
-    )
+    expected_qubo = [
+        [25, 4, 2, 4],
+        [0, 52, 4, 8],
+        [0, 0, 25, 4],
+        [0, 0, 0, 52],
+    ]
     expected_offset = 144
     qubo, offset = qubo_factory.calc_growth_factor_constraint(4 / 3)
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
+
 def test_calc_maximize_ROC1(qubo_factory: QuboFactory) -> None:
-    expected_qubo = np.diag([-12, -24, -6, -12]) /127
-    expected_offset = -100/127
+    expected_qubo = np.diag([-12, -24, -6, -12]) / 127
+    expected_offset = -100 / 127
     qubo, offset = qubo_factory.calc_maximize_ROC1()
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_maximize_ROC2(qubo_factory: QuboFactory) -> None:
+    expected_qubo = np.diag([-3, -6, -3 / 2, -3])
+    expected_offset = -25
+    qubo, offset = qubo_factory.calc_maximize_ROC2(0.5)
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_maximize_ROC3(qubo_factory: QuboFactory) -> None:
+    # Use 3 ancilla qubits
+    qubo_factory.n_vars += 3
+
+    expected_qubo = [
+        [-3 / 2, 0, 0, 0, 3 / 8, 9 / 32, 21 / 128],
+        [0, -3, 0, 0, 3 / 4, 9 / 16, 21 / 64],
+        [0, 0, -3 / 4, 0, 3 / 16, 9 / 64, 21 / 256],
+        [0, 0, 0, -3 / 2, 3 / 8, 9 / 32, 21 / 128],
+        [0, 0, 0, 0, 25 / 8, 0, 0],
+        [0, 0, 0, 0, 0, 75 / 32, 0],
+        [0, 0, 0, 0, 0, 0, 175 / 128],
+    ]
+    expected_offset = -25 / 2
+    qubo, offset = qubo_factory.calc_maximize_ROC3()
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_maximize_ROC4(qubo_factory: QuboFactory) -> None:
+    expected_qubo = np.diag([-12, -24, -6, -12]) / 127
+    expected_offset = -100 / 127
+    qubo, offset = qubo_factory.calc_maximize_ROC4()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
