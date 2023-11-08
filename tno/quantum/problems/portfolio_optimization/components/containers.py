@@ -18,7 +18,7 @@ class Results:
         self._ROC_now = np.sum(income) / np.sum(self._capital)
         self._HHI_now = np.sum(self._out_now**2) / np.sum(self._out_now) ** 2
         self._bigE = np.sum(self._e * self._out_now) / np.sum(self._out_now)
-        self._out_now = np.sum(self._out_now)
+        self._Out_now = np.sum(self._out_now)
 
         # These are the variables to store 3 kinds of results.
         self._x = deque()
@@ -32,9 +32,9 @@ class Results:
         self.y3 = deque()  # Targets not met
 
     def add_result(self, out_future: NDArray[np.float_]) -> None:
-        out_future = np.sum(out_future, axis=1)
+        Out_future = np.sum(out_future, axis=1)
         # Compute the future HHI.
-        HHI_future = np.sum(out_future**2, axis=1) / out_future**2
+        HHI_future = np.sum(out_future**2, axis=1) / Out_future**2
         # Compute the future ROC
         ROC = np.sum(out_future * self._returns, axis=1) / np.sum(
             out_future * self._capital / self._out_now, axis=1
@@ -63,16 +63,16 @@ class Results:
         x = np.asarray(self._x)
         y = np.asarray(self._y)
         out_future = np.array(self._out_future)
-        out_future = np.sum(out_future, axis=1)
+        Out_future = np.sum(out_future, axis=1)
 
         if growth_target is None:
             res_emis = 0.76 * np.sum(self._e * self._out_future, axis=1)
-            norm1 = self._bigE * 0.70 * out_future
+            norm1 = self._bigE * 0.70 * Out_future
             norm2 = 1.020 * norm1
             discriminator1 = res_emis < norm1
             discriminator2 = res_emis < norm2
         else:
-            Realized_growth = out_future / self._out_now
+            Realized_growth = Out_future / self._Out_now
             discriminator1 = Realized_growth > self._Growth_target
             discriminator2 = Realized_growth > 0.98 * self._Growth_target
 
