@@ -5,21 +5,59 @@ from typing import Optional
 
 import pandas as pd
 
+DEFAULT_COLUMN_NAMES = [
+    "asset",
+    "out_now",
+    "out_future_min" "out_future_max",
+    "emis_intens_now",
+    "emis_intens_future",
+    "income_now",
+    "regcap_now",
+]
+
 
 def read_portfolio_data(
-    filename: str | Path, column_swaps: Optional[dict[str, str]] = None
+    filename: str | Path, columns_rename: Optional[dict[str, str]] = None
 ) -> pd.DataFrame:
+    """
+    Read portfolio data into DataFrame.
+
+    The portfolio data is expected to contain the following columns names:
+
+        - ``"assets"``
+        - ``"out_now"``
+        - ``"out_future_min"``
+        - ``"out_future_max"``
+        - ``"emis_intens_now"``
+        - ``"emis_intens_future"``
+        - ``"income_now"``
+        - ``"regcap_now"``
+
+    Different column names in the dataset can be used but need to be provided as a
+    renaming dictionary to the ``columns_rename`` argument.
+
+    Args:
+        filename: path to portfolio data
+        column_rename: to rename columns provided as dict with new column names as keys
+            and to replace column name as value. Example ``{"out_2021": "out_now"}``.
+
+    Raises:
+        ValueError if column are not present
+    """
     print("Status: reading data")
     if str(filename) == "rabobank":
         filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
 
     df = pd.read_excel(str(filename))
+    df.rename(columns=columns_rename, inplace=True)
 
-    # if column_swaps is not None:
-    #    ...
+    # Validate dataset to contain required column names
+    for required_column_name in DEFAULT_COLUMN_NAMES:
+        if required_column_name not in df.columns:
+            raise ValueError(
+                f"Required column name {required_column_name} is not in dataset."
+            )
 
-    # iets met data validation
-    # ...
     return df
 
 
