@@ -16,7 +16,7 @@ from tno.quantum.problems.portfolio_optimization.components import (
     Decoder,
     QuboCompiler,
     Results,
-    print_info,
+    print_portfolio_info,
     read_portfolio_data,
 )
 
@@ -136,7 +136,7 @@ class PortfolioOptimizer:
             ValueError: if constraints are not set
         """
         if verbose:
-            print_info(self.portfolio_data)
+            print_portfolio_info(self.portfolio_data)
 
         sampler = SimulatedAnnealingSampler() if sampler is None else sampler
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
