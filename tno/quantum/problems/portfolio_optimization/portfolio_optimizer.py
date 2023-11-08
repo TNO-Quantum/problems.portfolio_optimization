@@ -105,7 +105,7 @@ class PortfolioOptimizer:
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
-        """Add constraint: total_out2030/total_out2021 = growth_target
+        """Add constraint: total_out_future/total_out_now = growth_target
 
         Args:
             growth_target:
@@ -161,9 +161,9 @@ class PortfolioOptimizer:
             qubo, offset = self._qubo_compiler.make_qubo(*labdas)
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
-            # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)
-            out2030 = self.decoder.decode_sampleset(response)
-            results.add_result(out2030)
+            # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
+            out_future = self.decoder.decode_sampleset(response)
+            results.add_result(out_future)
 
         if verbose:
             print(
