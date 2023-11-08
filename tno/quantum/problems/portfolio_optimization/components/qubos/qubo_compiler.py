@@ -93,7 +93,7 @@ class QuboCompiler:
     ) -> QuboCompilerT:
         """Add the capital growth factor constraint to the compile list.
 
-        The constraint is formulated as total_out2030/total_out2021 = growth_target.
+        The constraint is formulated as total_out_future/total_out_now = growth_target.
 
         Args:
             growth_target: Growth target to use in teh constraint.

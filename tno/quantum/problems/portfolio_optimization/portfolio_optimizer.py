@@ -4,7 +4,7 @@ import itertools
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 import numpy as np
 from dimod import Sampler
@@ -16,14 +16,30 @@ from tno.quantum.problems.portfolio_optimization.components import (
     Decoder,
     QuboCompiler,
     Results,
-    print_info,
+    print_portfolio_info,
     read_portfolio_data,
 )
 
 
 class PortfolioOptimizer:
-    def __init__(self, filename: str | Path, kmin: int, kmax: int) -> None:
-        portfolio_data = read_portfolio_data(filename)
+    """Portfolio Optimizer"""
+
+    def __init__(
+        self,
+        filename: str | Path,
+        kmin: int,
+        kmax: int,
+        columns_rename: Optional[dict[str, str]] = None,
+    ) -> None:
+        """Init PortfolioOptimizer
+
+        Args:
+            filename: path to portfolio data
+            kmin:
+            kmax:
+            column_rename:
+        """
+        portfolio_data = read_portfolio_data(filename, columns_rename)
         self.portfolio_data = portfolio_data
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.decoder = Decoder(portfolio_data, kmin, kmax)
@@ -31,6 +47,13 @@ class PortfolioOptimizer:
         self._growth_target = None
 
     def add_minimize_HHI(self, weights: Optional[ArrayLike] = None) -> None:
+        """
+        Adds the minimize HHI objective.
+
+        Args:
+            weights:
+
+        """
         self._all_labdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_minimize_HHI()
 
@@ -43,6 +66,8 @@ class PortfolioOptimizer:
         weights_stabilize: Optional[ArrayLike] = None,
     ) -> None:
         """
+        Adds the maximize ROC objective.
+
         formulation 1:
             add 1 qubo term, use weights_roc to scale
         formulation 2:
@@ -53,6 +78,13 @@ class PortfolioOptimizer:
             weights_stabilize to scale
         formulation 4:
             add 1 qubo term, use weights_roc to scale
+
+        Args:
+            formulation:
+            capital_growth_factor:
+            ancilla_qubits:
+            weights_roc:
+            weights_stabilize:
         """
         self._all_labdas.append(self._parse_weight(weights_roc))
         if formulation in [2, 3]:
@@ -62,13 +94,23 @@ class PortfolioOptimizer:
         )
 
     def add_emission_constraint(self, weights: Optional[ArrayLike] = None) -> None:
+        """Add emission constraint
+
+        Args:
+            weights: penalty parameter coefficients
+        """
         self._all_labdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_emission_constraint()
 
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
-        """Add constaint: total_out2030/total_out2021 = growth_target"""
+        """Add constraint: total_out_future/total_out_now = growth_target
+
+        Args:
+            growth_target:
+            weights:
+        """
         self._growth_target = growth_target
         self._all_labdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
@@ -79,8 +121,22 @@ class PortfolioOptimizer:
         sampler_kwargs: Optional[dict[str, Any]] = None,
         verbose: bool = True,
     ) -> Results:
+        """
+        Optimize portfolio given constraints
+
+        Args:
+            sampler:
+            sampler_kwargs:
+            verbose:
+
+        Returns:
+            results
+
+        Raises:
+            ValueError: if constraints are not set
+        """
         if verbose:
-            print_info(self.portfolio_data)
+            print_portfolio_info(self.portfolio_data)
 
         sampler = SimulatedAnnealingSampler() if sampler is None else sampler
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
@@ -105,9 +161,9 @@ class PortfolioOptimizer:
             qubo, offset = self._qubo_compiler.make_qubo(*labdas)
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
-            # Postprocess solution. Iterate over all found solutions. (Compute 2030 portfolios)
-            out2030 = self.decoder.decode_sampleset(response)
-            results.add_result(out2030)
+            # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
+            out_future = self.decoder.decode_sampleset(response)
+            results.add_result(out_future)
 
         if verbose:
             print(
@@ -122,7 +178,15 @@ class PortfolioOptimizer:
         return results
 
     @staticmethod
-    def _parse_weight(weights: Optional[ArrayLike]) -> NDArray[np.float_]:
+    def _parse_weight(weights: Optional[ArrayLike] = None) -> NDArray[np.float_]:
+        """Convert weights into NumPy array and if needed set default weights to [1.0]
+
+        Args:
+            weights: penalty coefficients
+
+        Returns:
+            Numpy array of weights
+        """
         if weights is None:
             return np.array([1.0])
         return np.asarray(weights, dtype=np.float_)

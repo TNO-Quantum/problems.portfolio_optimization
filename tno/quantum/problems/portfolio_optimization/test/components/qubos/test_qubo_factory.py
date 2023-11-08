@@ -9,13 +9,13 @@ from tno.quantum.problems.portfolio_optimization.components import QuboFactory
 @pytest.fixture(name="qubo_factory")
 def qubo_factory_fixture() -> QuboFactory:
     columns = [
-        "out_2021",
-        "out_2030_min",
-        "out_2030_max",
-        "emis_intens_2021",
-        "emis_intens_2030",
-        "income_2021",
-        "regcap_2021",
+        "out_now",
+        "out_future_min",
+        "out_future_max",
+        "emis_intens_now",
+        "emis_intens_future",
+        "income_now",
+        "regcap_now",
     ]
     index = ["asset 1", "asset 2"]
     data = [
