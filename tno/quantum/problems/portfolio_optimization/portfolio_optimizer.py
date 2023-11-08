@@ -43,7 +43,7 @@ class PortfolioOptimizer:
         self.portfolio_data = portfolio_data
         self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
         self.decoder = Decoder(portfolio_data, kmin, kmax)
-        self._all_labdas: list[NDArray[np.float_]] = []
+        self._all_lambdas: list[NDArray[np.float_]] = []
         self._growth_target = None
 
     def add_minimize_HHI(self, weights: Optional[ArrayLike] = None) -> None:
@@ -54,7 +54,7 @@ class PortfolioOptimizer:
             weights:
 
         """
-        self._all_labdas.append(self._parse_weight(weights))
+        self._all_lambdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_minimize_HHI()
 
     def add_maximize_ROC(
@@ -86,9 +86,9 @@ class PortfolioOptimizer:
             weights_roc:
             weights_stabilize:
         """
-        self._all_labdas.append(self._parse_weight(weights_roc))
+        self._all_lambdas.append(self._parse_weight(weights_roc))
         if formulation in [2, 3]:
-            self._all_labdas.append(self._parse_weight(weights_stabilize))
+            self._all_lambdas.append(self._parse_weight(weights_stabilize))
         self._qubo_compiler.add_maximize_ROC(
             formulation, capital_growth_factor, ancilla_qubits
         )
@@ -99,7 +99,7 @@ class PortfolioOptimizer:
         Args:
             weights: penalty parameter coefficients
         """
-        self._all_labdas.append(self._parse_weight(weights))
+        self._all_lambdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_emission_constraint()
 
     def add_growth_factor_constraint(
@@ -112,7 +112,7 @@ class PortfolioOptimizer:
             weights:
         """
         self._growth_target = growth_target
-        self._all_labdas.append(self._parse_weight(weights))
+        self._all_lambdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
     def run(
@@ -153,12 +153,12 @@ class PortfolioOptimizer:
             print("Status: calculating")
             starttime = datetime.now()
 
-        total_steps = math.prod(map(len, self._all_labdas))
-        labdas_iterator = tqdm(itertools.product(*self._all_labdas), total=total_steps)
+        total_steps = math.prod(map(len, self._all_lambdas))
+        lambdas_iterator = tqdm(itertools.product(*self._all_lambdas), total=total_steps)
 
-        for labdas in labdas_iterator:
+        for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
-            qubo, offset = self._qubo_compiler.make_qubo(*labdas)
+            qubo, offset = self._qubo_compiler.make_qubo(*lambdas)
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)

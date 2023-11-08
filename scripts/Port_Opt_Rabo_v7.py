@@ -18,15 +18,15 @@ sampler = SimulatedAnnealingSampler()
 sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
 # Set up penalty coefficients for the constraints
-labdas1 = np.logspace(-17, 2, 99, endpoint=False, base=10.0)
-labdas2 = np.logspace(-17, -2, 99, endpoint=False, base=10.0)
-labdas3 = np.array([1])
+lambdas1 = np.logspace(-17, 2, 99, endpoint=False, base=10.0)
+lambdas2 = np.logspace(-17, -2, 99, endpoint=False, base=10.0)
+lambdas3 = np.array([1])
 
 
 portfolio_optimizer = PortfolioOptimizer("rabobank", kmin, kmax)
-portfolio_optimizer.add_minimize_HHI(weights=labdas1)
-portfolio_optimizer.add_maximize_ROC(formulation=4, weights_roc=labdas2)
-portfolio_optimizer.add_emission_constraint(weights=labdas3)
+portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
+portfolio_optimizer.add_maximize_ROC(formulation=4, weights_roc=lambdas2)
+portfolio_optimizer.add_emission_constraint(weights=lambdas3)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
 results.slice_results()
 

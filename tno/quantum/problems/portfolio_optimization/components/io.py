@@ -6,6 +6,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 DEFAULT_COLUMN_NAMES = [
     "asset",
