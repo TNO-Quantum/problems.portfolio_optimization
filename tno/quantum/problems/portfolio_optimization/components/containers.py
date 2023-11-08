@@ -1,3 +1,4 @@
+"""This module contains a container for Results object."""
 from __future__ import annotations
 
 from collections import deque
@@ -9,7 +10,15 @@ from pandas import DataFrame
 
 
 class Results:
+    """Results container"""
+
     def __init__(self, portfolio_data: DataFrame) -> None:
+        """
+        Init of Results container.
+        
+        Args:
+            portfolio_data: the portfolio data
+        """
         self._out_now = portfolio_data["out_now"].to_numpy()
         self._e = portfolio_data["emis_intens_now"].to_numpy()
         income = portfolio_data["income_now"].to_numpy()
@@ -32,6 +41,12 @@ class Results:
         self.y3 = deque()  # Targets not met
 
     def add_result(self, out_future: NDArray[np.float_]) -> None:
+        """
+        Add a new out_future data point to results container.
+
+        Args:
+            out_future: ...
+        """
         Out_future = np.sum(out_future, axis=1)
         # Compute the future HHI.
         HHI_future = np.sum(out_future**2, axis=1) / Out_future**2
@@ -48,6 +63,9 @@ class Results:
         self._out_future.extend(out_future)
 
     def aggregate(self) -> None:
+        """
+        Aggregate unique results
+        """
         x = np.asarray(self._x)
         y = np.asarray(self._y)
         out_future = np.asarray(self._out_future)
@@ -60,6 +78,18 @@ class Results:
         self._out_future = out_future[indices]
 
     def slice_results(self, growth_target: Optional[float] = None) -> None:
+        """
+        Slice the results in three groups, growth targets met, almost met, not met or not. 
+
+            - Realized growth > growth target
+            - 98% of the growth target < Realized growth < growth target 
+            - Realized growth < 98% of the growth target
+        
+        Args:
+            growth_target: the target to 
+
+        #TODO: Handle growth_target is None docs, is quite specific/hardcoded
+        """
         x = np.asarray(self._x)
         y = np.asarray(self._y)
         out_future = np.array(self._out_future)
@@ -73,8 +103,8 @@ class Results:
             discriminator2 = res_emis < norm2
         else:
             Realized_growth = Out_future / self._Out_now
-            discriminator1 = Realized_growth > self._Growth_target
-            discriminator2 = Realized_growth > 0.98 * self._Growth_target
+            discriminator1 = Realized_growth > growth_target
+            discriminator2 = Realized_growth > 0.98 * growth_target
 
         mask1 = discriminator1
         mask2 = ~mask1 & (discriminator2)

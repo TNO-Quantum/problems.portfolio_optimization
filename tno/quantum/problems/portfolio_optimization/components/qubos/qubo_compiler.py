@@ -117,21 +117,21 @@ class QuboCompiler:
             self._compiled_qubos.append(qubo)
         return self
 
-    def make_qubo(self, *labdas: float) -> tuple[NDArray[np.float_], float]:
-        """Make a QUBO of the entiry problem with the given labdas.
+    def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float_], float]:
+        """Make a QUBO of the entiry problem with the given lambdas.
 
         Args:
-            labdas: Scaling parameters for each QUBO in the formulation.
+            lambdas: Scaling parameters for each QUBO in the formulation.
 
         Returns:
             Tuple containing the QUBO matrix and offset.
         """
-        if len(labdas) != len(self._compiled_qubos):
+        if len(lambdas) != len(self._compiled_qubos):
             raise ValueError(
-                "Number of labdas does not correspond with the number of Hamiltonians."
+                "Number of lambdas does not correspond with the number of Hamiltonians."
             )
         qubo = sum(
-            (labda_i * qubo_i for labda_i, qubo_i in zip(labdas, self._compiled_qubos)),
+            (lambda_i * qubo_i for lambda_i, qubo_i in zip(lambdas, self._compiled_qubos)),
             start=np.zeros_like(self._compiled_qubos[0]),
         )
 
