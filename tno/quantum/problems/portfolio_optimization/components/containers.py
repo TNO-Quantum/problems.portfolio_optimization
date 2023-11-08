@@ -15,7 +15,7 @@ class Results:
         income = portfolio_data["income_now"].to_numpy()
         self._capital = portfolio_data["regcap_now"].to_numpy()
         self._returns = income / self._out_now
-        self._ROCnow = np.sum(income) / np.sum(self._capital)
+        self._ROC_now = np.sum(income) / np.sum(self._capital)
         self._HHI_now = np.sum(self._out_now**2) / np.sum(self._out_now) ** 2
         self._bigE = np.sum(self._e * self._out_now) / np.sum(self._out_now)
         self._out_now = np.sum(self._out_now)
@@ -41,7 +41,7 @@ class Results:
         )
         # Compute the emissions from the resulting future portfolio.
         x = 100 * (1 - (HHI_future / self._HHI_now))
-        y = 100 * (ROC / self._ROCnow - 1)
+        y = 100 * (ROC / self._ROC_now - 1)
 
         self._x.extend(x)
         self._y.extend(y)
