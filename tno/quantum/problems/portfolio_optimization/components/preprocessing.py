@@ -1,3 +1,4 @@
+"""This module implements required preprocessing"""
 import numpy as np
 from pandas import DataFrame
 
@@ -15,19 +16,19 @@ def print_info(portfolio_data: DataFrame) -> None:
     print(f"Total outstanding now: {out_now}")
 
     # Calculate the ROC for now
-    ROCnow = np.sum(income) / np.sum(capital)
-    print(f"ROC now: {ROCnow}")
+    ROC_now = np.sum(income) / np.sum(capital)
+    print(f"ROC now: {ROC_now}")
 
     # Calculate the HHI diversification for now
     HHI_now = np.sum(out_now**2) / np.sum(out_now) ** 2
     print("HHI now: ", HHI_now)
 
     # Calculate the total emissions for now
-    emisnow = np.sum(e * out_now)
-    print("Emission now: ", emisnow)
+    emis_now = np.sum(e * out_now)
+    print("Emission now: ", emis_now)
 
     # Calculate the average emission intensity now
-    bigE = emisnow / out_now
+    bigE = emis_now / out_now
     print("Emission intensity now:", bigE)
 
     # Estimate the total outstanding amount and its standard deviation for future. This

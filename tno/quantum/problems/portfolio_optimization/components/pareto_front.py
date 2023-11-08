@@ -1,3 +1,4 @@
+"""This module implements pareto front"""
 from __future__ import annotations
 
 import numpy as np

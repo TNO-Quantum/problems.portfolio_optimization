@@ -1,3 +1,4 @@
+"""This module implements required post processing steps."""
 from typing import Mapping
 
 import numpy as np
