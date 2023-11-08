@@ -8,7 +8,7 @@ import pandas as pd
 DEFAULT_COLUMN_NAMES = [
     "asset",
     "out_now",
-    "out_future_min" "out_future_max",
+    "out_future_min", "out_future_max",
     "emis_intens_now",
     "emis_intens_future",
     "income_now",
@@ -42,14 +42,15 @@ def read_portfolio_data(
             and to replace column name as value. Example ``{"out_2021": "out_now"}``.
 
     Raises:
-        ValueError if column are not present
+        ValueError if required columns are not present in dataset.
     """
     print("Status: reading data")
     if str(filename) == "rabobank":
         filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
 
     df = pd.read_excel(str(filename))
-    df.rename(columns=columns_rename, inplace=True)
+    if columns_rename is not None:
+        df.rename(columns=columns_rename, inplace=True)
 
     # Validate dataset to contain required column names
     for required_column_name in DEFAULT_COLUMN_NAMES:
