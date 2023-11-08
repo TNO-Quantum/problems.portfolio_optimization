@@ -71,7 +71,7 @@ def test_calc_growth_factor_constraint(qubo_factory: QuboFactory) -> None:
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
 
-def test_calc_maximize_ROC1(qubo_factory: QuboFactory) -> None:
+def test_calc_maximize_roc1(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-12, -24, -6, -12]) / 127
     expected_offset = -100 / 127
     qubo, offset = qubo_factory.calc_maximize_ROC1()
@@ -80,7 +80,7 @@ def test_calc_maximize_ROC1(qubo_factory: QuboFactory) -> None:
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
 
-def test_calc_maximize_ROC2(qubo_factory: QuboFactory) -> None:
+def test_calc_maximize_roc2(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-3, -6, -3 / 2, -3])
     expected_offset = -25
     qubo, offset = qubo_factory.calc_maximize_ROC2(0.5)
@@ -89,7 +89,7 @@ def test_calc_maximize_ROC2(qubo_factory: QuboFactory) -> None:
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
 
-def test_calc_maximize_ROC3(qubo_factory: QuboFactory) -> None:
+def test_calc_maximize_roc3(qubo_factory: QuboFactory) -> None:
     # Use 3 ancilla qubits
     qubo_factory.n_vars += 3
 
@@ -109,10 +109,44 @@ def test_calc_maximize_ROC3(qubo_factory: QuboFactory) -> None:
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
 
-def test_calc_maximize_ROC4(qubo_factory: QuboFactory) -> None:
+def test_calc_maximize_roc4(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-12, -24, -6, -12]) / 127
     expected_offset = -100 / 127
     qubo, offset = qubo_factory.calc_maximize_ROC4()
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_stabilize_c1(qubo_factory: QuboFactory) -> None:
+    expected_qubo = [
+        [99, 36, 9, 18],
+        [0, 216, 18, 36],
+        [0, 0, 47.25, 9],
+        [0, 0, 0, 99],
+    ]
+    expected_offset = 225
+    qubo, offset = qubo_factory.calc_stabilize_c1(5)
+
+    np.testing.assert_almost_equal(offset, expected_offset)
+    np.testing.assert_almost_equal(qubo, expected_qubo)
+
+
+def test_calc_stabilize_c2(qubo_factory: QuboFactory) -> None:
+    # Use 3 ancilla qubits
+    qubo_factory.n_vars += 3
+
+    expected_qubo = [
+        [147, 36, 9, 18, -6, -3, -3 / 2],
+        [0, 312, 18, 36, -12, -6, -3],
+        [0, 0, 71.25, 9, -3, -3 / 2, -3 / 4],
+        [0, 0, 0, 147, -6, -3, -3 / 2],
+        [0, 0, 0, 0, -45, 1, 1 / 2],
+        [0, 0, 0, 0, 0, -22.75, 1 / 4],
+        [0, 0, 0, 0, 0, 0, -11.4375],
+    ]
+    expected_offset = 529
+    qubo, offset = qubo_factory.calc_stabilize_c2()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)

@@ -1,15 +1,26 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 
 
-def read_portfolio_data(filename: str | Path) -> pd.DataFrame:
+def read_portfolio_data(
+    filename: str | Path, column_swaps: Optional[dict[str, str]] = None
+) -> pd.DataFrame:
     print("Status: reading data")
     if str(filename) == "rabobank":
         filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
-    return pd.read_excel(str(filename))
+
+    df = pd.read_excel(str(filename))
+
+    # if column_swaps is not None:
+    #    ...
+
+    # iets met data validation
+    # ...
+    return df
 
 
 def get_rabo_fronts() -> tuple[list[float], list[float], list[float], list[float]]:
