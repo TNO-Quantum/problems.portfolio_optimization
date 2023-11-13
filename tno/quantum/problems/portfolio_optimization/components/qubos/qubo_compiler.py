@@ -118,7 +118,7 @@ class QuboCompiler:
         return self
 
     def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float_], float]:
-        """Make a QUBO of the entiry problem with the given lambdas.
+        """Make a QUBO of the entire problem with the given lambdas.
 
         Args:
             lambdas: Scaling parameters for each QUBO in the formulation.
