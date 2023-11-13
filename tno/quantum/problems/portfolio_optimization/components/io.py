@@ -68,7 +68,7 @@ def read_portfolio_data(
 
 def print_portfolio_info(portfolio_data: DataFrame) -> None:
     """Print information about portfolio data to terminal.
-    
+
     Args:
         portfolio_data: DataFrame with portfolio data.
     """

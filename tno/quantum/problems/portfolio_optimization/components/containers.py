@@ -15,7 +15,7 @@ class Results:
     def __init__(self, portfolio_data: DataFrame) -> None:
         """
         Init of Results container.
-        
+
         Args:
             portfolio_data: the portfolio data
         """
@@ -79,14 +79,14 @@ class Results:
 
     def slice_results(self, growth_target: Optional[float] = None) -> None:
         """
-        Slice the results in three groups, growth targets met, almost met, not met or not. 
+        Slice the results in three groups, growth targets met, almost met, not met or not.
 
             - Realized growth > growth target
-            - 98% of the growth target < Realized growth < growth target 
+            - 98% of the growth target < Realized growth < growth target
             - Realized growth < 98% of the growth target
-        
+
         Args:
-            growth_target: the target to 
+            growth_target: the target to
 
         #TODO: Handle growth_target is None docs, is quite specific/hardcoded
         """

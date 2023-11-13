@@ -131,7 +131,10 @@ class QuboCompiler:
                 "Number of lambdas does not correspond with the number of Hamiltonians."
             )
         qubo = sum(
-            (lambda_i * qubo_i for lambda_i, qubo_i in zip(lambdas, self._compiled_qubos)),
+            (
+                lambda_i * qubo_i
+                for lambda_i, qubo_i in zip(lambdas, self._compiled_qubos)
+            ),
             start=np.zeros_like(self._compiled_qubos[0]),
         )
 

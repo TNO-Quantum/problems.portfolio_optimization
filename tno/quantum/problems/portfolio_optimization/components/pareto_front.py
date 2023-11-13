@@ -9,14 +9,14 @@ from scipy.spatial import ConvexHull
 def pareto_front(
     x: ArrayLike, y: ArrayLike, min_points: int = 100
 ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
-    """Calculate the pareto front with at least min_points data points by repeatedly 
+    """Calculate the pareto front with at least min_points data points by repeatedly
     creating a convex hull around data points.
-   
+
     Args:
         x: x-values of data points
         y: y-values of data points
         min_points: minimum number of points to be selected
-    
+
     Returns:
         x, y values of the points that are on the pareto front
     """

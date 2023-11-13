@@ -1,3 +1,4 @@
+"""This module contains the ``PortfolioOptimizer`` class."""
 from __future__ import annotations
 
 import itertools
@@ -34,10 +35,14 @@ class PortfolioOptimizer:
         """Init PortfolioOptimizer
 
         Args:
-            filename: path to portfolio data
-            kmin:
-            kmax:
-            column_rename:
+            filename: path to where portfolio data is stored. See the docstring of
+                :py:func:`~portfolio_optimization.components.io.read_portfolio_data`
+                for data input conventions.
+            kmin: Minimum $k$ in the discretization of the variables.
+            kmax: Maximum $k$ in the discretization of the variables.
+            column_rename: can be used to rename data columns. See the docstring of
+                :py:func:`~portfolio_optimization.components.io.read_portfolio_data` for
+                example.
         """
         portfolio_data = read_portfolio_data(filename, columns_rename)
         self.portfolio_data = portfolio_data
@@ -51,7 +56,7 @@ class PortfolioOptimizer:
         Adds the minimize HHI objective.
 
         Args:
-            weights:
+            weights: The coefficients that are considered as penalty parameter.
 
         """
         self._all_lambdas.append(self._parse_weight(weights))
@@ -80,12 +85,23 @@ class PortfolioOptimizer:
             add 1 qubo term, use weights_roc to scale
 
         Args:
-            formulation:
+            formulation: the ROC QUBO formulation that is being used.
+                Possible options are: [1, 2, 3, 4].
             capital_growth_factor:
             ancilla_qubits:
             weights_roc:
             weights_stabilize:
+
+        Raises:
+            ValueError: If invalid formulation is provided.
         """
+        allowed_formulation_options = [1, 2, 3, 4]
+        if formulation not in allowed_formulation_options:
+            raise ValueError(
+                f"Invalid formulation input provided, "
+                f"choose from {allowed_formulation_options}."
+            )
+
         self._all_lambdas.append(self._parse_weight(weights_roc))
         if formulation in [2, 3]:
             self._all_lambdas.append(self._parse_weight(weights_stabilize))
@@ -97,7 +113,7 @@ class PortfolioOptimizer:
         """Add emission constraint
 
         Args:
-            weights: penalty parameter coefficients
+            weights: The coefficients that are considered as penalty parameter.
         """
         self._all_lambdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_emission_constraint()
@@ -109,7 +125,7 @@ class PortfolioOptimizer:
 
         Args:
             growth_target:
-            weights:
+            weights: The coefficients that are considered as penalty parameter.
         """
         self._growth_target = growth_target
         self._all_lambdas.append(self._parse_weight(weights))
@@ -122,18 +138,24 @@ class PortfolioOptimizer:
         verbose: bool = True,
     ) -> Results:
         """
-        Optimize portfolio given constraints
+        Optimize a portfolio given the set constraints.
+
 
         Args:
-            sampler:
-            sampler_kwargs:
-            verbose:
+            sampler: Instance of a D-wave Sampler that can be used to solve the QUBO.
+                More information can be found in the `D-Wave Ocean Samplers Documentation`_.
+                Default the SimulatedAnnealingSampler is being used.
+            sampler_kwargs: The sampler specific key-word arguments.
+            verbose: If True, print detailed information during execution
 
         Returns:
             results
 
         Raises:
             ValueError: if constraints are not set
+
+        .. _D-Wave Ocean Documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
+
         """
         if verbose:
             print_portfolio_info(self.portfolio_data)
@@ -154,7 +176,9 @@ class PortfolioOptimizer:
             starttime = datetime.now()
 
         total_steps = math.prod(map(len, self._all_lambdas))
-        lambdas_iterator = tqdm(itertools.product(*self._all_lambdas), total=total_steps)
+        lambdas_iterator = tqdm(
+            itertools.product(*self._all_lambdas), total=total_steps
+        )
 
         for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
@@ -182,7 +206,7 @@ class PortfolioOptimizer:
         """Convert weights into NumPy array and if needed set default weights to [1.0]
 
         Args:
-            weights: penalty coefficients
+            weights: penalty coefficients.
 
         Returns:
             Numpy array of weights
