@@ -56,11 +56,6 @@ using the simulated annealing sampler from D-Wave.
         plot_front,
     )
 
-    # Define the precision of the portfolio sizes.
-    kmax = 2  # 2 # number of values
-    kmin = 0  # minimal value 2**kmin
-
-
     # Choose sampler to solve qubo with
     sampler = SimulatedAnnealingSampler()
     sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
@@ -72,7 +67,7 @@ using the simulated annealing sampler from D-Wave.
     lambdas3 = np.array([1])
 
     # Define the problem
-    portfolio_optimizer = PortfolioOptimizer("rabobank", kmin, kmax)
+    portfolio_optimizer = PortfolioOptimizer("rabobank")
     portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
     portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=lambdas1)
     portfolio_optimizer.add_emission_constraint(weights=lambdas3)
