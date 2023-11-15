@@ -1,6 +1,8 @@
 """This module contains the ``QuboFactory`` class."""
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 from numpy.typing import NDArray
 from pandas import DataFrame
@@ -59,7 +61,7 @@ class QuboFactory:
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
         Returns:
             qubo matrix and its offset
@@ -88,13 +90,61 @@ class QuboFactory:
         qubo = qubo / expected_total_outstanding_future**2
         return qubo, offset
 
-    def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\left(\sum_i(efuture_i-0.7\frac{enow_j*out_now_j}{\sum_j out_now_j}(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^kx_{ik}))\right)^2}{\left(\sum_i enow_i*out_now_i\right)^2}$"""
-        e_intens_now = self.portfolio_data["emis_intens_now"].to_numpy()
-        e_intens_future = self.portfolio_data["emis_intens_future"].to_numpy()
+    def calc_emission_constraint(
+        self,
+        column_name_now: str,
+        column_name_future: Optional[str] = None,
+        reduction_percentage_target: float = 0.7,
+    ) -> tuple[NDArray[np.float_], float]:
+        r"""Calculate the emission constraint QUBO for arbitrary target reduction target
 
-        emisnow = np.sum(e_intens_now * self.outstanding_now)
-        bigE = emisnow / np.sum(self.outstanding_now)
+        The QUBO formulation is given by
+
+        $$QUBO = \left(\frac{\sum_i f_i \left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)}{{\frac{1}{2}\sum_iUB_i+LB_i}} - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i} \right)^2$$
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$e_i$` is the current emission intensity for asset `$i$`,
+            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$out_i$` is the current outstanding amount for asset `$i$`,
+            - `$g$` is the target value for the relative emission reduction,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Args:
+            variable_now: Name of the column in the portfolio dataset corresponding to
+                the variables at current time.
+            variable_future: Name of the column in the portfolio dataset corresponding
+                to the variables at future time. If no value is provided, it is assumed
+                that the value is constant over time, i.e., the variable
+                ``variable_now`` will be used.
+            reduction_percentage_target: target value for reduction percentage amount.
+
+        Raises:
+            KeyError: if the provided column names are not in the portfolio_data.
+
+        Returns:
+            qubo matrix and its offset
+        """
+        if column_name_future is None:
+            column_name_future = column_name_now
+
+        if column_name_now not in self.portfolio_data:
+            raise KeyError(
+                f"Column name {column_name_now} not present in portfolio dataset."
+            )
+        if column_name_future not in self.portfolio_data:
+            raise KeyError(
+                f"Column name {column_name_future} not present in portfolio dataset."
+            )
+
+        emission_intensity_now = self.portfolio_data[column_name_now].to_numpy()
+        emission_intensity_future = self.portfolio_data[column_name_future].to_numpy()
+
+        total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
+        rel_total_emission_now = total_emission_now / np.sum(self.outstanding_now)
 
         alpha = np.sum((e_intens_future - 0.7 * bigE) * self.LB)
 
@@ -130,7 +180,7 @@ class QuboFactory:
             - `$k$` is the number of bits,
             - `$g$` is the target value for the total growth factor,
             - `$out_i$` is the current outstanding amount for asset `$i$`,
-            - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
