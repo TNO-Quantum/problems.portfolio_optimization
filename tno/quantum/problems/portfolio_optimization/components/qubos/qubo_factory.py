@@ -48,7 +48,22 @@ class QuboFactory:
         self.k = k
 
     def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)^2}{\left(\frac{1}{2}\sum_iUB_i-LB_i\right)^2}$"""
+        r"""Calculate the to minimize HHI QUBO.
+
+        The QUBO formulation is given by
+
+        $$QUBO_{HHI} = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
+            
+        Returns:
+            qubo matrix and its offset
+        """
         expected_total_outstanding_future = np.sum((self.UB + self.LB)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
