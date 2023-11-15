@@ -42,8 +42,8 @@ Examples
 --------
 
 Here's an example of how the :py:class:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer` class 
-can be used to define an portfolio optimization problem, and subsequently, how its Pareto front be computed 
-using a simulated annealing sampler from D-Wave. 
+can be used to define an portfolio optimization problem, and subsequently, how the Pareto front be computed 
+using the simulated annealing sampler from D-Wave. 
 
 
 .. code-block:: python
@@ -92,7 +92,27 @@ Data input
 TODO: Explain dataset constrains + refer to docs.
 
 
-Different Solvers
------------------
+Using Quantum Annealing Solvers
+-------------------------------
 
-TODO: Explain how different QUBO solvers from D-Wave can be used + refer to DWave sampler docs.
+By default, the portfolio optimization QUBO is solved using simulated annealing.
+Any D-Wave ``Sampler`` is however supported and can be provided to the :py:meth:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer.run` method.
+ 
+
+Below is an example how to initialise a quantum annealing sampler that uses `100` micro seconds annealing time per sample.
+The example assumes a proper `configuration setup`_ to the D-Wave's Solver API.
+
+.. code-block:: python
+
+    from dwave.system import DWaveSampler, EmbeddingComposite
+
+    # Define QPU D-Wave Sampler
+    qpu = DWaveSampler()
+    sampler = EmbeddingComposite(qpu)
+    sampler_kwargs = {"annealing_time": 100}
+
+
+We refer to the `D-Wave Sampler documentation`_ for information on usage of different samplers and their sampler arguments.
+
+.. _configuration setup: https://docs.ocean.dwavesys.com/en/stable/overview/sapi.html
+.. _D-Wave Sampler documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html

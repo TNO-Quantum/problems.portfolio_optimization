@@ -142,9 +142,9 @@ class PortfolioOptimizer:
 
 
         Args:
-            sampler: Instance of a D-wave Sampler that can be used to solve the QUBO.
-                More information can be found in the `D-Wave Ocean Samplers Documentation`_.
-                Default the SimulatedAnnealingSampler is being used.
+            sampler: Instance of a D-Wave Sampler that can be used to solve the QUBO.
+                More information can be found in the `D-Wave Ocean Documentation`_.
+                By default the ``SimulatedAnnealingSampler`` is being used.
             sampler_kwargs: The sampler specific key-word arguments.
             verbose: If True, print detailed information during execution
 
