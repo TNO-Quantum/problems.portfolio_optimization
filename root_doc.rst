@@ -1,24 +1,35 @@
 Portfolio optimization
 ======================
 
-This repository provides python code perform multi-objective portfolio optimization. 
+Real-world investment decisions involve multiple, often conflicting, objectives that needs to be balanced.
+Primary goals typically revolve around maximizing returns while minimizing risks.
+At the same time, one might want to require additional constraints such as demanding a minimum carbon footprint reduction. 
+Finding a portfolio that balances these objectives is a challenging task and can be solved using multi-objective portfolio optimization. 
 
 
-A Pareto front is the set of Pareto efficient solutions. In multi-objective optimisation, there does
-not typically exists a feasible solution that optimises all objective functions simultaneously.
+This repository provides Python code that converts the multi-objective portfolio optimization problem
+into a `QUBO`_ problem. The transformed problem can then be solved using quantum annealing techniques.
 
-In portfolio optimization, the efficient frontier or portfolio frontier, is the set of portfolios that
-have the highest return on capital given the risk of the portfolio. Additional constrains on the carbon footprint.
+The following objectives can be considered
 
+- `return on capital`, indicated by ROC,
+- `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
+
+Additionally, we allow for arbitrary constraints to be considered.
+
+The `Pareto front`_, the set of solutions where one objective can't be improved without worsening the other objective,
+can be computed for return on capital and diversification. 
 
 The codebase is based on the following TNO papers:
 
 - Phillipson et al.. - Portfolio Optimisation Using the D-Wave Quantum Annealer. (2021) (doi: `10.1007/978-3-030-77980-1 4`_)
-- Phillipson et al., - Multi-objective Portfolio Optimisation Using the D-Wave Quantum Annealer 
+- Phillipson et al., - Multi-objective Portfolio Optimisation Using the D-Wave Quantum Annealer (2023) (doi: TODO)
 
 
 .. _10.1007/978-3-030-77980-1 4: https://doi.org/10.1007/978-3-030-77980-1_4
-
+.. _Herfindahl-Hirschman Index: https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_index
+.. _Pareto front: https://en.wikipedia.org/wiki/Pareto_front
+.. _QUBO: https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization
 
 
 Quick Install
