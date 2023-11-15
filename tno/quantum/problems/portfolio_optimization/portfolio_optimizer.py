@@ -166,7 +166,7 @@ class PortfolioOptimizer:
         if verbose:
             print("Status: creating model")
             if self._growth_target is not None:
-                print(f"Growth target: {self._growth_target - 1:.1%})")
+                print(f"Growth target: {self._growth_target - 1:.1%}")
         self._qubo_compiler.compile()
 
         results = Results(self.portfolio_data)
