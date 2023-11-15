@@ -1,76 +1,72 @@
-from datetime import datetime
+"""This module contains visualization tools."""
+from typing import Optional
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
+from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization.components import pareto_front
-from tno.quantum.problems.portfolio_optimization.components.containers import Results
-from tno.quantum.problems.portfolio_optimization.components.io import get_rabo_fronts
 
 
-def plot_points(results: Results, color1: str, color2: str, color3: str) -> Figure:
-    # Comparing with Rabobank's fronts.
-    # x/y_rabo1 corresponds to a front optimized including the emission target.
-    # x/y_rabo2 corresponds to a front optimized without the emission target.
-    x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
-    ax: Axes
-    fig, ax = plt.subplots()
-    ax.scatter(results.x3, results.y3, color=color3)
-    ax.scatter(results.x2, results.y2, color=color2)
-    ax.scatter(results.x1, results.y1, color=color1)
-    ax.scatter(x_rabo1, y_rabo1, color="blue")
-    ax.scatter(x_rabo2, y_rabo2, color="gray")
-    ax.legend(
-        [
-            "QUBO constraint not met",
-            "QUBO reduced",
-            "QUBO constraint met",
-            "classical constrained",
-            "classical unconstrained",
-        ]
-    )
-    ax.scatter(0, 0)
+def plot_points(
+    diversification_values: ArrayLike,
+    roc_values: ArrayLike,
+    color: Optional[str] = None,
+    label: Optional[str] = None,
+    ax: Optional[Axes] = None,
+) -> None:
+    """Plot the given data-points in a Diversification-ROC plot.
+
+    Args:
+        diversification_values: 1-D ``ArrayLike`` containing the x values of the plot.
+        roc_values: 1-D ``ArrayLike`` containing the y values of the plot.
+        color: Optional color to use for the points. For an overview of allowed colors
+            see the `Matplotlib Documentation`_. If ``None`` is given, a default color
+            will be assigned by ``matplotlib``. Default is ``None``.
+        label: Label to use in the legend. If ``None`` is given, no label will be used.
+            Default is ``None``.
+        ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
+            created.
+
+    .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
+    """
+    if ax is None:
+        _, ax = plt.subplots()
+    ax.scatter(diversification_values, roc_values, color=color, label=label)
     ax.set_xlabel("Diversification")
     ax.set_ylabel("ROC")
     ax.grid()
-    return fig
+    ax.legend()
+
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    ax.hlines(0, xlim[0], xlim[1], colors=["black"], lw=1)
+    ax.vlines(0, ylim[0], ylim[1], colors=["black"], lw=1)
+    ax.set_xlim(*xlim, auto=True)
+    ax.set_ylim(*ylim, auto=True)
 
 
-def plot_front(results: Results, color1: str, color2: str, color3: str) -> Figure:
-    # Comparing with Rabobank's fronts.
-    # x/y_rabo1 corresponds to a front optimized including the emission target.
-    # x/y_rabo2 corresponds to a front optimized without the emission target.
-    x_rabo1, y_rabo1, x_rabo2, y_rabo2 = get_rabo_fronts()
-    starttime = datetime.now()
+def plot_front(
+    diversification_values: ArrayLike,
+    roc_values: ArrayLike,
+    color: Optional[str] = None,
+    label: Optional[str] = None,
+    ax: Optional[Axes] = None,
+) -> None:
+    """Plot a pareto front of the given data-points in a Diversification-ROC plot.
 
-    x1, y1 = pareto_front(results.x1, results.y1)
-    x2, y2 = pareto_front(results.x2, results.y2)
-    x3, y3 = pareto_front(results.x3, results.y3)
+    Args:
+        diversification_values: 1-D ``ArrayLike`` containing the x values of the plot.
+        roc_values: 1-D ``ArrayLike`` containing the y values of the plot.
+        color: Optional color to use for the points. For an overview of allowed colors
+            see the `Matplotlib Documentation`_. If ``None`` is given, a default color
+            will be assigned by ``matplotlib``. Default is ``None``.
+        label: Label to use in the legend. If ``None`` is given, no label will be used.
+            Default is ``None``.
+        ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
+            created.
 
-    print(len(x1), len(x2), len(x3))
-
-    print("Time consumed:", datetime.now() - starttime)
-
-    # Make a plot of the results.
-    ax: Axes
-    fig, ax = plt.subplots()
-    ax.scatter(x3, y3, color=color3)
-    ax.scatter(x2, y2, color=color2)
-    ax.scatter(x1, y1, color=color1)
-    ax.scatter(x_rabo1, y_rabo1, color="blue")
-    ax.scatter(x_rabo2, y_rabo2, color="gray")
-    ax.legend(
-        [
-            "QUBO constraint not met",
-            "QUBO reduced",
-            "QUBO constraint met",
-            "classical constrained",
-            "classical unconstrained",
-        ]
-    )
-    ax.scatter(0, 0)
-    ax.set_xlabel("Diversification")
-    ax.set_ylabel("ROC")
-    ax.grid()
-    return fig
+    .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
+    """
+    x_values, y_values = pareto_front(diversification_values, roc_values)
+    plot_points(x_values, y_values, color=color, label=label, ax=ax)

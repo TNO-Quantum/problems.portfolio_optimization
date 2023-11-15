@@ -1,5 +1,8 @@
+import json
 from datetime import datetime
+from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 from dwave.samplers import SimulatedAnnealingSampler
 
@@ -30,14 +33,30 @@ portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
 portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=lambdas1)
 portfolio_optimizer.add_emission_constraint(weights=lambdas3)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
-results.slice_results()
+(x1, y1), (x2, y2), (x3, y3) = results.slice_results()
 
 
 # Make a plot of the results.
+
+# x/y_rabo1 corresponds to a front optimized including the emission target.
+# x/y_rabo2 corresponds to a front optimized without the emission target.
+with (Path(__file__).parent / "rabo_matlab.json").open(encoding="utf-8") as json_file:
+    x_rabo1, y_rabo1, x_rabo2, y_rabo2 = json.load(json_file)
+
+fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
+colors = ["red", "orange", "green", "blue", "gray"]
+labels = ["QUBO constraint not met", "QUBO reduced", "QUBO constraint met"]
+labels += ["classical constrained", "classical unconstrained"]
+x_values = [x3, x2, x1, x_rabo1, x_rabo2]
+y_values = [y3, y2, y1, y_rabo1, y_rabo2]
+
+for x_val, y_val, color, label in zip(x_values, y_values, colors, labels):
+    plot_points(x_val, y_val, color=color, label=label, ax=ax1)
+    plot_front(x_val, y_val, color=color, label=label, ax=ax2)
+
+ax1.set_title("Points")
+ax2.set_title("Pareto Front")
+fig.tight_layout()
+
 timestamp = datetime.now().strftime(r"%Y-%m-%d %H_%M_%S.%f")
-
-fig = plot_points(results, "green", "orange", "red")
-fig.savefig(f"figures/Port_Opt_Rabo_v3_points_{timestamp}.png")
-
-fig = plot_front(results, "green", "orange", "red")
-fig.savefig(f"figures/Port_Opt_Rabo_v3_front_{timestamp}.png")
+fig.savefig(f"figures/Port_Opt_Rabo_v3_{timestamp}.png")

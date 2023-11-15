@@ -166,7 +166,7 @@ class PortfolioOptimizer:
         if verbose:
             print("Status: creating model")
             if self._growth_target is not None:
-                print(f"Growth target: {self._growth_target - 1:.1%})")
+                print(f"Growth target: {self._growth_target - 1:.1%}")
         self._qubo_compiler.compile()
 
         results = Results(self.portfolio_data)
@@ -190,12 +190,7 @@ class PortfolioOptimizer:
             results.add_result(out_future)
 
         if verbose:
-            print(
-                "Number of generated samples: ",
-                len(results.x1),
-                len(results.x2),
-                len(results.x3),
-            )
+            print("Number of generated samples: ", len(results))
             print("Time consumed:", datetime.now() - starttime)
 
         results.aggregate()
