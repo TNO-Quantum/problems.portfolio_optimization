@@ -1,28 +1,16 @@
 """This module contains tests for the ``QuboFactory`` class."""
 import numpy as np
 import pytest
-from pandas import DataFrame
 
 from tno.quantum.problems.portfolio_optimization.components import QuboFactory
+from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
+
+# pylint: disable=missing-function-docstring
 
 
 @pytest.fixture(name="qubo_factory")
 def qubo_factory_fixture() -> QuboFactory:
-    columns = [
-        "out_now",
-        "out_future_min",
-        "out_future_max",
-        "emis_intens_now",
-        "emis_intens_future",
-        "income_now",
-        "regcap_now",
-    ]
-    index = ["asset 1", "asset 2"]
-    data = [
-        [1.0, 10.0, 19.0, 100.0, 76.0, 1.0, 1.0],
-        [2.0, 30.0, 39.0, 200.0, 152.0, 1.0, 1.0],
-    ]
-    portfolio_data = DataFrame(data=data, columns=columns, index=index)
+    portfolio_data = make_test_dataset()
     return QuboFactory(portfolio_data, 0, 2)
 
 
@@ -119,15 +107,16 @@ def test_calc_maximize_roc4(qubo_factory: QuboFactory) -> None:
 
 
 def test_calc_stabilize_c1(qubo_factory: QuboFactory) -> None:
-    expected_qubo = [
-        [99, 36, 9, 18],
-        [0, 216, 18, 36],
-        [0, 0, 47.25, 9],
-        [0, 0, 0, 99],
-    ]
+    expected_qubo = np.array(
+        [
+            [99, 36, 9, 18],
+            [0, 216, 18, 36],
+            [0, 0, 47.25, 9],
+            [0, 0, 0, 99],
+        ]
+    )
     expected_offset = 225
     qubo, offset = qubo_factory.calc_stabilize_c1(5)
-
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
 
@@ -136,15 +125,17 @@ def test_calc_stabilize_c2(qubo_factory: QuboFactory) -> None:
     # Use 3 ancilla qubits
     qubo_factory.n_vars += 3
 
-    expected_qubo = [
-        [147, 36, 9, 18, -6, -3, -3 / 2],
-        [0, 312, 18, 36, -12, -6, -3],
-        [0, 0, 71.25, 9, -3, -3 / 2, -3 / 4],
-        [0, 0, 0, 147, -6, -3, -3 / 2],
-        [0, 0, 0, 0, -45, 1, 1 / 2],
-        [0, 0, 0, 0, 0, -22.75, 1 / 4],
-        [0, 0, 0, 0, 0, 0, -11.4375],
-    ]
+    expected_qubo = np.array(
+        [
+            [147, 36, 9, 18, -6, -3, -3 / 2],
+            [0, 312, 18, 36, -12, -6, -3],
+            [0, 0, 71.25, 9, -3, -3 / 2, -3 / 4],
+            [0, 0, 0, 147, -6, -3, -3 / 2],
+            [0, 0, 0, 0, -45, 1, 1 / 2],
+            [0, 0, 0, 0, 0, -22.75, 1 / 4],
+            [0, 0, 0, 0, 0, 0, -11.4375],
+        ]
+    )
     expected_offset = 529
     qubo, offset = qubo_factory.calc_stabilize_c2()
 

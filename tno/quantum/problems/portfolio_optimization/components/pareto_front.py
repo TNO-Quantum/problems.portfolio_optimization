@@ -31,7 +31,7 @@ def pareto_front(
 
     # Expand the pareto front so that it contains at least min_points.
     for _ in range(min_points):
-        if len(pareto_points) > min_points:
+        if len(pareto_points) >= min_points:
             break
         # Remove current hull vertices from data and create a new hull
         points = np.delete(points, hull.vertices, axis=0)
