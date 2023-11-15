@@ -35,11 +35,17 @@ def plot_points(
         ax: Axes
         _, ax = plt.subplots()
     ax.scatter(diversification_values, roc_values, color=color, label=label)
-    ax.scatter(0, 0, color="black")
     ax.set_xlabel("Diversification")
     ax.set_ylabel("ROC")
     ax.grid()
     ax.legend()
+
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    ax.hlines(0, *xlim, colors="black", lw=1)
+    ax.vlines(0, *ylim, colors="black", lw=1)
+    ax.set_xlim(*xlim, auto=True)
+    ax.set_ylim(*ylim, auto=True)
 
 
 def plot_front(

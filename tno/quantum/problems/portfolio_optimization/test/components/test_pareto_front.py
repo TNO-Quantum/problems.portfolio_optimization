@@ -30,7 +30,7 @@ def test_pareto_front(
     expected_points: set[tuple[int, int]],
 ) -> None:
     x_vals, y_vals = x_y_points
-    x_par, y_par = pareto_front(x_vals, y_vals, min_points=min_points)
+    x_par, y_par = pareto_front(x_vals, y_vals, min_points, False)
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):
