@@ -4,9 +4,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from numpy.typing import ArrayLike
-from pandas import DataFrame
 
 from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+
+# pylint: disable=missing-function-docstring
+# pylint: disable=protected-access
 
 
 @pytest.mark.parametrize(

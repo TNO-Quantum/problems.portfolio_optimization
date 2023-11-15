@@ -5,28 +5,16 @@ import numpy as np
 import pytest
 from dimod import SampleSet
 from numpy.typing import NDArray
-from pandas import DataFrame
 
 from tno.quantum.problems.portfolio_optimization.components import Decoder
+from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
+
+# pylint: disable=missing-function-docstring
 
 
 @pytest.fixture(name="decoder")
 def decoder_fixture() -> Decoder:
-    columns = [
-        "out_now",
-        "out_future_min",
-        "out_future_max",
-        "emis_intens_now",
-        "emis_intens_future",
-        "income_now",
-        "regcap_now",
-    ]
-    index = ["asset 1", "asset 2"]
-    data = [
-        [1.0, 10.0, 19.0, 100.0, 76.0, 1.0, 1.0],
-        [2.0, 30.0, 39.0, 200.0, 152.0, 1.0, 1.0],
-    ]
-    portfolio_data = DataFrame(data=data, columns=columns, index=index)
+    portfolio_data = make_test_dataset()
     return Decoder(portfolio_data, 0, 2)
 
 
