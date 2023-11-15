@@ -1,4 +1,4 @@
-# Building block: tno.quantum.problems.portfolio_optimization
+# Building block: Portfolio optimization
 
 This building block is included in the [TNO Quantum Python Toolbox](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/quantum-toolbox).
 
@@ -31,14 +31,11 @@ This building block is included in the [TNO Quantum Python Toolbox](https://ci.t
    pip install -e .[dev,tests] --index-url https://__token__:<your_personal_token>@ci.tno.nl/gitlab/api/v4/groups/4737/-/packages/pypi/simple
    ```
 
+## Building the docs
+To generate the documentation locally, install the TNO [dev-utils](https://ci.tno.nl/gitlab/quantum/cicd/dev_utils) and run `tno-make-docs`. 
 
-## Usage
-
-The tno.quantum.problems.portfolio_optimization package can be used as shown in the following example.
-
-```python
-print("hello world")
-```
+The HTML documentation will be placed in a directory called `docs/`.
+This folder includes a file `index.html`, which can be opened in a browser to view the documentation.
 
 ## (End)use limitations
 The content of this software may solely be used for applications that comply with international export control laws.
