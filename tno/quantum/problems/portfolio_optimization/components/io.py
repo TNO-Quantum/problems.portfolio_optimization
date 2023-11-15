@@ -66,18 +66,27 @@ def read_portfolio_data(
     return df
 
 
-def print_portfolio_info(portfolio_data: DataFrame) -> None:
+def print_portfolio_info(
+    portfolio_data: DataFrame, columns_rename: Optional[dict[str, str]] = None
+) -> None:
     """Print information about portfolio data to terminal.
 
     Args:
         portfolio_data: DataFrame with portfolio data.
+        column_rename: to rename columns provided as dict with new column names as keys
+            and to replace column name as value. Example ``{"outstanding_2021": "outstanding_now"}``.
+
     """
-    outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-    LB = portfolio_data["min_outstanding_future"].to_numpy()
-    UB = portfolio_data["max_outstanding_future"].to_numpy()
-    e = portfolio_data["emis_intens_now"].to_numpy()
-    income = portfolio_data["income_now"].to_numpy()
-    capital = portfolio_data["regcap_now"].to_numpy()
+    portfolio_data_ = portfolio_data.copy()
+    if columns_rename is not None:
+        portfolio_data_.rename(columns=columns_rename, inplace=True)
+
+    outstanding_now = portfolio_data_["outstanding_now"].to_numpy()
+    LB = portfolio_data_["min_outstanding_future"].to_numpy()
+    UB = portfolio_data_["max_outstanding_future"].to_numpy()
+    e = portfolio_data_["emis_intens_now"].to_numpy()
+    income = portfolio_data_["income_now"].to_numpy()
+    capital = portfolio_data_["regcap_now"].to_numpy()
 
     # Calculate the total outstanding amount in now
     total_outstanding_now = np.sum(outstanding_now)
@@ -112,9 +121,11 @@ def print_portfolio_info(portfolio_data: DataFrame) -> None:
     # Estimate a average growth factor and its standard deviation for now-future. This
     # consists of the (averaged) amount per asset in future, which is the outcome of the
     # optimization, divided by the amount for now.
-    expected_avr_growth_fac = np.sum((UB + LB) / (2 * total_outstanding_now))
-    expected_stddev_avr_growth_fac = np.linalg.norm((UB - LB) / (2 * total_outstanding_now))
+    expected_average_growth_fac = np.sum((UB + LB) / (2 * total_outstanding_now))
+    expected_stddev_average_growth_fac = np.linalg.norm(
+        (UB - LB) / (2 * total_outstanding_now)
+    )
     print(
-        f"Expected average growth factor: {expected_avr_growth_fac}",
-        f"Std dev: {expected_stddev_avr_growth_fac}",
+        f"Expected average growth factor: {expected_average_growth_fac}",
+        f"Std dev: {expected_stddev_average_growth_fac}",
     )

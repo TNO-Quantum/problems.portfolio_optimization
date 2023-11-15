@@ -24,8 +24,12 @@ class Results:
         self._capital = portfolio_data["regcap_now"].to_numpy()
         self._returns = income / self._outstanding_now
         self._ROC_now = np.sum(income) / np.sum(self._capital)
-        self._HHI_now = np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
-        self._bigE = np.sum(self._e * self._outstanding_now) / np.sum(self._outstanding_now)
+        self._HHI_now = (
+            np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
+        )
+        self._bigE = np.sum(self._e * self._outstanding_now) / np.sum(
+            self._outstanding_now
+        )
         self._total_outstanding_now = np.sum(self._outstanding_now)
 
         self._x: deque[NDArray[np.float_]] = deque()
@@ -44,7 +48,9 @@ class Results:
         """
         total_outstanding_future = np.sum(outstanding_future, axis=1)
         # Compute the future HHI.
-        HHI_future = np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
+        HHI_future = (
+            np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
+        )
         # Compute the future ROC
         ROC = np.sum(outstanding_future * self._returns, axis=1) / np.sum(
             outstanding_future * self._capital / self._outstanding_now, axis=1
