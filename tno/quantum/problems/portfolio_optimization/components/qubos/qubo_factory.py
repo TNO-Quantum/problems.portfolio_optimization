@@ -11,9 +11,9 @@ class QuboFactory:
         self.portfolio_data = portfolio_data
         self.N = len(portfolio_data)
         self.n_vars = self.N * kmax
-        self.out_now = portfolio_data["out_now"].to_numpy()
-        self.LB = portfolio_data["out_future_min"].to_numpy()
-        self.UB = portfolio_data["out_future_max"].to_numpy()
+        self.outstanding_now = portfolio_data["outstanding_now"].to_numpy()
+        self.LB = portfolio_data["outstanding_future_min"].to_numpy()
+        self.UB = portfolio_data["outstanding_future_max"].to_numpy()
         self.income = portfolio_data["income_now"].to_numpy()
         self.capital = portfolio_data["regcap_now"].to_numpy()
         self.kmin = kmin
@@ -22,10 +22,10 @@ class QuboFactory:
 
     def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
         r"""$\frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)^2}{\left(\frac{1}{2}\sum_iUB_i-LB_i\right)^2}$"""
-        Exp_total_out_future = np.sum((self.UB + self.LB)) / 2
+        expected_total_outstanding_future = np.sum((self.UB + self.LB)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.LB**2) / Exp_total_out_future**2
+        offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
         for i in range(self.N):
             multiplier = (self.UB[i] - self.LB[i]) / self.maxk
             for k in range(self.kmax):
@@ -37,7 +37,7 @@ class QuboFactory:
                     value_2 = multiplier * 2 ** (l + self.kmin)
                     qubo[idx_1, idx_2] = 2 * value_1 * value_2
 
-        qubo = qubo / Exp_total_out_future**2
+        qubo = qubo / expected_total_outstanding_future**2
         return qubo, offset
 
     def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
