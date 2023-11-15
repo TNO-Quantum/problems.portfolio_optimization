@@ -7,18 +7,45 @@ from pandas import DataFrame
 
 
 class QuboFactory:
-    def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
+    """
+    QuboFactory - A factory class for creating QUBO instances.
+
+    This class provides a convenient interface for constructing intermediate QUBO
+    matrices for different objectives and constraints.
+
+    Methods:
+
+    - `calc_minimize_HHI`: Calculate the to minimize HHI QUBO
+    - `calc_maximize_ROC1`: Calculate the to maximize return on capital QUBO variant 1
+    - `calc_maximize_ROC2`: Calculate the to maximize return on capital QUBO variant 2
+    - `calc_maximize_ROC3`: Calculate the to maximize return on capital QUBO variant 3
+    - `calc_maximize_ROC4`: Calculate the to maximize return on capital QUBO variant 4
+    - `calc_emission_constraint`:
+    - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
+    - `calc_stabilize_c1`:
+    - `calc_stabilize_c2`:
+
+    """
+
+    def __init__(self, portfolio_data: DataFrame, k: int) -> None:
+        """
+
+        Args:
+            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            k: The number of bits that are used to represent the outstanding amount for
+                each asset. A fixed point representation is used to represent `$2^k$`
+                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
+
+        """
         self.portfolio_data = portfolio_data
-        self.N = len(portfolio_data)
-        self.n_vars = self.N * kmax
+        self.number_of_assets = len(portfolio_data)
+        self.n_vars = self.number_of_assets * k
         self.outstanding_now = portfolio_data["outstanding_now"].to_numpy()
         self.LB = portfolio_data["min_outstanding_future"].to_numpy()
         self.UB = portfolio_data["max_outstanding_future"].to_numpy()
         self.income = portfolio_data["income_now"].to_numpy()
         self.capital = portfolio_data["regcap_now"].to_numpy()
-        self.kmin = kmin
-        self.kmax = kmax
-        self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
+        self.k = k
 
     def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
         r"""$\frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)^2}{\left(\frac{1}{2}\sum_iUB_i-LB_i\right)^2}$"""
@@ -26,16 +53,22 @@ class QuboFactory:
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
-        for i in range(self.N):
-            multiplier = (self.UB[i] - self.LB[i]) / self.maxk
-            for k in range(self.kmax):
-                idx_1 = i * self.kmax + k
-                value_1 = multiplier * 2 ** (k + self.kmin)
-                qubo[idx_1, idx_1] = value_1 * (value_1 + 2 * self.LB[i])
-                for l in range(k + 1, self.kmax):
-                    idx_2 = i * self.kmax + l
-                    value_2 = multiplier * 2 ** (l + self.kmin)
-                    qubo[idx_1, idx_2] = 2 * value_1 * value_2
+        for asset_i in range(self.number_of_assets):
+            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / 2**self.k
+
+            # For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2
+            for bit_j in range(self.k):
+                idx_1 = asset_i * self.k + bit_j
+
+                # Diagonal elements: 2 * LB * multiplier * sum_j 2**j x_j
+                qubo[idx_1, idx_1] += 2 * self.LB[asset_i] * multiplier * 2**bit_j
+
+                # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
+                for bit_j_prime in range(self.k):
+                    idx_2 = asset_i * self.k + bit_j_prime
+                    qubo[idx_1, idx_2] += (
+                        multiplier**2 * (2**bit_j) * (2**bit_j_prime)
+                    )
 
         qubo = qubo / expected_total_outstanding_future**2
         return qubo, offset
@@ -57,9 +90,9 @@ class QuboFactory:
         qubo = np.zeros((self.n_vars, self.n_vars))
 
         offset = alpha**2 / emisnow**2
-        for idx1 in range(self.N * self.kmax):
+        for idx1 in range(self.number_of_assets * self.kmax):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
-            for idx2 in range(idx1 + 1, self.N * self.kmax):
+            for idx2 in range(idx1 + 1, self.number_of_assets * self.kmax):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
         qubo = qubo / emisnow**2
@@ -78,11 +111,13 @@ class QuboFactory:
         beta = np.kron(multiplier, mantisse)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        qubo[: self.kmax * self.N, : self.kmax * self.N] += np.triu(
-            2 * np.outer(beta, beta), k=1
-        )
+        qubo[
+            : self.kmax * self.number_of_assets, : self.kmax * self.number_of_assets
+        ] += np.triu(2 * np.outer(beta, beta), k=1)
         np.fill_diagonal(
-            qubo[: self.kmax * self.N, : self.kmax * self.N],
+            qubo[
+                : self.kmax * self.number_of_assets, : self.kmax * self.number_of_assets
+            ],
             beta**2 + 2 * alpha * beta,
         )
         offset = alpha**2
@@ -125,7 +160,7 @@ class QuboFactory:
         return qubo, -offset
 
     def calc_maximize_ROC3(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.N
+        ancilla_qubits = self.n_vars - self.kmax * self.number_of_assets
         capital_now = np.sum(self.capital)
 
         alpha = np.sum(self.LB * self.income / self.outstanding_now)
@@ -139,10 +174,20 @@ class QuboFactory:
         gamma = gamma**2 - gamma
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        np.fill_diagonal(qubo[: self.N * self.kmax, : self.N * self.kmax], beta)
-        qubo[: self.N * self.kmax, self.N * self.kmax :] += np.outer(beta, gamma)
         np.fill_diagonal(
-            qubo[self.N * self.kmax :, self.N * self.kmax :], alpha * gamma
+            qubo[
+                : self.number_of_assets * self.kmax, : self.number_of_assets * self.kmax
+            ],
+            beta,
+        )
+        qubo[
+            : self.number_of_assets * self.kmax, self.number_of_assets * self.kmax :
+        ] += np.outer(beta, gamma)
+        np.fill_diagonal(
+            qubo[
+                self.number_of_assets * self.kmax :, self.number_of_assets * self.kmax :
+            ],
+            alpha * gamma,
         )
         offset = alpha / capital_now
 
@@ -183,7 +228,7 @@ class QuboFactory:
         return qubo, offset
 
     def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.N
+        ancilla_qubits = self.n_vars - self.kmax * self.number_of_assets
         alpha = np.sum(self.capital * self.LB / self.outstanding_now) - np.sum(
             self.capital
         )
@@ -199,14 +244,20 @@ class QuboFactory:
         )
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        qubo_upper_left = qubo[: self.N * self.kmax, : self.N * self.kmax]
+        qubo_upper_left = qubo[
+            : self.number_of_assets * self.kmax, : self.number_of_assets * self.kmax
+        ]
         qubo_upper_left += np.triu(2 * np.outer(beta, beta), k=1)
         np.fill_diagonal(qubo_upper_left, 2 * alpha * beta + beta**2)
 
-        qubo_upper_right = qubo[: self.N * self.kmax, self.N * self.kmax :]
+        qubo_upper_right = qubo[
+            : self.number_of_assets * self.kmax, self.number_of_assets * self.kmax :
+        ]
         qubo_upper_right += 2 * np.outer(beta, gamma)
 
-        qubo_lower_right = qubo[self.N * self.kmax :, self.N * self.kmax :]
+        qubo_lower_right = qubo[
+            self.number_of_assets * self.kmax :, self.number_of_assets * self.kmax :
+        ]
         qubo_lower_right += np.triu(2 * np.outer(gamma, gamma), k=1)
         np.fill_diagonal(qubo_lower_right, 2 * alpha * gamma + gamma**2)
         offset = alpha**2
