@@ -8,7 +8,7 @@ from tno.quantum.problems.portfolio_optimization.components import pareto_front
 
 
 @pytest.fixture(name="x_y_points")
-def x_y_points_fixture() -> tuple[list[float], list[float]]:
+def x_y_points_fixture() -> tuple[list[int], list[int]]:
     # Create point with a square in a square inside another square
     x = [0, 0, 5, 5, 1, 1, 4, 4, 2, 2, 3, 3]
     y = [0, 5, 0, 5, 1, 4, 1, 4, 2, 3, 2, 3]

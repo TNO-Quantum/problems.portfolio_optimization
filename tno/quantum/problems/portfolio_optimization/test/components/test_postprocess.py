@@ -76,7 +76,7 @@ def test_decode_sampleset(decoder: Decoder) -> None:
         {0: 1, 1: 1, 2: 1, 3: 0},
         {0: 1, 1: 1, 2: 1, 3: 1},
     ]
-    sampleset = SampleSet.from_samples(samples, "BINARY", [0] * 16)
+    sampleset = SampleSet.from_samples(samples, "BINARY", [0] * 16)  # type: ignore[no-untyped-call]
     expected_result = np.array(
         [
             [10, 30],
