@@ -60,7 +60,7 @@ class QuboFactory:
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
             - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
-            
+
         Returns:
             qubo matrix and its offset
         """
@@ -118,7 +118,7 @@ class QuboFactory:
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the growth factor constraint QUBO
-        
+
         The QUBO formulation is given by
 
         $$QUBO = \left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k}\sum_j 2^jx_{i,j}}{\sum_i out_i} - g\right)^2$$
@@ -129,7 +129,7 @@ class QuboFactory:
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
             - `$g$` is the target value for the total growth factor,
-            - `$out_i$` is the current outstanding amount for asset `$i$`, 
+            - `$out_i$` is the current outstanding amount for asset `$i$`,
             - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
 
         Args:
@@ -141,21 +141,27 @@ class QuboFactory:
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.LB) / total_outstanding_now - growth_target
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (self.UB - self.LB) / (self.maxk * total_outstanding_now)
-        beta = np.kron(multiplier, mantisse)
-
         qubo = np.zeros((self.n_vars, self.n_vars))
-        qubo[
-            : self.kmax * self.number_of_assets, : self.kmax * self.number_of_assets
-        ] += np.triu(2 * np.outer(beta, beta), k=1)
-        np.fill_diagonal(
-            qubo[
-                : self.kmax * self.number_of_assets, : self.kmax * self.number_of_assets
-            ],
-            beta**2 + 2 * alpha * beta,
-        )
         offset = alpha**2
+        for asset_i in range(self.number_of_assets):
+            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / (
+                2**self.k * total_outstanding_now
+            )
+
+            # For asset i: (alpha + multiplier * sum_j 2**j x_j) ** 2
+            for bit_j in range(self.k):
+                idx_1 = asset_i * self.k + bit_j
+
+                # Diagonal elements: 2 * alpha * multiplier * sum_j 2**j x_j
+                qubo[idx_1, idx_1] += 2 * alpha * multiplier * 2**bit_j
+
+                # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
+                for bit_j_prime in range(self.k):
+                    idx_2 = asset_i * self.k + bit_j_prime
+                    qubo[idx_1, idx_2] += (
+                        multiplier**2 * (2**bit_j) * (2**bit_j_prime)
+                    )
+
         return qubo, offset
 
     def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:
