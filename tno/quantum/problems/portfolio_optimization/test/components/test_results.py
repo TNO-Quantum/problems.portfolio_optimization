@@ -1,4 +1,4 @@
-"""This module contains tests for the containers module."""
+"""This module contains tests for the Results module."""
 import numpy as np
 import pytest
 
