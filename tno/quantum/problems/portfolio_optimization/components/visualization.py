@@ -32,7 +32,6 @@ def plot_points(
     .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
     """
     if ax is None:
-        ax: Axes
         _, ax = plt.subplots()
     ax.scatter(diversification_values, roc_values, color=color, label=label)
     ax.set_xlabel("Diversification")
@@ -42,8 +41,8 @@ def plot_points(
 
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    ax.hlines(0, *xlim, colors="black", lw=1)
-    ax.vlines(0, *ylim, colors="black", lw=1)
+    ax.hlines(0, xlim[0], xlim[1], colors=["black"], lw=1)
+    ax.vlines(0, ylim[0], ylim[1], colors=["black"], lw=1)
     ax.set_xlim(*xlim, auto=True)
     ax.set_ylim(*ylim, auto=True)
 
@@ -54,7 +53,7 @@ def plot_front(
     color: Optional[str] = None,
     label: Optional[str] = None,
     ax: Optional[Axes] = None,
-) -> Figure:
+) -> None:
     """Plot a pareto fron of the given data-points in a Diversification-ROC plot.
 
     Args:

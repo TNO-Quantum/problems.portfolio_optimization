@@ -190,12 +190,7 @@ class PortfolioOptimizer:
             results.add_result(out_future)
 
         if verbose:
-            print(
-                "Number of generated samples: ",
-                len(results.x1),
-                len(results.x2),
-                len(results.x3),
-            )
+            print("Number of generated samples: ", len(results))
             print("Time consumed:", datetime.now() - starttime)
 
         results.aggregate()

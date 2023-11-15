@@ -35,7 +35,7 @@ portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=lambdas2)
 portfolio_optimizer.add_emission_constraint(weights=lambdas3)
 portfolio_optimizer.add_growth_factor_constraint(growth_target, weights=lambdas4)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
-results.slice_results(growth_target)
+(x1, y1), (x2, y2), (x3, y3) = results.slice_results(growth_target)
 
 
 # Make a plot of the results.
@@ -49,8 +49,8 @@ fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
 colors = ["dodgerblue", "gold", "coral", "blue", "gray"]
 labels = ["QUBO constraint not met", "QUBO reduced", "QUBO constraint met"]
 labels += ["classical constrained", "classical unconstrained"]
-x_values = [results.x3, results.x2, results.x1, x_rabo1, x_rabo2]
-y_values = [results.y3, results.y2, results.y1, y_rabo1, y_rabo2]
+x_values = [x3, x2, x1, x_rabo1, x_rabo2]
+y_values = [y3, y2, y1, y_rabo1, y_rabo2]
 
 for x_val, y_val, color, label in zip(x_values, y_values, colors, labels):
     plot_points(x_val, y_val, color=color, label=label, ax=ax1)

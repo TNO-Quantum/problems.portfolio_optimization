@@ -13,8 +13,7 @@ class Results:
     """Results container"""
 
     def __init__(self, portfolio_data: DataFrame) -> None:
-        """
-        Init of Results container.
+        """Init of Results container.
 
         Args:
             portfolio_data: the portfolio data
@@ -29,20 +28,16 @@ class Results:
         self._bigE = np.sum(self._e * self._out_now) / np.sum(self._out_now)
         self._Out_now = np.sum(self._out_now)
 
-        # These are the variables to store 3 kinds of results.
-        self._x = deque()
-        self._y = deque()
-        self._out_future = deque()
-        self.x1 = deque()
-        self.y1 = deque()  # Emission target met
-        self.x2 = deque()
-        self.y2 = deque()  # Reduced emission
-        self.x3 = deque()
-        self.y3 = deque()  # Targets not met
+        self._x: deque[NDArray[np.float_]] = deque()
+        self._y: deque[NDArray[np.float_]] = deque()
+        self._out_future: deque[NDArray[np.float_]] = deque()
+
+    def __len__(self) -> int:
+        """Return the number of samples stored in the ``Results`` object."""
+        return len(self._x)
 
     def add_result(self, out_future: NDArray[np.float_]) -> None:
-        """
-        Add a new out_future data point to results container.
+        """Add a new out_future data point to results container.
 
         Args:
             out_future: ...
@@ -63,9 +58,7 @@ class Results:
         self._out_future.extend(out_future)
 
     def aggregate(self) -> None:
-        """
-        Aggregate unique results
-        """
+        """Aggregate unique results."""
         x = np.asarray(self._x)
         y = np.asarray(self._y)
         out_future = np.asarray(self._out_future)
@@ -73,13 +66,19 @@ class Results:
         data = np.vstack((np.asarray(self._x), np.asarray(self._y)))
         _, indices = np.unique(data, axis=1, return_index=True)
 
-        self._x = x[indices]
-        self._y = y[indices]
-        self._out_future = out_future[indices]
+        self._x = deque(x[indices])
+        self._y = deque(y[indices])
+        self._out_future = deque(out_future[indices])
 
-    def slice_results(self, growth_target: Optional[float] = None) -> None:
-        """
-        Slice the results in three groups, growth targets met, almost met, not met or not.
+    def slice_results(
+        self, growth_target: Optional[float] = None
+    ) -> tuple[
+        tuple[NDArray[np.float_], NDArray[np.float_]],
+        tuple[NDArray[np.float_], NDArray[np.float_]],
+        tuple[NDArray[np.float_], NDArray[np.float_]],
+    ]:
+        """Slice the results in three groups, growth targets met, almost met, not met or
+        not.
 
             - Realized growth > growth target
             - 98% of the growth target < Realized growth < growth target
@@ -110,9 +109,11 @@ class Results:
         mask2 = ~mask1 & (discriminator2)
         mask3 = ~(mask1 | mask2)
 
-        self.x1 = x[mask1]
-        self.y1 = y[mask1]
-        self.x2 = x[mask2]
-        self.y2 = y[mask2]
-        self.x3 = x[mask3]
-        self.y3 = y[mask3]
+        x1 = x[mask1]
+        y1 = y[mask1]
+        x2 = x[mask2]
+        y2 = y[mask2]
+        x3 = x[mask3]
+        y3 = y[mask3]
+
+        return (x1, y1), (x2, y2), (x3, y3)
