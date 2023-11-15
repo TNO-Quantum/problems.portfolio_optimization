@@ -3,7 +3,6 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization.components import pareto_front
@@ -54,7 +53,7 @@ def plot_front(
     label: Optional[str] = None,
     ax: Optional[Axes] = None,
 ) -> None:
-    """Plot a pareto fron of the given data-points in a Diversification-ROC plot.
+    """Plot a pareto front of the given data-points in a Diversification-ROC plot.
 
     Args:
         diversification_values: 1-D ``ArrayLike`` containing the x values of the plot.
