@@ -28,8 +28,8 @@ class PortfolioOptimizer:
     def __init__(
         self,
         filename: str | Path,
-        kmin: int,
-        kmax: int,
+        kmin: int = 0,
+        kmax: int = 2,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> None:
         """Init PortfolioOptimizer
