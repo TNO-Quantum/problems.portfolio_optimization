@@ -37,10 +37,10 @@ class Results:
         return len(self._x)
 
     def add_result(self, outstanding_future: NDArray[np.float_]) -> None:
-        """Add a new out_future data point to results container.
+        """Add a new outstanding_future data point to results container.
 
         Args:
-            outstanding_future: ...
+            outstanding_future: the in future outstanding amounts.
         """
         total_outstanding_future = np.sum(outstanding_future, axis=1)
         # Compute the future HHI.

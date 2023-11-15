@@ -11,8 +11,8 @@ from pandas import DataFrame
 DEFAULT_COLUMN_NAMES = [
     "asset",
     "outstanding_now",
-    "outstanding_now_future_min",
-    "outstanding_now_future_max",
+    "min_outstanding_future",
+    "max_outstanding_future",
     "emis_intens_now",
     "emis_intens_future",
     "income_now",
@@ -30,8 +30,8 @@ def read_portfolio_data(
 
         - ``"assets"``
         - ``"outstanding_now_now"``
-        - ``"outstanding_now_future_min"``
-        - ``"outstanding_now_future_max"``
+        - ``"min_outstanding_future"``
+        - ``"max_outstanding_future"``
         - ``"emis_intens_now"``
         - ``"emis_intens_future"``
         - ``"income_now"``
@@ -73,14 +73,14 @@ def print_portfolio_info(portfolio_data: DataFrame) -> None:
         portfolio_data: DataFrame with portfolio data.
     """
     outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-    LB = portfolio_data["outstanding_future_min"].to_numpy()
-    UB = portfolio_data["outstanding_future_max"].to_numpy()
+    LB = portfolio_data["min_outstanding_future"].to_numpy()
+    UB = portfolio_data["max_outstanding_future"].to_numpy()
     e = portfolio_data["emis_intens_now"].to_numpy()
     income = portfolio_data["income_now"].to_numpy()
     capital = portfolio_data["regcap_now"].to_numpy()
 
     # Calculate the total outstanding amount in now
-    total_outstanding_now = np.sum(total_outstanding_now)
+    total_outstanding_now = np.sum(outstanding_now)
     print(f"Total outstanding now: {total_outstanding_now}")
 
     # Calculate the ROC for now
