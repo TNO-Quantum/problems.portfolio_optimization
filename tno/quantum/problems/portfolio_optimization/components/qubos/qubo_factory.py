@@ -52,7 +52,7 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO_{HHI} = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
+        $$QUBO = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
 
         where:
 
@@ -117,7 +117,27 @@ class QuboFactory:
     def calc_growth_factor_constraint(
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
-        r"""$\left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{maxk}\sum_k x_{ik}}{\sum_i out_now_i} - growth\_factor\right)^2$"""
+        r"""Calculate the growth factor constraint QUBO
+        
+        The QUBO formulation is given by
+
+        $$QUBO = \left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k}\sum_j 2^jx_{i,j}}{\sum_i out_i} - g\right)^2$$
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$g$` is the target value for the total growth factor,
+            - `$out_i$` is the current outstanding amount for asset `$i$`, 
+            - and `$x_{i,j}$` are the binary variable for asset `$i$` with $j<k$.
+
+        Args:
+            growth_target: target value for growth factor total outstanding amount.
+
+        Returns:
+            qubo matrix and its offset
+        """
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.LB) / total_outstanding_now - growth_target
 
