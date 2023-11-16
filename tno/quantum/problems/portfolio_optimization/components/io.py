@@ -100,12 +100,12 @@ def print_portfolio_info(
     print("HHI now: ", HHI_now)
 
     # Calculate the total emissions for now
-    emis_now = np.sum(e * total_outstanding_now)
-    print("Emission now: ", emis_now)
+    total_emission_now = np.sum(e * total_outstanding_now)
+    print("Emission now: ", total_emission_now)
 
     # Calculate the average emission intensity now
-    bigE = emis_now / total_outstanding_now
-    print("Emission intensity now:", bigE)
+    relative_total_emission = total_emission_now / total_outstanding_now
+    print("Emission intensity now:", relative_total_emission)
 
     # Estimate the total outstanding amount and its standard deviation for future. This
     # follows from the assumption of a symmetric probability distribution on the
