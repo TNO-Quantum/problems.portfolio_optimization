@@ -38,11 +38,11 @@ class QuboCompiler:
 
         The HHI objective is given by
 
-        $$HHI = \frac{\sum_i y_i^2}{\left(\sum_i y_i\right)^2}$$
+        $$HHI = \frac{\sum_i y_i^2}{\left(\sum_i y_i\right)^2},$$
 
         where:
 
-            - `$y_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
         :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
@@ -103,7 +103,7 @@ class QuboCompiler:
 
         The constraint is given by
 
-        $$\frac{\sum_if_i \cdot y_i}{\sum_i y_i} = g \frac{\sum_ie_i \cdot x_i}{\sum_i x_i} $$
+        $$\frac{\sum_if_i \cdot y_i}{\sum_i y_i} = g \frac{\sum_ie_i \cdot x_i}{\sum_i x_i},$$
 
         where:
 
@@ -111,7 +111,7 @@ class QuboCompiler:
             - `$y_i$` is the future outstanding amount for asset `$i$`,
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction,
+            - `$g$` is the target value for the relative emission reduction.
 
         For the QUBO formulation, see the docs of
         :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_emission_constraint`.
@@ -140,9 +140,22 @@ class QuboCompiler:
     def add_growth_factor_constraint(
         self: QuboCompilerT, growth_target: float
     ) -> QuboCompilerT:
-        """Add the capital growth factor constraint to the compile list.
+        r"""Add the capital growth factor constraint to the compile list.
 
         The constraint is formulated as total_outstanding_future/total_outstanding_now = growth_target.
+
+        The constraint is given by
+
+        $$\frac{\sum_i y_i}{\sum_i x_i} = g,$$
+
+        where:
+
+            - `$x_i$` is the current outstanding amount for asset `$i$`,
+            - `$y_i$` is the future outstanding amount for asset `$i$`,
+            - `$g$` is the target value for the total growth factor.
+
+        For the QUBO formulation, see the docs of
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
