@@ -142,7 +142,31 @@ class PortfolioOptimizer:
         reduction_percentage_target: float = 0.7,
         weights: Optional[ArrayLike] = None,
     ) -> None:
-        """Add emission constraint
+        r"""Add emission constraint to the portfolio optimization problem.
+
+        The constraint is given by
+
+        $$\frac{\sum_if_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},$$
+
+        where:
+
+            - `$x_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$e_i$` is the current emission intensity for asset `$i$`,
+            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$g$` is the target value for the relative emission reduction.
+
+        usage example:
+
+        >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+        >>> import numpy as np
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        >>> portfolio_optimizer.add_emission_constraint(variable_now="emis_intens_now", weights=lambdas)
+
+        For the QUBO formulation, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_emission_constraint`.
 
         Args:
             variable_now: Name of the column in the portfolio dataset corresponding to
@@ -164,7 +188,29 @@ class PortfolioOptimizer:
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
-        """Add constraint: total_outstanding_future/total_outstanding_now = growth_target
+        r"""Add an growth factor constraint to the portfolio optimization problem.
+
+        The constraint is given by
+
+        $$\frac{\sum_i x_i}{\sum_i y_i} = g,$$
+
+        where
+
+            - `$x_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$g$` is the target value for the total growth factor.
+
+        usage example:
+
+        >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+        >>> import numpy as np
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        >>> portfolio_optimizer.add_emission_constraint(growth_target=1.2, weights=lambdas)
+
+        For the QUBO formulation, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target:

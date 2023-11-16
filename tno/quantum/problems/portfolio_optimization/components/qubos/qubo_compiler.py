@@ -2,15 +2,13 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, TypeVar
+from typing import Callable, Optional, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 from pandas import DataFrame
 
 from .qubo_factory import QuboFactory
-
-from typing import Optional
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
