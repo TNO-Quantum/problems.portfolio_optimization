@@ -8,13 +8,11 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-DEFAULT_COLUMN_NAMES = [
+DEFAULT_REQUIRED_COLUMN_NAMES = [
     "asset",
     "outstanding_now",
     "min_outstanding_future",
     "max_outstanding_future",
-    "emis_intens_now",
-    "emis_intens_future",
     "income_now",
     "regcap_now",
 ]
@@ -26,14 +24,12 @@ def read_portfolio_data(
     """
     Read portfolio data into DataFrame.
 
-    The portfolio data is expected to contain the following columns names:
+    The portfolio data is expected to contain at least the following columns names:
 
         - ``"assets"``
         - ``"outstanding_now_now"``
         - ``"min_outstanding_future"``
         - ``"max_outstanding_future"``
-        - ``"emis_intens_now"``
-        - ``"emis_intens_future"``
         - ``"income_now"``
         - ``"regcap_now"``
 
@@ -56,7 +52,7 @@ def read_portfolio_data(
         df.rename(columns=columns_rename, inplace=True)
 
     # Validate dataset to contain required column names
-    for required_column_name in DEFAULT_COLUMN_NAMES:
+    for required_column_name in DEFAULT_REQUIRED_COLUMN_NAMES:
         if required_column_name not in df.columns:
             raise ValueError(
                 f"Required column name {required_column_name} is not in dataset."

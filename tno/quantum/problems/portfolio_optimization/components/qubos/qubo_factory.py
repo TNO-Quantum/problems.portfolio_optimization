@@ -144,7 +144,9 @@ class QuboFactory:
         emission_intensity_future = self.portfolio_data[variable_future].to_numpy()
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
-        relelative_total_emission_now = total_emission_now / np.sum(self.outstanding_now)
+        relelative_total_emission_now = total_emission_now / np.sum(
+            self.outstanding_now
+        )
 
         alpha = np.sum(
             (
