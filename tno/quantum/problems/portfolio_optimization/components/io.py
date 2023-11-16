@@ -48,7 +48,6 @@ def read_portfolio_data(
     Raises:
         ValueError if required columns are not present in dataset.
     """
-    print("Status: reading data")
     if str(filename) == "rabobank":
         filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
 

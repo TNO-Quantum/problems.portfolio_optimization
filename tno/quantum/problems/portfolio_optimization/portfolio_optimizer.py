@@ -1,4 +1,10 @@
-"""This module contains the ``PortfolioOptimizer`` class."""
+"""This module contains the ``PortfolioOptimizer`` class.
+
+Example script:
+
+
+
+"""
 from __future__ import annotations
 
 import itertools
@@ -52,8 +58,28 @@ class PortfolioOptimizer:
         self._growth_target = None
 
     def add_minimize_HHI(self, weights: Optional[ArrayLike] = None) -> None:
-        """
-        Adds the minimize HHI objective.
+        r"""
+        Adds the minimize HHI objective to the portfolio optimization problem.
+
+        The HHI objective is given by
+
+        $$HHI = \frac{\sum_i x_i^2}{\left(\sum_i x_i\right)^2},$$
+
+        where
+
+            - `$x_i$` is the future outstanding amount for asset `$i$`.
+
+        usage example:
+
+        >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+        >>> import numpy as np
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        >>> portfolio_optimizer.add_minimize_HHI(weights=lambdas)
+
+        For the QUBO formulation, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
 
         Args:
             weights: The coefficients that are considered as penalty parameter.
@@ -155,8 +181,15 @@ class PortfolioOptimizer:
         verbose: bool = True,
     ) -> Results:
         """
-        Optimize a portfolio given the set constraints.
+        Optimize a portfolio given the set of provided constraints.
 
+        usage example:
+
+        >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+        >>> from dwave.samplers import SimulatedAnnealingSampler
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer.add_minimize_HHI()
+        >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False)
 
         Args:
             sampler: Instance of a D-Wave Sampler that can be used to solve the QUBO.

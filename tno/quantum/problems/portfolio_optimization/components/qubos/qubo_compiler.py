@@ -38,11 +38,11 @@ class QuboCompiler:
 
         The HHI objective is given by
 
-        $$HHI = \frac{\sum_i y_i^2}{\left(\sum_i y_i\right)^2},$$
+        $$HHI = \frac{\sum_i x_i^2}{\left(\sum_i x_i\right)^2},$$
 
-        where:
+        where
 
-            - `$y_i$` is the future outstanding amount for asset `$i$`.
+            - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
         :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
