@@ -147,12 +147,19 @@ class QuboFactory:
         rel_total_emission_now = total_emission_now / np.sum(self.outstanding_now)
 
         alpha = np.sum(
-            (emission_intensity_future - 0.7 * rel_total_emission_now) * self.LB
+            (
+                emission_intensity_future
+                - reduction_percentage_target * rel_total_emission_now
+            )
+            * self.LB
         )
 
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (emission_intensity_future - 0.7 * rel_total_emission_now)
+            (
+                emission_intensity_future
+                - reduction_percentage_target * rel_total_emission_now
+            )
             * (self.UB - self.LB)
             / (2**self.k - 1)
         )
