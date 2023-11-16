@@ -63,10 +63,11 @@ class PortfolioOptimizer:
 
         The HHI objective is given by
 
-        $$HHI = \frac{\sum_i x_i^2}{\left(\sum_i x_i\right)^2},$$
+        $$HHI(x) = \sum_{i=1}^N\left(\frac{x_i}{\sum_{j=1}^N x_j}\right)^2,$$
 
         where
 
+            - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         usage example:
@@ -96,8 +97,28 @@ class PortfolioOptimizer:
         weights_roc: Optional[ArrayLike] = None,
         weights_stabilize: Optional[ArrayLike] = None,
     ) -> None:
-        """
-        Adds the maximize ROC objective.
+        r"""
+        Adds the maximize ROC objective to the portfolio optimization problem.
+
+        The ROC objective is given by
+
+        $$ROC(x) = \frac{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot r_i }{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot c_i},$$
+
+        where
+
+            - `$N$` is the total number of assets,
+            - `$x_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$r_i$` is the return for asset `$i$`,
+            - `$c_i$` is the regulatory capital for asset `$i$`.
+
+        usage example:
+
+        >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+        >>> import numpy as np
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        >>> portfolio_optimizer.add_maximize_ROC(...)
 
         formulation 1:
             add 1 qubo term, use weights_roc to scale
@@ -110,9 +131,12 @@ class PortfolioOptimizer:
         formulation 4:
             add 1 qubo term, use weights_roc to scale
 
+        For the different QUBO formulations, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+
         Args:
             formulation: the ROC QUBO formulation that is being used.
-                Possible options are: [1, 2, 3, 4].
+                Possible options are: [1, 2, 3, 4]. 
             capital_growth_factor:
             ancilla_qubits:
             weights_roc:
@@ -146,10 +170,11 @@ class PortfolioOptimizer:
 
         The constraint is given by
 
-        $$\frac{\sum_if_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},$$
+        $$\frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},$$
 
         where:
 
+            - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$e_i$` is the current emission intensity for asset `$i$`,
