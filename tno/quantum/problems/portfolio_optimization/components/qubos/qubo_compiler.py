@@ -103,12 +103,12 @@ class QuboCompiler:
 
         The constraint is given by
 
-        $$\frac{\sum_if_i \cdot y_i}{\sum_i y_i} = g \frac{\sum_ie_i \cdot x_i}{\sum_i x_i},$$
+        $$\frac{\sum_if_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},$$
 
         where:
 
-            - `$x_i$` is the current outstanding amount for asset `$i$`,
-            - `$y_i$` is the future outstanding amount for asset `$i$`,
+            - `$x_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
             - `$g$` is the target value for the relative emission reduction.
@@ -146,12 +146,12 @@ class QuboCompiler:
 
         The constraint is given by
 
-        $$\frac{\sum_i y_i}{\sum_i x_i} = g,$$
+        $$\frac{\sum_i x_i}{\sum_i y_i} = g,$$
 
         where:
 
-            - `$x_i$` is the current outstanding amount for asset `$i$`,
-            - `$y_i$` is the future outstanding amount for asset `$i$`,
+            - `$x_i$` is the future outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$g$` is the target value for the total growth factor.
 
         For the QUBO formulation, see the docs of
