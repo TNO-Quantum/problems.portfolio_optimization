@@ -11,28 +11,35 @@ from scipy.spatial import ConvexHull
 
 
 class Decoder:
+    """Decoder class ..."""
+
     def __init__(
         self,
         portfolio_data: DataFrame,
-        kmin: int,
-        kmax: int,
+        k: int,
     ) -> None:
-        self.N = len(portfolio_data)
+        """
+        Decoder ...
 
-        self.kmax = kmax
-        maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
-        self.mantissa = np.power(2, np.arange(kmax) - kmin)
-
+        Args:
+            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            k: The number of bits that are used to represent the outstanding amount for
+                each asset. A fixed point representation is used to represent `$2^k$`
+                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
+        """
+        self.number_of_assets = len(portfolio_data)
+        self.k = k
+        self.mantissa = np.power(2, np.arange(self.k))
         self.LB = portfolio_data["min_outstanding_future"].to_numpy()
         self.UB = portfolio_data["max_outstanding_future"].to_numpy()
-        self.multiplier = (self.UB - self.LB) / maxk
+        self.multiplier = (self.UB - self.LB) / (2**self.k - 1)
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
         # Compute the future portfolio
         sample_array = np.array(
-            [sample[i] for i in range(self.N * self.kmax)], dtype=np.uint8
+            [sample[i] for i in range(self.number_of_assets * self.k)], dtype=np.uint8
         )
-        sample_reshaped = sample_array.reshape((self.N, self.kmax))
+        sample_reshaped = sample_array.reshape((self.number_of_assets, self.k))
         ints = np.sum(sample_reshaped * self.mantissa, axis=1)
         outstanding_future = self.LB + self.multiplier * ints
         if (self.LB > outstanding_future).any() or (self.UB < outstanding_future).any():
@@ -42,8 +49,10 @@ class Decoder:
 
     def decode_sampleset(self, sampleset: SampleSet) -> NDArray[np.float_]:
         # Compute the future portfolio
-        samples_matrix = sampleset.record.sample[:, : self.N * self.kmax]
-        samples_reshaped = samples_matrix.reshape((len(sampleset), self.N, self.kmax))
+        samples_matrix = sampleset.record.sample[:, : self.number_of_assets * self.k]
+        samples_reshaped = samples_matrix.reshape(
+            (len(sampleset), self.number_of_assets, self.k)
+        )
 
         ints = np.sum(samples_reshaped * self.mantissa, axis=2)
         outstanding_future = self.LB + self.multiplier * ints

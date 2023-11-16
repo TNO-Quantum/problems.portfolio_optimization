@@ -28,8 +28,7 @@ class PortfolioOptimizer:
     def __init__(
         self,
         filename: str | Path,
-        kmin: int = 0,
-        kmax: int = 2,
+        k: int = 2,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> None:
         """Init PortfolioOptimizer
@@ -38,16 +37,17 @@ class PortfolioOptimizer:
             filename: path to where portfolio data is stored. See the docstring of
                 :py:func:`~portfolio_optimization.components.io.read_portfolio_data`
                 for data input conventions.
-            kmin: Minimum $k$ in the discretization of the variables.
-            kmax: Maximum $k$ in the discretization of the variables.
+            k: The number of bits that are used to represent the outstanding amount for
+                each asset. A fixed point representation is used to represent `$2^k$`
+                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
             column_rename: can be used to rename data columns. See the docstring of
                 :py:func:`~portfolio_optimization.components.io.read_portfolio_data` for
                 example.
         """
         portfolio_data = read_portfolio_data(filename, columns_rename)
         self.portfolio_data = portfolio_data
-        self._qubo_compiler = QuboCompiler(portfolio_data, kmin, kmax)
-        self.decoder = Decoder(portfolio_data, kmin, kmax)
+        self._qubo_compiler = QuboCompiler(portfolio_data, k)
+        self.decoder = Decoder(portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
         self._growth_target = None
 

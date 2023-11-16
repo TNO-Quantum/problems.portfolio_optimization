@@ -14,7 +14,7 @@ QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
 
 class QuboCompiler:
-    def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
+    def __init__(self, portfolio_data: DataFrame, k: int) -> None:
         """Init of the ``QuboCompiler`` class.
 
         The ``QuboCompiler`` can create a verity of QUBO formulation by combining
@@ -22,10 +22,11 @@ class QuboCompiler:
 
         Args:
             portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
-            kmin: Minimum $k$ in the discretization of the variables.
-            kmax: Maximum $k$ in the discretization of the variables.
+            k: The number of bits that are used to represent the outstanding amount for
+                each asset. A fixed point representation is used to represent `$2^k$`
+                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
         """
-        self._qubo_factory = QuboFactory(portfolio_data, kmin, kmax)
+        self._qubo_factory = QuboFactory(portfolio_data, k)
 
         self._to_compile: list[Callable[[], tuple[NDArray[np.float_], float]]] = []
         self._compiled_qubos: list[NDArray[np.float_]] = []
