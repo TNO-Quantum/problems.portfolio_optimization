@@ -11,7 +11,7 @@ from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 @pytest.fixture(name="qubo_factory")
 def qubo_factory_fixture() -> QuboFactory:
     portfolio_data = make_test_dataset()
-    return QuboFactory(portfolio_data, 0, 2)
+    return QuboFactory(portfolio_data, k=2)
 
 
 def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:

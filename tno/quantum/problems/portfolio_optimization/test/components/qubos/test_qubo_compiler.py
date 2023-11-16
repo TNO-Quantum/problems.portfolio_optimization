@@ -18,7 +18,7 @@ from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 @pytest.fixture(name="qubo_compiler")
 def qubo_compiler_fixture() -> QuboCompiler:
     portfolio_data = make_test_dataset()
-    return QuboCompiler(portfolio_data, 0, 2)
+    return QuboCompiler(portfolio_data, k=2)
 
 
 def test_init(qubo_compiler: QuboCompiler) -> None:
@@ -34,7 +34,7 @@ def test_init(qubo_compiler: QuboCompiler) -> None:
     "method_name,method_args",
     [
         ("add_minimize_HHI", []),
-        ("add_emission_constraint", []),
+        ("add_emission_constraint", ["emis_intens_now", "emis_intens_future", 0.7]),
         ("add_growth_factor_constraint", [5]),
         ("add_maximize_ROC", [1]),
         ("add_maximize_ROC", [4]),

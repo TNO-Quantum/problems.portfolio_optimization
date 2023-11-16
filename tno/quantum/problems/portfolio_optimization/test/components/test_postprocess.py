@@ -15,7 +15,7 @@ from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 @pytest.fixture(name="decoder")
 def decoder_fixture() -> Decoder:
     portfolio_data = make_test_dataset()
-    return Decoder(portfolio_data, 0, 2)
+    return Decoder(portfolio_data, k=2)
 
 
 @pytest.mark.parametrize(

@@ -10,6 +10,8 @@ from pandas import DataFrame
 
 from .qubo_factory import QuboFactory
 
+from typing import Optional
+
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
 
@@ -32,7 +34,18 @@ class QuboCompiler:
         self._compiled_qubos: list[NDArray[np.float_]] = []
 
     def add_minimize_HHI(self: QuboCompilerT) -> QuboCompilerT:
-        """Add the minimize HHI objective to the compile list.
+        r"""Add the minimize HHI objective to the compile list.
+
+        The HHI objective is given by
+
+        $$HHI = \frac{\sum_i y_i^2}{\left(\sum_i y_i\right)^2}$$
+
+        where:
+
+            - `$y_i$` is the future outstanding amount for asset `$i$`,
+
+        For the QUBO formulation, see the docs of
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
 
         Returns:
             Self.
@@ -80,13 +93,48 @@ class QuboCompiler:
 
         return self
 
-    def add_emission_constraint(self: QuboCompilerT) -> QuboCompilerT:
-        """Add the emission constraint to the compile list.
+    def add_emission_constraint(
+        self: QuboCompilerT,
+        column_name_now: str,
+        column_name_future: Optional[str] = None,
+        reduction_percentage_target: float = 0.7,
+    ) -> QuboCompilerT:
+        r"""Add the emission constraint to the compile list.
+
+        The constraint is given by
+
+        $$\frac{\sum_if_i \cdot y_i}{\sum_i y_i} = g \frac{\sum_ie_i \cdot x_i}{\sum_i x_i} $$
+
+        where:
+
+            - `$x_i$` is the current outstanding amount for asset `$i$`,
+            - `$y_i$` is the future outstanding amount for asset `$i$`,
+            - `$e_i$` is the current emission intensity for asset `$i$`,
+            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$g$` is the target value for the relative emission reduction,
+
+        For the QUBO formulation, see the docs of
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_emission_constraint`.
+
+        Args:
+            variable_now: Name of the column in the portfolio dataset corresponding to
+                the variables at current time.
+            variable_future: Name of the column in the portfolio dataset corresponding
+                to the variables at future time. If no value is provided, it is assumed
+                that the value is constant over time, i.e., the variable
+                ``variable_now`` will be used.
+            reduction_percentage_target: target value for reduction percentage amount.
 
         Returns:
             Self.
         """
-        self._to_compile.append(self._qubo_factory.calc_emission_constraint)
+        method = partial(
+            self._qubo_factory.calc_emission_constraint,
+            column_name_now=column_name_now,
+            column_name_future=column_name_future,
+            reduction_percentage_target=reduction_percentage_target,
+        )
+        self._to_compile.append(method)
         return self
 
     def add_growth_factor_constraint(
@@ -97,13 +145,14 @@ class QuboCompiler:
         The constraint is formulated as total_outstanding_future/total_outstanding_now = growth_target.
 
         Args:
-            growth_target: Growth target to use in teh constraint.
+            growth_target: target value for growth factor total outstanding amount.
 
         Returns:
             Self.
         """
         method = partial(
-            self._qubo_factory.calc_growth_factor_constraint, growth_target
+            self._qubo_factory.calc_growth_factor_constraint,
+            growth_target=growth_target,
         )
         self._to_compile.append(method)
         return self
