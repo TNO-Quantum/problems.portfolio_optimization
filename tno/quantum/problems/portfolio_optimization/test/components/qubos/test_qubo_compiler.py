@@ -109,7 +109,7 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     assert len(qubo_compiler._to_compile) == 4
     assert len(qubo_compiler._compiled_qubos) == 0
 
-    qubo_compiler.add_emission_constraint()
+    qubo_compiler.add_emission_constraint(variable_now="emis_intens_now")
     assert len(qubo_compiler._to_compile) == 5
     assert len(qubo_compiler._compiled_qubos) == 0
 
@@ -125,7 +125,7 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
 
 
 def test_incorrect_lambdas(qubo_compiler: QuboCompiler) -> None:
-    qubo_compiler.add_emission_constraint()
+    qubo_compiler.add_emission_constraint(variable_now="emis_intens_now")
     qubo_compiler.compile()
     with pytest.raises(ValueError):
         qubo_compiler.make_qubo(1, 2, 3)
