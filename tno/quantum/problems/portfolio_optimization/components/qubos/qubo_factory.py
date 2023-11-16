@@ -92,8 +92,8 @@ class QuboFactory:
 
     def calc_emission_constraint(
         self,
-        column_name_now: str,
-        column_name_future: Optional[str] = None,
+        variable_now: str,
+        variable_future: Optional[str] = None,
         reduction_percentage_target: float = 0.7,
     ) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the emission constraint QUBO for arbitrary target reduction target
@@ -128,20 +128,20 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        if column_name_future is None:
-            column_name_future = column_name_now
+        if variable_future is None:
+            variable_future = variable_now
 
-        if column_name_now not in self.portfolio_data:
+        if variable_now not in self.portfolio_data:
             raise KeyError(
-                f"Column name {column_name_now} not present in portfolio dataset."
+                f"Column name {variable_now} not present in portfolio dataset."
             )
-        if column_name_future not in self.portfolio_data:
+        if variable_future not in self.portfolio_data:
             raise KeyError(
-                f"Column name {column_name_future} not present in portfolio dataset."
+                f"Column name {variable_future} not present in portfolio dataset."
             )
 
-        emission_intensity_now = self.portfolio_data[column_name_now].to_numpy()
-        emission_intensity_future = self.portfolio_data[column_name_future].to_numpy()
+        emission_intensity_now = self.portfolio_data[variable_now].to_numpy()
+        emission_intensity_future = self.portfolio_data[variable_future].to_numpy()
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
         rel_total_emission_now = total_emission_now / np.sum(self.outstanding_now)

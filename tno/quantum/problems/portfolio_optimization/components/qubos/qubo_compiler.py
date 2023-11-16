@@ -95,8 +95,8 @@ class QuboCompiler:
 
     def add_emission_constraint(
         self: QuboCompilerT,
-        column_name_now: str,
-        column_name_future: Optional[str] = None,
+        variable_now: str,
+        variable_future: Optional[str] = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
         r"""Add the emission constraint to the compile list.
@@ -130,8 +130,8 @@ class QuboCompiler:
         """
         method = partial(
             self._qubo_factory.calc_emission_constraint,
-            column_name_now=column_name_now,
-            column_name_future=column_name_future,
+            variable_now=variable_now,
+            variable_future=variable_future,
             reduction_percentage_target=reduction_percentage_target,
         )
         self._to_compile.append(method)

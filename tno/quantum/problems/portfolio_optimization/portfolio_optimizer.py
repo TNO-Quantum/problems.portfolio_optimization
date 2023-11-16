@@ -109,14 +109,31 @@ class PortfolioOptimizer:
             formulation, capital_growth_factor, ancilla_qubits
         )
 
-    def add_emission_constraint(self, weights: Optional[ArrayLike] = None) -> None:
+    def add_emission_constraint(
+        self,
+        variable_now: str,
+        variable_future: Optional[str] = None,
+        reduction_percentage_target: float = 0.7,
+        weights: Optional[ArrayLike] = None,
+    ) -> None:
         """Add emission constraint
 
         Args:
+            variable_now: Name of the column in the portfolio dataset corresponding to
+                the variables at current time.
+            variable_future: Name of the column in the portfolio dataset corresponding
+                to the variables at future time. If no value is provided, it is assumed
+                that the value is constant over time, i.e., the variable
+                ``variable_now`` will be used.
+            reduction_percentage_target: target value for reduction percentage amount.
             weights: The coefficients that are considered as penalty parameter.
         """
         self._all_lambdas.append(self._parse_weight(weights))
-        self._qubo_compiler.add_emission_constraint()
+        self._qubo_compiler.add_emission_constraint(
+            variable_now=variable_now,
+            variable_future=variable_future,
+            reduction_percentage_target=reduction_percentage_target,
+        )
 
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
