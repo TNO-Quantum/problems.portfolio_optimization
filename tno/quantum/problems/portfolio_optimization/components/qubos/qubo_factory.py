@@ -71,7 +71,7 @@ class QuboFactory:
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
         for asset_i in range(self.number_of_assets):
-            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / 2**self.k
+            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / (2**self.k - 1)
 
             # For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2
             for bit_j in range(self.k):
