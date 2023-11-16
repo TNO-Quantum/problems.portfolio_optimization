@@ -54,7 +54,7 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
+        $$QUBO = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
 
         where:
 
@@ -100,7 +100,7 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO = \left(\frac{\sum_i f_i \left(LB_i + \frac{UB_i-LB_i}{2^k}\sum_j2^jx_{i,j}\right)}{{\frac{1}{2}\sum_iUB_i+LB_i}} - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i} \right)^2$$
+        $$QUBO = \left(\frac{\sum_i f_i \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)}{{\frac{1}{2}\sum_iUB_i+LB_i}} - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i} \right)^2$$
 
         where:
 
@@ -184,7 +184,7 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO = \left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k}\sum_j 2^jx_{i,j}}{\sum_i out_i} - g\right)^2$$
+        $$QUBO = \left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^jx_{i,j}}{\sum_i out_i} - g\right)^2$$
 
         where:
 
