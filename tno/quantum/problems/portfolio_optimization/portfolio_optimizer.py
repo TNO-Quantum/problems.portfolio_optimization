@@ -28,8 +28,8 @@ class PortfolioOptimizer:
     def __init__(
         self,
         filename: str | Path,
-        kmin: int,
-        kmax: int,
+        kmin: int = 0,
+        kmax: int = 2,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> None:
         """Init PortfolioOptimizer
@@ -121,7 +121,7 @@ class PortfolioOptimizer:
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
-        """Add constraint: total_out_future/total_out_now = growth_target
+        """Add constraint: total_outstanding_future/total_outstanding_now = growth_target
 
         Args:
             growth_target:
