@@ -146,21 +146,27 @@ class QuboFactory:
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
         rel_total_emission_now = total_emission_now / np.sum(self.outstanding_now)
 
-        alpha = np.sum((e_intens_future - 0.7 * bigE) * self.LB)
+        alpha = np.sum(
+            (emission_intensity_future - 0.7 * rel_total_emission_now) * self.LB
+        )
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (e_intens_future - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
+        mantisse = np.power(2, np.arange(self.k))
+        multiplier = (
+            (emission_intensity_future - 0.7 * rel_total_emission_now)
+            * (self.UB - self.LB)
+            / (2**self.k - 1)
+        )
         beta = np.kron(multiplier, mantisse)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        offset = alpha**2 / emisnow**2
-        for idx1 in range(self.number_of_assets * self.kmax):
+        offset = alpha**2 / emission_intensity_now**2
+        for idx1 in range(self.number_of_assets * self.k):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
-            for idx2 in range(idx1 + 1, self.number_of_assets * self.kmax):
+            for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo / emisnow**2
+        qubo = qubo / emission_intensity_now**2
 
         return qubo, offset
 
@@ -224,11 +230,11 @@ class QuboFactory:
             self.LB
             / (self.capital * self.outstanding_now * expected_average_growth_factor)
         )
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             (self.UB - self.LB)
             * returns
-            / (self.maxk * self.capital * expected_average_growth_factor)
+            / ((2**self.k - 1) * self.capital * expected_average_growth_factor)
         )
         qubo_diag = -np.kron(multiplier, mantisse)
 
@@ -241,9 +247,11 @@ class QuboFactory:
         r"""$\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)$"""
         capital_target = capital_growth_factor * np.sum(self.capital)
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.UB - self.LB) * self.income / (self.outstanding_now * self.maxk)
+            (self.UB - self.LB)
+            * self.income
+            / (self.outstanding_now * (2**self.k - 1))
         )
         qubo_diag = -np.kron(multiplier, mantisse) / capital_target
         qubo = np.diag(qubo_diag)
@@ -251,13 +259,15 @@ class QuboFactory:
         return qubo, -offset
 
     def calc_maximize_ROC3(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.number_of_assets
+        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
         capital_now = np.sum(self.capital)
 
         alpha = np.sum(self.LB * self.income / self.outstanding_now)
-        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            self.income * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
+            self.income
+            * (self.UB - self.LB)
+            / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
 
@@ -266,18 +276,14 @@ class QuboFactory:
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         np.fill_diagonal(
-            qubo[
-                : self.number_of_assets * self.kmax, : self.number_of_assets * self.kmax
-            ],
+            qubo[: self.number_of_assets * self.k, : self.number_of_assets * self.k],
             beta,
         )
         qubo[
-            : self.number_of_assets * self.kmax, self.number_of_assets * self.kmax :
+            : self.number_of_assets * self.k, self.number_of_assets * self.k :
         ] += np.outer(beta, gamma)
         np.fill_diagonal(
-            qubo[
-                self.number_of_assets * self.kmax :, self.number_of_assets * self.kmax :
-            ],
+            qubo[self.number_of_assets * self.k :, self.number_of_assets * self.k :],
             alpha * gamma,
         )
         offset = alpha / capital_now
@@ -289,8 +295,8 @@ class QuboFactory:
     def calc_maximize_ROC4(self) -> tuple[NDArray[np.float_], float]:
         r"""$\frac{\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^k x_{ik}\right)}{\sum_i \frac{LB_i+UB_i}{2out_now_i}*capital_i}$"""
         returns = self.income / self.outstanding_now
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = returns * (self.UB - self.LB) / self.maxk
+        mantisse = np.power(2, np.arange(self.k))
+        multiplier = returns * (self.UB - self.LB) / (2**self.k - 1)
         beta = np.kron(multiplier, mantisse)
         scaling = -2 / (
             np.sum((self.LB + self.UB) * self.capital / self.outstanding_now)
@@ -307,9 +313,11 @@ class QuboFactory:
         capital_target = capital_growth_factor * np.sum(self.capital)
         alpha = np.sum(self.capital * self.LB / self.outstanding_now) - capital_target
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            self.capital * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
+            self.capital
+            * (self.UB - self.LB)
+            / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
 
@@ -319,14 +327,16 @@ class QuboFactory:
         return qubo, offset
 
     def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.number_of_assets
+        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
         alpha = np.sum(self.capital * self.LB / self.outstanding_now) - np.sum(
             self.capital
         )
 
-        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            self.capital * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
+            self.capital
+            * (self.UB - self.LB)
+            / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
 
@@ -336,18 +346,18 @@ class QuboFactory:
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         qubo_upper_left = qubo[
-            : self.number_of_assets * self.kmax, : self.number_of_assets * self.kmax
+            : self.number_of_assets * self.k, : self.number_of_assets * self.k
         ]
         qubo_upper_left += np.triu(2 * np.outer(beta, beta), k=1)
         np.fill_diagonal(qubo_upper_left, 2 * alpha * beta + beta**2)
 
         qubo_upper_right = qubo[
-            : self.number_of_assets * self.kmax, self.number_of_assets * self.kmax :
+            : self.number_of_assets * self.k, self.number_of_assets * self.k :
         ]
         qubo_upper_right += 2 * np.outer(beta, gamma)
 
         qubo_lower_right = qubo[
-            self.number_of_assets * self.kmax :, self.number_of_assets * self.kmax :
+            self.number_of_assets * self.k :, self.number_of_assets * self.k :
         ]
         qubo_lower_right += np.triu(2 * np.outer(gamma, gamma), k=1)
         np.fill_diagonal(qubo_lower_right, 2 * alpha * gamma + gamma**2)
