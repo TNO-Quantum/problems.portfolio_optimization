@@ -33,11 +33,11 @@ def test_init(qubo_compiler: QuboCompiler) -> None:
 @pytest.mark.parametrize(
     "method_name,method_args",
     [
-        ("add_minimize_HHI", []),
+        ("add_minimize_hhi", []),
         ("add_emission_constraint", ["emis_intens_now", "emis_intens_future", 0.7]),
         ("add_growth_factor_constraint", [5]),
-        ("add_maximize_ROC", [1]),
-        ("add_maximize_ROC", [4]),
+        ("add_maximize_roc", [1]),
+        ("add_maximize_roc", [4]),
     ],
 )
 def test_add_single_qubo(
@@ -65,8 +65,8 @@ def test_add_single_qubo(
 @pytest.mark.parametrize(
     "method_name,method_args,len_qubo",
     [
-        ("add_maximize_ROC", [2, 1], 4),
-        ("add_maximize_ROC", [3, 0, 5], 9),
+        ("add_maximize_roc", [2, 1], 4),
+        ("add_maximize_roc", [3, 0, 5], 9),
     ],
 )
 def test_add_double_qubo(
@@ -97,11 +97,11 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     assert len(qubo_compiler._to_compile) == 0
     assert len(qubo_compiler._compiled_qubos) == 0
 
-    qubo_compiler.add_minimize_HHI()
+    qubo_compiler.add_minimize_hhi()
     assert len(qubo_compiler._to_compile) == 1
     assert len(qubo_compiler._compiled_qubos) == 0
 
-    qubo_compiler.add_maximize_ROC(formulation=2, capital_growth_factor=1)
+    qubo_compiler.add_maximize_roc(formulation=2, capital_growth_factor=1)
     assert len(qubo_compiler._to_compile) == 3
     assert len(qubo_compiler._compiled_qubos) == 0
 

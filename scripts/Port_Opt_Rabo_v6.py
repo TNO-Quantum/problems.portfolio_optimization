@@ -28,8 +28,8 @@ lambdas3 = np.logspace(-11, -9.5, 12, endpoint=False, base=10.0)
 
 
 portfolio_optimizer = PortfolioOptimizer("rabobank", k)
-portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
-portfolio_optimizer.add_maximize_ROC(
+portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+portfolio_optimizer.add_maximize_roc(
     formulation=3,
     ancilla_qubits=ancilla_qubits,
     weights_roc=lambdas2,

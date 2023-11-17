@@ -1,3 +1,4 @@
+"""This subpackage contains components used by the ``PortfolioOptimizer``."""
 from .io import print_portfolio_info, read_portfolio_data
 from .postprocess import Decoder, pareto_front
 from .qubos import QuboCompiler, QuboFactory

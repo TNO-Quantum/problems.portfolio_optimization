@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
-from dimod import Sampler
+from dimod.core.sampler import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
 from tqdm import tqdm
@@ -37,7 +37,7 @@ class PortfolioOptimizer:
         k: int = 2,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> None:
-        """Init PortfolioOptimizer
+        """Init ``PortfolioOptimizer``.
 
         Args:
             filename: path to where portfolio data is stored. See the docstring of
@@ -55,11 +55,10 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(portfolio_data, k)
         self.decoder = Decoder(portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._growth_target = None
+        self._growth_target: float
 
-    def add_minimize_HHI(self, weights: Optional[ArrayLike] = None) -> None:
-        r"""
-        Adds the minimize HHI objective to the portfolio optimization problem.
+    def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
+        r"""Adds the minimize HHI objective to the portfolio optimization problem.
 
         The HHI objective is given by
 
@@ -76,20 +75,20 @@ class PortfolioOptimizer:
         >>> import numpy as np
         >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        >>> portfolio_optimizer.add_minimize_HHI(weights=lambdas)
+        >>> portfolio_optimizer.add_minimize_hhi(weights=lambdas)
 
         For the QUBO formulation, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_hhi`.
 
         Args:
             weights: The coefficients that are considered as penalty parameter.
 
         """
         self._all_lambdas.append(self._parse_weight(weights))
-        self._qubo_compiler.add_minimize_HHI()
+        self._qubo_compiler.add_minimize_hhi()
 
-    def add_maximize_ROC(
+    def add_maximize_roc(
         self,
         formulation: int,
         capital_growth_factor: float = 0,
@@ -97,12 +96,15 @@ class PortfolioOptimizer:
         weights_roc: Optional[ArrayLike] = None,
         weights_stabilize: Optional[ArrayLike] = None,
     ) -> None:
-        r"""
-        Adds the maximize ROC objective to the portfolio optimization problem.
+        r"""Adds the maximize ROC objective to the portfolio optimization problem.
 
         The ROC objective is given by
 
-        $$ROC(x) = \frac{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot r_i }{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot c_i},$$
+        .. math::
+
+            ROC(x) =
+            \frac{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot r_i}
+            {\sum_{i=1}^N \frac{1}{y_i} x_i \cdot c_i},
 
         where
 
@@ -118,7 +120,7 @@ class PortfolioOptimizer:
         >>> import numpy as np
         >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        >>> portfolio_optimizer.add_maximize_ROC(...)
+        >>> portfolio_optimizer.add_maximize_roc(...)
 
         formulation 1:
             add 1 qubo term, use weights_roc to scale
@@ -155,7 +157,7 @@ class PortfolioOptimizer:
         self._all_lambdas.append(self._parse_weight(weights_roc))
         if formulation in [2, 3]:
             self._all_lambdas.append(self._parse_weight(weights_stabilize))
-        self._qubo_compiler.add_maximize_ROC(
+        self._qubo_compiler.add_maximize_roc(
             formulation, capital_growth_factor, ancilla_qubits
         )
 
@@ -170,7 +172,11 @@ class PortfolioOptimizer:
 
         The constraint is given by
 
-        $$\frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},$$
+        .. math::
+
+            \frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_i x_i}
+            =
+            g \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},
 
         where:
 
@@ -187,7 +193,9 @@ class PortfolioOptimizer:
         >>> import numpy as np
         >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        >>> portfolio_optimizer.add_emission_constraint(variable_now="emis_intens_now", weights=lambdas)
+        >>> portfolio_optimizer.add_emission_constraint(
+        ...   variable_now="emis_intens_now", weights=lambdas
+        ... )
 
         For the QUBO formulation, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.

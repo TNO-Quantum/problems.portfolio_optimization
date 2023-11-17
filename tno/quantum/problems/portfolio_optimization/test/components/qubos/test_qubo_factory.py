@@ -20,7 +20,7 @@ def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
         / 2401
     )
     expected_offset = 1000 / 2401
-    qubo, offset = qubo_factory.calc_minimize_HHI()
+    qubo, offset = qubo_factory.calc_minimize_hhi()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
@@ -64,7 +64,7 @@ def test_calc_growth_factor_constraint(qubo_factory: QuboFactory) -> None:
 def test_calc_maximize_roc1(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-12, -24, -6, -12]) / 127
     expected_offset = -100 / 127
-    qubo, offset = qubo_factory.calc_maximize_ROC1()
+    qubo, offset = qubo_factory.calc_maximize_roc1()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
@@ -73,7 +73,7 @@ def test_calc_maximize_roc1(qubo_factory: QuboFactory) -> None:
 def test_calc_maximize_roc2(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-3, -6, -3 / 2, -3])
     expected_offset = -25
-    qubo, offset = qubo_factory.calc_maximize_ROC2(0.5)
+    qubo, offset = qubo_factory.calc_maximize_roc2(0.5)
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
@@ -93,7 +93,7 @@ def test_calc_maximize_roc3(qubo_factory: QuboFactory) -> None:
         [0, 0, 0, 0, 0, 0, 175 / 128],
     ]
     expected_offset = -25 / 2
-    qubo, offset = qubo_factory.calc_maximize_ROC3()
+    qubo, offset = qubo_factory.calc_maximize_roc3()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
@@ -102,7 +102,7 @@ def test_calc_maximize_roc3(qubo_factory: QuboFactory) -> None:
 def test_calc_maximize_roc4(qubo_factory: QuboFactory) -> None:
     expected_qubo = np.diag([-12, -24, -6, -12]) / 127
     expected_offset = -100 / 127
-    qubo, offset = qubo_factory.calc_maximize_ROC4()
+    qubo, offset = qubo_factory.calc_maximize_roc4()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)

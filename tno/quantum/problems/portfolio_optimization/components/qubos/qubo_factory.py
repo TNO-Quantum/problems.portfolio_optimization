@@ -43,18 +43,26 @@ class QuboFactory:
         self.number_of_assets = len(portfolio_data)
         self.n_vars = self.number_of_assets * k
         self.outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-        self.LB = portfolio_data["min_outstanding_future"].to_numpy()
-        self.UB = portfolio_data["max_outstanding_future"].to_numpy()
+        self.l_bound = portfolio_data["min_outstanding_future"].to_numpy()
+        self.u_bound = portfolio_data["max_outstanding_future"].to_numpy()
         self.income = portfolio_data["income_now"].to_numpy()
         self.capital = portfolio_data["regcap_now"].to_numpy()
         self.k = k
 
-    def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
+    def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the to minimize HHI QUBO.
 
         The QUBO formulation is given by
 
-        $$QUBO = \frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)^2}{\left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2}$$
+        .. math::
+
+            QUBO
+            =
+            \frac{
+                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)^2
+            }{
+                \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
+            }
 
         where:
 
@@ -66,18 +74,20 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        expected_total_outstanding_future = np.sum((self.UB + self.LB)) / 2
+        expected_total_outstanding_future = np.sum((self.u_bound + self.l_bound)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
-        multiplier = (self.UB - self.LB) / (2**self.k - 1)
-        for asset_i, (LB_i, multiplier_i) in enumerate(zip(self.LB, multiplier)):
+        offset = np.sum(self.l_bound**2) / expected_total_outstanding_future**2
+        multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
+        for asset_i, (l_bound_i, multiplier_i) in enumerate(
+            zip(self.l_bound, multiplier)
+        ):
             # For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2
             for bit_j in range(self.k):
                 idx_1 = asset_i * self.k + bit_j
 
                 # Diagonal elements: 2 * LB * multiplier * sum_j 2**j x_j
-                qubo[idx_1, idx_1] += LB_i * multiplier_i * 2 ** (bit_j + 1)
+                qubo[idx_1, idx_1] += l_bound_i * multiplier_i * 2 ** (bit_j + 1)
                 qubo[idx_1, idx_1] += multiplier_i**2 * 2 ** (2 * bit_j)
 
                 # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
@@ -100,7 +110,15 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO = \left(\frac{\sum_i f_i \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)}{{\frac{1}{2}\sum_iUB_i+LB_i}} - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i} \right)^2$$
+        .. math::
+
+            QUBO
+            =
+            \left(
+            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)}
+            {{\frac{1}{2}\sum_iUB_i+LB_i}}
+            - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i}
+            \right)^2
 
         where:
 
@@ -153,7 +171,7 @@ class QuboFactory:
                 emission_intensity_future
                 - reduction_percentage_target * relelative_total_emission_now
             )
-            * self.LB
+            * self.l_bound
         )
 
         mantisse = np.power(2, np.arange(self.k))
@@ -162,7 +180,7 @@ class QuboFactory:
                 emission_intensity_future
                 - reduction_percentage_target * relelative_total_emission_now
             )
-            * (self.UB - self.LB)
+            * (self.u_bound - self.l_bound)
             / (2**self.k - 1)
         )
         beta = np.kron(multiplier, mantisse)
@@ -184,7 +202,14 @@ class QuboFactory:
 
         The QUBO formulation is given by
 
-        $$QUBO = \left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^jx_{i,j}}{\sum_i out_i} - g\right)^2$$
+        .. math::
+
+            QUBO
+            =
+            \left(
+            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^jx_{i,j}}{\sum_i out_i}
+            - g
+            \right)^2
 
         where:
 
@@ -202,10 +227,12 @@ class QuboFactory:
             qubo matrix and its offset
         """
         total_outstanding_now = np.sum(self.outstanding_now)
-        alpha = np.sum(self.LB) / total_outstanding_now - growth_target
+        alpha = np.sum(self.l_bound) / total_outstanding_now - growth_target
 
         mantisse = np.power(2, np.arange(self.k))
-        multiplier = (self.UB - self.LB) / ((2**self.k - 1) * total_outstanding_now)
+        multiplier = (self.u_bound - self.l_bound) / (
+            (2**self.k - 1) * total_outstanding_now
+        )
         beta = np.kron(multiplier, mantisse)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
@@ -221,19 +248,25 @@ class QuboFactory:
         offset = alpha**2
         return qubo, offset
 
-    def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:
-        r"""$-\left(\sum_i\frac{2*out_now_i}{UB_i+LB_i}\right)\sum_i\frac{income_i}{capital_i*out_now_i}\left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)$"""
+    def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
+        r"""
+        .. math::
+
+            -\left(\sum_i\frac{2*out_now_i}{UB_i+LB_i}\right)
+            \sum_i\frac{income_i}{capital_i*out_now_i}
+            \left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)
+        """
         expected_average_growth_factor = 0.5 * np.sum(
-            (self.UB + self.LB) / self.outstanding_now
+            (self.u_bound + self.l_bound) / self.outstanding_now
         )
         returns = self.income / self.outstanding_now
         offset = np.sum(
-            self.LB
+            self.l_bound
             / (self.capital * self.outstanding_now * expected_average_growth_factor)
         )
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.UB - self.LB)
+            (self.u_bound - self.l_bound)
             * returns
             / ((2**self.k - 1) * self.capital * expected_average_growth_factor)
         )
@@ -242,32 +275,39 @@ class QuboFactory:
         qubo = np.diag(qubo_diag)
         return qubo, -offset
 
-    def calc_maximize_ROC2(
+    def calc_maximize_roc2(
         self, capital_growth_factor: float
     ) -> tuple[NDArray[np.float_], float]:
-        r"""$\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k2^kx_{ik}\right)$"""
+        r"""
+        .. math::
+
+            \sum_i\frac{income_i}{out_now_i}
+            \left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k2^kx_{ik}\right)
+        """
         capital_target = capital_growth_factor * np.sum(self.capital)
 
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.UB - self.LB)
+            (self.u_bound - self.l_bound)
             * self.income
             / (self.outstanding_now * (2**self.k - 1))
         )
         qubo_diag = -np.kron(multiplier, mantisse) / capital_target
         qubo = np.diag(qubo_diag)
-        offset = np.sum(self.LB * self.income / self.outstanding_now) / capital_target
+        offset = (
+            np.sum(self.l_bound * self.income / self.outstanding_now) / capital_target
+        )
         return qubo, -offset
 
-    def calc_maximize_ROC3(self) -> tuple[NDArray[np.float_], float]:
+    def calc_maximize_roc3(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
         capital_now = np.sum(self.capital)
 
-        alpha = np.sum(self.LB * self.income / self.outstanding_now)
+        alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
         mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             self.income
-            * (self.UB - self.LB)
+            * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
@@ -293,18 +333,26 @@ class QuboFactory:
 
         return -qubo, -offset
 
-    def calc_maximize_ROC4(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k 2^k x_{ik}\right)}{\sum_i \frac{LB_i+UB_i}{2out_now_i}*capital_i}$"""
+    def calc_maximize_roc4(self) -> tuple[NDArray[np.float_], float]:
+        r"""
+        .. math::
+
+            \frac{
+                \sum_i\frac{income_i}{out_now_i}
+                \left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k 2^k x_{ik}\right)
+            }
+            {\sum_i \frac{LB_i+UB_i}{2out_now_i}*capital_i}
+        """
         returns = self.income / self.outstanding_now
         mantisse = np.power(2, np.arange(self.k))
-        multiplier = returns * (self.UB - self.LB) / (2**self.k - 1)
+        multiplier = returns * (self.u_bound - self.l_bound) / (2**self.k - 1)
         beta = np.kron(multiplier, mantisse)
         scaling = -2 / (
-            np.sum((self.LB + self.UB) * self.capital / self.outstanding_now)
+            np.sum((self.l_bound + self.u_bound) * self.capital / self.outstanding_now)
         )
 
         qubo = np.diag(beta) * scaling
-        offset = np.sum(returns * self.LB) * scaling
+        offset = np.sum(returns * self.l_bound) * scaling
 
         return qubo, offset
 
@@ -312,12 +360,14 @@ class QuboFactory:
         self, capital_growth_factor: float
     ) -> tuple[NDArray[np.float_], float]:
         capital_target = capital_growth_factor * np.sum(self.capital)
-        alpha = np.sum(self.capital * self.LB / self.outstanding_now) - capital_target
+        alpha = (
+            np.sum(self.capital * self.l_bound / self.outstanding_now) - capital_target
+        )
 
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             self.capital
-            * (self.UB - self.LB)
+            * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
@@ -329,14 +379,14 @@ class QuboFactory:
 
     def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
-        alpha = np.sum(self.capital * self.LB / self.outstanding_now) - np.sum(
+        alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
             self.capital
         )
 
         mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             self.capital
-            * (self.UB - self.LB)
+            * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)

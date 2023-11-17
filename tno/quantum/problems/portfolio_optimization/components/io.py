@@ -21,8 +21,7 @@ DEFAULT_REQUIRED_COLUMN_NAMES = [
 def read_portfolio_data(
     filename: str | Path, columns_rename: Optional[dict[str, str]] = None
 ) -> pd.DataFrame:
-    """
-    Read portfolio data into DataFrame.
+    """Read portfolio data into DataFrame.
 
     The portfolio data is expected to contain at least the following columns names:
 
@@ -39,7 +38,8 @@ def read_portfolio_data(
     Args:
         filename: path to portfolio data
         column_rename: to rename columns provided as dict with new column names as keys
-            and to replace column name as value. Example ``{"outstanding_2021": "outstanding_now"}``.
+            and to replace column name as value. Example
+            ``{"outstanding_2021": "outstanding_now"}``.
 
     Raises:
         ValueError if required columns are not present in dataset.
@@ -47,18 +47,18 @@ def read_portfolio_data(
     if str(filename) == "rabobank":
         filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
 
-    df = pd.read_excel(str(filename))
+    portfolio_data = pd.read_excel(str(filename))
     if columns_rename is not None:
-        df.rename(columns=columns_rename, inplace=True)
+        portfolio_data.rename(columns=columns_rename, inplace=True)
 
     # Validate dataset to contain required column names
     for required_column_name in DEFAULT_REQUIRED_COLUMN_NAMES:
-        if required_column_name not in df.columns:
+        if required_column_name not in portfolio_data.columns:
             raise ValueError(
                 f"Required column name {required_column_name} is not in dataset."
             )
 
-    return df
+    return portfolio_data
 
 
 def print_portfolio_info(
@@ -77,8 +77,8 @@ def print_portfolio_info(
         portfolio_data_.rename(columns=columns_rename, inplace=True)
 
     outstanding_now = portfolio_data_["outstanding_now"].to_numpy()
-    LB = portfolio_data_["min_outstanding_future"].to_numpy()
-    UB = portfolio_data_["max_outstanding_future"].to_numpy()
+    l_bound = portfolio_data_["min_outstanding_future"].to_numpy()
+    u_bound = portfolio_data_["max_outstanding_future"].to_numpy()
     e = portfolio_data_["emis_intens_now"].to_numpy()
     income = portfolio_data_["income_now"].to_numpy()
     capital = portfolio_data_["regcap_now"].to_numpy()
@@ -105,9 +105,9 @@ def print_portfolio_info(
 
     # Estimate the total outstanding amount and its standard deviation for future. This
     # follows from the assumption of a symmetric probability distribution on the
-    # interval [LB, UB] and the central limit theorem.
-    expected_total_outstanding_future = np.sum(UB + LB) / 2
-    expected_stddev_total_outstanding_future = np.linalg.norm(((UB - LB) / 2))
+    # interval [l_bound, u_bound] and the central limit theorem.
+    expected_total_outstanding_future = np.sum(u_bound + l_bound) / 2
+    expected_stddev_total_outstanding_future = np.linalg.norm(((u_bound - l_bound) / 2))
     print(
         f"Expected total outstanding future: {expected_total_outstanding_future}",
         f"Std dev: {expected_stddev_total_outstanding_future}",
@@ -116,9 +116,11 @@ def print_portfolio_info(
     # Estimate a average growth factor and its standard deviation for now-future. This
     # consists of the (averaged) amount per asset in future, which is the outcome of the
     # optimization, divided by the amount for now.
-    expected_average_growth_fac = np.sum((UB + LB) / (2 * total_outstanding_now))
+    expected_average_growth_fac = np.sum(
+        (u_bound + l_bound) / (2 * total_outstanding_now)
+    )
     expected_stddev_average_growth_fac = np.linalg.norm(
-        (UB - LB) / (2 * total_outstanding_now)
+        (u_bound - l_bound) / (2 * total_outstanding_now)
     )
     print(
         f"Expected average growth factor: {expected_average_growth_fac}",

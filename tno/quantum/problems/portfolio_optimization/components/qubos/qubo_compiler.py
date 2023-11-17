@@ -31,7 +31,7 @@ class QuboCompiler:
         self._to_compile: list[Callable[[], tuple[NDArray[np.float_], float]]] = []
         self._compiled_qubos: list[NDArray[np.float_]] = []
 
-    def add_minimize_HHI(self: QuboCompilerT) -> QuboCompilerT:
+    def add_minimize_hhi(self: QuboCompilerT) -> QuboCompilerT:
         r"""Add the minimize HHI objective to the compile list.
 
         The HHI objective is given by
@@ -43,15 +43,15 @@ class QuboCompiler:
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_HHI`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_hhi`.
 
         Returns:
             Self.
         """
-        self._to_compile.append(self._qubo_factory.calc_minimize_HHI)
+        self._to_compile.append(self._qubo_factory.calc_minimize_hhi)
         return self
 
-    def add_maximize_ROC(
+    def add_maximize_roc(
         self: QuboCompilerT,
         formulation: int,
         capital_growth_factor: float = 0,
@@ -72,10 +72,10 @@ class QuboCompiler:
             Self.
         """
         if formulation == 1:
-            self._to_compile.append(self._qubo_factory.calc_maximize_ROC1)
+            self._to_compile.append(self._qubo_factory.calc_maximize_roc1)
         elif formulation == 2:
             roc_method = partial(
-                self._qubo_factory.calc_maximize_ROC2, capital_growth_factor
+                self._qubo_factory.calc_maximize_roc2, capital_growth_factor
             )
             stabalize_method = partial(
                 self._qubo_factory.calc_stabilize_c1, capital_growth_factor
@@ -84,10 +84,10 @@ class QuboCompiler:
             self._to_compile.append(stabalize_method)
         elif formulation == 3:
             self._qubo_factory.n_vars += ancilla_qubits
-            self._to_compile.append(self._qubo_factory.calc_maximize_ROC3)
+            self._to_compile.append(self._qubo_factory.calc_maximize_roc3)
             self._to_compile.append(self._qubo_factory.calc_stabilize_c2)
         elif formulation == 4:
-            self._to_compile.append(self._qubo_factory.calc_maximize_ROC4)
+            self._to_compile.append(self._qubo_factory.calc_maximize_roc4)
 
         return self
 
