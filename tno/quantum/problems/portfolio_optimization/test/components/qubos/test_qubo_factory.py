@@ -62,8 +62,8 @@ def test_calc_growth_factor_constraint(qubo_factory: QuboFactory) -> None:
 
 
 def test_calc_maximize_roc1(qubo_factory: QuboFactory) -> None:
-    expected_qubo = np.diag([-12, -24, -6, -12]) / 127
-    expected_offset = -100 / 127
+    expected_qubo = np.diag([-3, -6, -3 / 2, -3])
+    expected_offset = -25
     qubo, offset = qubo_factory.calc_maximize_roc1()
 
     np.testing.assert_almost_equal(offset, expected_offset)
@@ -94,15 +94,6 @@ def test_calc_maximize_roc3(qubo_factory: QuboFactory) -> None:
     ]
     expected_offset = -25 / 2
     qubo, offset = qubo_factory.calc_maximize_roc3()
-
-    np.testing.assert_almost_equal(offset, expected_offset)
-    np.testing.assert_almost_equal(qubo, expected_qubo)
-
-
-def test_calc_maximize_roc4(qubo_factory: QuboFactory) -> None:
-    expected_qubo = np.diag([-12, -24, -6, -12]) / 127
-    expected_offset = -100 / 127
-    qubo, offset = qubo_factory.calc_maximize_roc4()
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)

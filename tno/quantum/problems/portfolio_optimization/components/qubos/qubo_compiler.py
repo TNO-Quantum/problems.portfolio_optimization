@@ -86,8 +86,6 @@ class QuboCompiler:
             self._qubo_factory.n_vars += ancilla_qubits
             self._to_compile.append(self._qubo_factory.calc_maximize_roc3)
             self._to_compile.append(self._qubo_factory.calc_stabilize_c2)
-        elif formulation == 4:
-            self._to_compile.append(self._qubo_factory.calc_maximize_roc4)
 
         return self
 

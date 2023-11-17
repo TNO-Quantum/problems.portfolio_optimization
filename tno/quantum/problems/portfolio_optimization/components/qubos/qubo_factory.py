@@ -252,23 +252,14 @@ class QuboFactory:
         r"""
         .. math::
 
-            -\left(\sum_i\frac{2*out_now_i}{UB_i+LB_i}\right)
-            \sum_i\frac{income_i}{capital_i*out_now_i}
+            -\sum_i\frac{income_i}{capital_i*out_now_i}
             \left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)
         """
-        expected_average_growth_factor = 0.5 * np.sum(
-            (self.u_bound + self.l_bound) / self.outstanding_now
-        )
         returns = self.income / self.outstanding_now
-        offset = np.sum(
-            self.l_bound
-            / (self.capital * self.outstanding_now * expected_average_growth_factor)
-        )
+        offset = np.sum(self.l_bound / (self.capital * self.outstanding_now))
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.u_bound - self.l_bound)
-            * returns
-            / ((2**self.k - 1) * self.capital * expected_average_growth_factor)
+            (self.u_bound - self.l_bound) * returns / ((2**self.k - 1) * self.capital)
         )
         qubo_diag = -np.kron(multiplier, mantisse)
 
@@ -332,29 +323,6 @@ class QuboFactory:
         qubo = qubo / capital_now
 
         return -qubo, -offset
-
-    def calc_maximize_roc4(self) -> tuple[NDArray[np.float_], float]:
-        r"""
-        .. math::
-
-            \frac{
-                \sum_i\frac{income_i}{out_now_i}
-                \left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k 2^k x_{ik}\right)
-            }
-            {\sum_i \frac{LB_i+UB_i}{2out_now_i}*capital_i}
-        """
-        returns = self.income / self.outstanding_now
-        mantisse = np.power(2, np.arange(self.k))
-        multiplier = returns * (self.u_bound - self.l_bound) / (2**self.k - 1)
-        beta = np.kron(multiplier, mantisse)
-        scaling = -2 / (
-            np.sum((self.l_bound + self.u_bound) * self.capital / self.outstanding_now)
-        )
-
-        qubo = np.diag(beta) * scaling
-        offset = np.sum(returns * self.l_bound) * scaling
-
-        return qubo, offset
 
     def calc_stabilize_c1(
         self, capital_growth_factor: float

@@ -37,7 +37,6 @@ def test_init(qubo_compiler: QuboCompiler) -> None:
         ("add_emission_constraint", ["emis_intens_now", "emis_intens_future", 0.7]),
         ("add_growth_factor_constraint", [5]),
         ("add_maximize_roc", [1]),
-        ("add_maximize_roc", [4]),
     ],
 )
 def test_add_single_qubo(
