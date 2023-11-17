@@ -91,7 +91,6 @@ class PortfolioOptimizer:
     def add_maximize_roc(
         self,
         formulation: int,
-        capital_growth_factor: float = 0,
         ancilla_qubits: int = 0,
         weights_roc: Optional[ArrayLike] = None,
         weights_stabilize: Optional[ArrayLike] = None,
@@ -125,21 +124,15 @@ class PortfolioOptimizer:
         formulation 1:
             add 1 qubo term, use weights_roc to scale
         formulation 2:
-            add 2 qubo terms, requires extra arg capital_growth_factor. Use weights_roc
-            and weights_stabilize to scale
-        formulation 3:
-            add 2 qubo terms, requires extra arg ancilla_qubits. Use weights_roc and
+            add 2 qubo terms, requires extra arg `ancilla_qubits`. Use weights_roc and
             weights_stabilize to scale
-        formulation 4:
-            add 1 qubo term, use weights_roc to scale
 
         For the different QUBO formulations, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
 
         Args:
             formulation: the ROC QUBO formulation that is being used.
-                Possible options are: [1, 2, 3, 4].
-            capital_growth_factor:
+                Possible options are: [1, 2].
             ancilla_qubits:
             weights_roc:
             weights_stabilize:
@@ -147,19 +140,17 @@ class PortfolioOptimizer:
         Raises:
             ValueError: If invalid formulation is provided.
         """
-        allowed_formulation_options = [1, 2, 3, 4]
+        allowed_formulation_options = [1, 2]
         if formulation not in allowed_formulation_options:
             raise ValueError(
-                f"Invalid formulation input provided, "
+                "Invalid formulation input provided, "
                 f"choose from {allowed_formulation_options}."
             )
 
         self._all_lambdas.append(self._parse_weight(weights_roc))
-        if formulation in [2, 3]:
+        if formulation == 2:
             self._all_lambdas.append(self._parse_weight(weights_stabilize))
-        self._qubo_compiler.add_maximize_roc(
-            formulation, capital_growth_factor, ancilla_qubits
-        )
+        self._qubo_compiler.add_maximize_roc(formulation, ancilla_qubits)
 
     def add_emission_constraint(
         self,

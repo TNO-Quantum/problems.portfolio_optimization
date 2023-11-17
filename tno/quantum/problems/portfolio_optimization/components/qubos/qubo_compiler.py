@@ -54,18 +54,15 @@ class QuboCompiler:
     def add_maximize_roc(
         self: QuboCompilerT,
         formulation: int,
-        capital_growth_factor: float = 0,
         ancilla_qubits: int = 0,
     ) -> QuboCompilerT:
         """Add the maximize ROC objective an based on the input a stabilize c constraint.
 
         Args:
             formulation: Integer representing which formulation to pick. If formulation
-                is 1 or 4, then one QUBO term will be added. If formulation is 2, then
-                2 QUBO terms will be added and the argument `capital_growth_factor` must
-                be provided. If formulation is 3, then 2 QUBO terms will be added as
-                well, but the argument `ancilla_qubits` must be provided.
-            capital_growth_factor: Capital growth factor of formulation 2.
+                is ``1``, then one QUBO term will be added. If formulation is ``2``,
+                then 2 QUBO terms will be added as well, but the argument
+                `ancilla_qubits` must be provided.
             ancilla_qubits: Number of ancilla qubits to use for formulation 3.
 
         Returns:
@@ -74,18 +71,9 @@ class QuboCompiler:
         if formulation == 1:
             self._to_compile.append(self._qubo_factory.calc_maximize_roc1)
         elif formulation == 2:
-            roc_method = partial(
-                self._qubo_factory.calc_maximize_roc2, capital_growth_factor
-            )
-            stabalize_method = partial(
-                self._qubo_factory.calc_stabilize_c1, capital_growth_factor
-            )
-            self._to_compile.append(roc_method)
-            self._to_compile.append(stabalize_method)
-        elif formulation == 3:
             self._qubo_factory.n_vars += ancilla_qubits
-            self._to_compile.append(self._qubo_factory.calc_maximize_roc3)
-            self._to_compile.append(self._qubo_factory.calc_stabilize_c2)
+            self._to_compile.append(self._qubo_factory.calc_maximize_roc2)
+            self._to_compile.append(self._qubo_factory.calc_stabilize_c)
 
         return self
 

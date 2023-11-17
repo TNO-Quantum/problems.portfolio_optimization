@@ -266,33 +266,8 @@ class QuboFactory:
         qubo = np.diag(qubo_diag)
         return qubo, -offset
 
-    def calc_maximize_roc2(
-        self, capital_growth_factor: float
-    ) -> tuple[NDArray[np.float_], float]:
-        r"""
-        .. math::
-
-            \sum_i\frac{income_i}{out_now_i}
-            \left(LB_i+\frac{UB_i-LB_i}{2**k - 1}\sum_k2^kx_{ik}\right)
-        """
-        capital_target = capital_growth_factor * np.sum(self.capital)
-
-        mantisse = np.power(2, np.arange(self.k))
-        multiplier = (
-            (self.u_bound - self.l_bound)
-            * self.income
-            / (self.outstanding_now * (2**self.k - 1))
-        )
-        qubo_diag = -np.kron(multiplier, mantisse) / capital_target
-        qubo = np.diag(qubo_diag)
-        offset = (
-            np.sum(self.l_bound * self.income / self.outstanding_now) / capital_target
-        )
-        return qubo, -offset
-
-    def calc_maximize_roc3(self) -> tuple[NDArray[np.float_], float]:
+    def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
-        capital_now = np.sum(self.capital)
 
         alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
         mantisse = mantisse = np.power(2, np.arange(self.k))
@@ -318,34 +293,13 @@ class QuboFactory:
             qubo[self.number_of_assets * self.k :, self.number_of_assets * self.k :],
             alpha * gamma,
         )
-        offset = alpha / capital_now
+        offset = alpha
 
-        qubo = qubo / capital_now
+        qubo = qubo
 
         return -qubo, -offset
 
-    def calc_stabilize_c1(
-        self, capital_growth_factor: float
-    ) -> tuple[NDArray[np.float_], float]:
-        capital_target = capital_growth_factor * np.sum(self.capital)
-        alpha = (
-            np.sum(self.capital * self.l_bound / self.outstanding_now) - capital_target
-        )
-
-        mantisse = np.power(2, np.arange(self.k))
-        multiplier = (
-            self.capital
-            * (self.u_bound - self.l_bound)
-            / (self.outstanding_now * (2**self.k - 1))
-        )
-        beta = np.kron(multiplier, mantisse)
-
-        qubo = np.triu(2 * np.outer(beta, beta), k=1)
-        np.fill_diagonal(qubo, beta**2 + 2 * alpha * beta)
-        offset = alpha**2
-        return qubo, offset
-
-    def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
+    def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
         alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
             self.capital

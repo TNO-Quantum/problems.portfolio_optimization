@@ -64,8 +64,7 @@ def test_add_single_qubo(
 @pytest.mark.parametrize(
     "method_name,method_args,len_qubo",
     [
-        ("add_maximize_roc", [2, 1], 4),
-        ("add_maximize_roc", [3, 0, 5], 9),
+        ("add_maximize_roc", [2, 5], 9),
     ],
 )
 def test_add_double_qubo(
@@ -100,7 +99,7 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     assert len(qubo_compiler._to_compile) == 1
     assert len(qubo_compiler._compiled_qubos) == 0
 
-    qubo_compiler.add_maximize_roc(formulation=2, capital_growth_factor=1)
+    qubo_compiler.add_maximize_roc(formulation=2, ancilla_qubits=5)
     assert len(qubo_compiler._to_compile) == 3
     assert len(qubo_compiler._compiled_qubos) == 0
 
@@ -117,7 +116,7 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     assert len(qubo_compiler._compiled_qubos) == 5
 
     qubo, _ = qubo_compiler.make_qubo(1, 2, 3, 4, 5)
-    assert len(qubo) == 4
+    assert len(qubo) == 9
     np.testing.assert_array_equal(
         qubo, sum((i + 1) * qubo_compiler._compiled_qubos[i] for i in range(5))
     )
