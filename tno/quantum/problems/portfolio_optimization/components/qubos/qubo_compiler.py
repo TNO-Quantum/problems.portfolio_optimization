@@ -159,6 +159,7 @@ class QuboCompiler:
 
         Returns:
             Self."""
+        self._compiled_qubos = []
         for constructor in self._to_compile:
             qubo, _ = constructor()
             self._compiled_qubos.append(qubo)
