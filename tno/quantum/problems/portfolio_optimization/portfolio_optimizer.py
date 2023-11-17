@@ -136,7 +136,7 @@ class PortfolioOptimizer:
 
         Args:
             formulation: the ROC QUBO formulation that is being used.
-                Possible options are: [1, 2, 3, 4]. 
+                Possible options are: [1, 2, 3, 4].
             capital_growth_factor:
             ancilla_qubits:
             weights_roc:

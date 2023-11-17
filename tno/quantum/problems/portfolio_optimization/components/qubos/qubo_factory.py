@@ -70,21 +70,21 @@ class QuboFactory:
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
-        for asset_i in range(self.number_of_assets):
-            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / (2**self.k - 1)
-
+        multiplier = (self.UB - self.LB) / (2**self.k - 1)
+        for asset_i, (LB_i, multiplier_i) in enumerate(zip(self.LB, multiplier)):
             # For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2
             for bit_j in range(self.k):
                 idx_1 = asset_i * self.k + bit_j
 
                 # Diagonal elements: 2 * LB * multiplier * sum_j 2**j x_j
-                qubo[idx_1, idx_1] += 2 * self.LB[asset_i] * multiplier * 2**bit_j
+                qubo[idx_1, idx_1] += LB_i * multiplier_i * 2 ** (bit_j + 1)
+                qubo[idx_1, idx_1] += multiplier_i**2 * 2 ** (2 * bit_j)
 
                 # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
-                for bit_j_prime in range(self.k):
+                for bit_j_prime in range(bit_j + 1, self.k):
                     idx_2 = asset_i * self.k + bit_j_prime
-                    qubo[idx_1, idx_2] += (
-                        multiplier**2 * (2**bit_j) * (2**bit_j_prime)
+                    qubo[idx_1, idx_2] += multiplier_i**2 * 2 ** (
+                        bit_j + bit_j_prime + 1
                     )
 
         qubo = qubo / expected_total_outstanding_future**2
@@ -120,7 +120,7 @@ class QuboFactory:
                 to the variables at future time. If no value is provided, it is assumed
                 that the value is constant over time, i.e., the variable
                 ``variable_now`` will be used.
-            reduction_percentage_target: target value for reduction percentage amount.
+            reduction_percentage_target: Target value for reduction percentage amount.
 
         Raises:
             KeyError: if the provided column names are not in the portfolio_data.
@@ -166,17 +166,15 @@ class QuboFactory:
             / (2**self.k - 1)
         )
         beta = np.kron(multiplier, mantisse)
-
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        offset = alpha**2 / emission_intensity_now**2
+        offset = alpha**2 / total_emission_now**2
         for idx1 in range(self.number_of_assets * self.k):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
             for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo / emission_intensity_now**2
-
+        qubo = qubo / total_emission_now**2
         return qubo, offset
 
     def calc_growth_factor_constraint(
@@ -206,27 +204,21 @@ class QuboFactory:
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.LB) / total_outstanding_now - growth_target
 
+        mantisse = np.power(2, np.arange(self.k))
+        multiplier = (self.UB - self.LB) / ((2**self.k - 1) * total_outstanding_now)
+        beta = np.kron(multiplier, mantisse)
+
         qubo = np.zeros((self.n_vars, self.n_vars))
+        # We only fill the upper left part of the matrix, since we don't use ancilla
+        # variables
+        qubo_slice = qubo[
+            : self.k * self.number_of_assets, : self.k * self.number_of_assets
+        ]
+        # Add the off diagonal elements
+        qubo_slice += np.triu(2 * np.outer(beta, beta), k=1)
+        # Add the diagonal elements
+        np.fill_diagonal(qubo_slice, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        for asset_i in range(self.number_of_assets):
-            multiplier = (self.UB[asset_i] - self.LB[asset_i]) / (
-                2**self.k * total_outstanding_now
-            )
-
-            # For asset i: (alpha + multiplier * sum_j 2**j x_j) ** 2
-            for bit_j in range(self.k):
-                idx_1 = asset_i * self.k + bit_j
-
-                # Diagonal elements: 2 * alpha * multiplier * sum_j 2**j x_j
-                qubo[idx_1, idx_1] += 2 * alpha * multiplier * 2**bit_j
-
-                # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
-                for bit_j_prime in range(self.k):
-                    idx_2 = asset_i * self.k + bit_j_prime
-                    qubo[idx_1, idx_2] += (
-                        multiplier**2 * (2**bit_j) * (2**bit_j_prime)
-                    )
-
         return qubo, offset
 
     def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:

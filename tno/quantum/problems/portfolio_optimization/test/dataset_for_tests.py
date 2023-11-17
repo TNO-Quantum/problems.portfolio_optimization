@@ -1,6 +1,7 @@
 """Dataset creation for testing."""
 from pandas import DataFrame
 
+
 def make_test_dataset() -> DataFrame:
     """Create a small portfolio datasets for testing."""
     index = ["asset 1", "asset 2"]

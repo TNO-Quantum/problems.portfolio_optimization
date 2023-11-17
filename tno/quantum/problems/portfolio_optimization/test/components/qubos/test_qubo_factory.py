@@ -39,7 +39,9 @@ def test_calc_emission_constraint(qubo_factory: QuboFactory) -> None:
         / 562_500
     )
     expected_offset = 960_400 / 562_500
-    qubo, offset = qubo_factory.calc_emission_constraint(variable_now="emis_intens_now")
+    qubo, offset = qubo_factory.calc_emission_constraint(
+        variable_now="emis_intens_now", variable_future="emis_intens_future"
+    )
 
     np.testing.assert_almost_equal(offset, expected_offset)
     np.testing.assert_almost_equal(qubo, expected_qubo)
