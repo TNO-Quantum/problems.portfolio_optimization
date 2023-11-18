@@ -22,7 +22,7 @@ class QuboFactory:
     - `calc_maximize_roc2`: Calculate the to maximize return on capital QUBO variant 2
     - `calc_emission_constraint`: Calculate the emission constraint QUBO
     - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
-    - `calc_stabilize_c`:
+    - `calc_stabilize_c`: Calculate the constraint QUBO that stabilizes growth factor.
 
     """
 
