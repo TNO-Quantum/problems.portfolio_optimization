@@ -1,137 +1,280 @@
 """This module contains the ``QuboFactory`` class."""
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 from numpy.typing import NDArray
 from pandas import DataFrame
 
 
 class QuboFactory:
-    def __init__(self, portfolio_data: DataFrame, kmin: int, kmax: int) -> None:
+    """
+    QuboFactory - A factory class for creating QUBO instances.
+
+    This class provides a convenient interface for constructing intermediate QUBO
+    matrices for different objectives and constraints.
+
+    Methods:
+
+    - `calc_minimize_HHI`: Calculate the to minimize HHI QUBO
+    - `calc_maximize_ROC1`: Calculate the to maximize return on capital QUBO variant 1
+    - `calc_maximize_ROC2`: Calculate the to maximize return on capital QUBO variant 2
+    - `calc_maximize_ROC3`: Calculate the to maximize return on capital QUBO variant 3
+    - `calc_maximize_ROC4`: Calculate the to maximize return on capital QUBO variant 4
+    - `calc_emission_constraint`:
+    - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
+    - `calc_stabilize_c1`:
+    - `calc_stabilize_c2`:
+
+    """
+
+    def __init__(self, portfolio_data: DataFrame, k: int) -> None:
+        """
+
+        Args:
+            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            k: The number of bits that are used to represent the outstanding amount for
+                each asset. A fixed point representation is used to represent `$2^k$`
+                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
+
+        """
         self.portfolio_data = portfolio_data
-        self.N = len(portfolio_data)
-        self.n_vars = self.N * kmax
+        self.number_of_assets = len(portfolio_data)
+        self.n_vars = self.number_of_assets * k
         self.outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-        self.LB = portfolio_data["min_outstanding_future"].to_numpy()
-        self.UB = portfolio_data["max_outstanding_future"].to_numpy()
+        self.l_bound = portfolio_data["min_outstanding_future"].to_numpy()
+        self.u_bound = portfolio_data["max_outstanding_future"].to_numpy()
         self.income = portfolio_data["income_now"].to_numpy()
         self.capital = portfolio_data["regcap_now"].to_numpy()
-        self.kmin = kmin
-        self.kmax = kmax
-        self.maxk = 2 ** (kmax + kmin) - 1 + (2 ** (-kmin) - 1) / (2 ** (-kmin))
+        self.k = k
 
-    def calc_minimize_HHI(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\sum_i\left(LB_i + \frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)^2}{\left(\frac{1}{2}\sum_iUB_i-LB_i\right)^2}$"""
-        expected_total_outstanding_future = np.sum((self.UB + self.LB)) / 2
+    def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
+        r"""Calculate the to minimize HHI QUBO.
+
+        The QUBO formulation is given by
+
+        .. math::
+
+            QUBO
+            =
+            \frac{
+                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)^2
+            }{
+                \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
+            }
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Returns:
+            qubo matrix and its offset
+        """
+        expected_total_outstanding_future = np.sum((self.u_bound + self.l_bound)) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.LB**2) / expected_total_outstanding_future**2
-        for i in range(self.N):
-            multiplier = (self.UB[i] - self.LB[i]) / self.maxk
-            for k in range(self.kmax):
-                idx_1 = i * self.kmax + k
-                value_1 = multiplier * 2 ** (k + self.kmin)
-                qubo[idx_1, idx_1] = value_1 * (value_1 + 2 * self.LB[i])
-                for l in range(k + 1, self.kmax):
-                    idx_2 = i * self.kmax + l
-                    value_2 = multiplier * 2 ** (l + self.kmin)
-                    qubo[idx_1, idx_2] = 2 * value_1 * value_2
+        offset = np.sum(self.l_bound**2) / expected_total_outstanding_future**2
+        multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
+        for asset_i, (l_bound_i, multiplier_i) in enumerate(
+            zip(self.l_bound, multiplier)
+        ):
+            # For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2
+            for bit_j in range(self.k):
+                idx_1 = asset_i * self.k + bit_j
+
+                # Diagonal elements: 2 * LB * multiplier * sum_j 2**j x_j
+                qubo[idx_1, idx_1] += l_bound_i * multiplier_i * 2 ** (bit_j + 1)
+                qubo[idx_1, idx_1] += multiplier_i**2 * 2 ** (2 * bit_j)
+
+                # Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j' 2**j' x_j')
+                for bit_j_prime in range(bit_j + 1, self.k):
+                    idx_2 = asset_i * self.k + bit_j_prime
+                    qubo[idx_1, idx_2] += multiplier_i**2 * 2 ** (
+                        bit_j + bit_j_prime + 1
+                    )
 
         qubo = qubo / expected_total_outstanding_future**2
         return qubo, offset
 
-    def calc_emission_constraint(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\left(\sum_i(efuture_i-0.7\frac{enow_j*out_now_j}{\sum_j out_now_j}(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^kx_{ik}))\right)^2}{\left(\sum_i enow_i*out_now_i\right)^2}$"""
-        e_intens_now = self.portfolio_data["emis_intens_now"].to_numpy()
-        e_intens_future = self.portfolio_data["emis_intens_future"].to_numpy()
+    def calc_emission_constraint(
+        self,
+        variable_now: str,
+        variable_future: Optional[str] = None,
+        reduction_percentage_target: float = 0.7,
+    ) -> tuple[NDArray[np.float_], float]:
+        r"""Calculate the emission constraint QUBO for arbitrary target reduction target
 
-        emisnow = np.sum(e_intens_now * self.outstanding_now)
-        bigE = emisnow / np.sum(self.outstanding_now)
+        The QUBO formulation is given by
 
-        alpha = np.sum((e_intens_future - 0.7 * bigE) * self.LB)
+        .. math::
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (e_intens_future - 0.7 * bigE) * (self.UB - self.LB) / self.maxk
+            QUBO
+            =
+            \left(
+            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)}
+            {{\frac{1}{2}\sum_iUB_i+LB_i}}
+            - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i}
+            \right)^2
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$e_i$` is the current emission intensity for asset `$i$`,
+            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$out_i$` is the current outstanding amount for asset `$i$`,
+            - `$g$` is the target value for the relative emission reduction,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Args:
+            variable_now: Name of the column in the portfolio dataset corresponding to
+                the variables at current time.
+            variable_future: Name of the column in the portfolio dataset corresponding
+                to the variables at future time. If no value is provided, it is assumed
+                that the value is constant over time, i.e., the variable
+                ``variable_now`` will be used.
+            reduction_percentage_target: Target value for reduction percentage amount.
+
+        Raises:
+            KeyError: if the provided column names are not in the portfolio_data.
+
+        Returns:
+            qubo matrix and its offset
+        """
+        if variable_future is None:
+            variable_future = variable_now
+
+        if variable_now not in self.portfolio_data:
+            raise KeyError(
+                f"Column name {variable_now} not present in portfolio dataset."
+            )
+        if variable_future not in self.portfolio_data:
+            raise KeyError(
+                f"Column name {variable_future} not present in portfolio dataset."
+            )
+
+        emission_intensity_now = self.portfolio_data[variable_now].to_numpy()
+        emission_intensity_future = self.portfolio_data[variable_future].to_numpy()
+
+        total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
+        relelative_total_emission_now = total_emission_now / np.sum(
+            self.outstanding_now
+        )
+
+        alpha = np.sum(
+            (
+                emission_intensity_future
+                - reduction_percentage_target * relelative_total_emission_now
+            )
+            * self.l_bound
+        )
+
+        mantisse = np.power(2, np.arange(self.k))
+        multiplier = (
+            (
+                emission_intensity_future
+                - reduction_percentage_target * relelative_total_emission_now
+            )
+            * (self.u_bound - self.l_bound)
+            / (2**self.k - 1)
+        )
         beta = np.kron(multiplier, mantisse)
-
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        offset = alpha**2 / emisnow**2
-        for idx1 in range(self.N * self.kmax):
+        offset = alpha**2 / total_emission_now**2
+        for idx1 in range(self.number_of_assets * self.k):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
-            for idx2 in range(idx1 + 1, self.N * self.kmax):
+            for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo / emisnow**2
-
+        qubo = qubo / total_emission_now**2
         return qubo, offset
 
     def calc_growth_factor_constraint(
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
-        r"""$\left(\frac{\sum_i LB_i + \frac{UB_i-LB_i}{maxk}\sum_k x_{ik}}{\sum_i out_now_i} - growth\_factor\right)^2$"""
-        total_outstanding_now = np.sum(self.outstanding_now)
-        alpha = np.sum(self.LB) / total_outstanding_now - growth_target
+        r"""Calculate the growth factor constraint QUBO
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (self.UB - self.LB) / (self.maxk * total_outstanding_now)
+        The QUBO formulation is given by
+
+        .. math::
+
+            QUBO
+            =
+            \left(
+            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^jx_{i,j}}{\sum_i out_i}
+            - g
+            \right)^2
+
+        where:
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$g$` is the target value for the total growth factor,
+            - `$out_i$` is the current outstanding amount for asset `$i$`,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Args:
+            growth_target: target value for growth factor total outstanding amount.
+
+        Returns:
+            qubo matrix and its offset
+        """
+        total_outstanding_now = np.sum(self.outstanding_now)
+        alpha = np.sum(self.l_bound) / total_outstanding_now - growth_target
+
+        mantisse = np.power(2, np.arange(self.k))
+        multiplier = (self.u_bound - self.l_bound) / (
+            (2**self.k - 1) * total_outstanding_now
+        )
         beta = np.kron(multiplier, mantisse)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        qubo[: self.kmax * self.N, : self.kmax * self.N] += np.triu(
-            2 * np.outer(beta, beta), k=1
-        )
-        np.fill_diagonal(
-            qubo[: self.kmax * self.N, : self.kmax * self.N],
-            beta**2 + 2 * alpha * beta,
-        )
+        # We only fill the upper left part of the matrix, since we don't use ancilla
+        # variables
+        qubo_slice = qubo[
+            : self.k * self.number_of_assets, : self.k * self.number_of_assets
+        ]
+        # Add the off diagonal elements
+        qubo_slice += np.triu(2 * np.outer(beta, beta), k=1)
+        # Add the diagonal elements
+        np.fill_diagonal(qubo_slice, beta**2 + 2 * alpha * beta)
         offset = alpha**2
         return qubo, offset
 
-    def calc_maximize_ROC1(self) -> tuple[NDArray[np.float_], float]:
-        r"""$-\left(\sum_i\frac{2*out_now_i}{UB_i+LB_i}\right)\sum_i\frac{income_i}{capital_i*out_now_i}\left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)$"""
-        expected_average_growth_factor = 0.5 * np.sum(
-            (self.UB + self.LB) / self.outstanding_now
-        )
+    def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
+        r"""
+        .. math::
+
+            -\sum_i\frac{income_i}{capital_i*out_now_i}
+            \left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)
+        """
         returns = self.income / self.outstanding_now
-        offset = np.sum(
-            self.LB
-            / (self.capital * self.outstanding_now * expected_average_growth_factor)
-        )
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        offset = np.sum(self.l_bound / (self.capital * self.outstanding_now))
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.UB - self.LB)
-            * returns
-            / (self.maxk * self.capital * expected_average_growth_factor)
+            (self.u_bound - self.l_bound) * returns / ((2**self.k - 1) * self.capital)
         )
         qubo_diag = -np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)
         return qubo, -offset
 
-    def calc_maximize_ROC2(
-        self, capital_growth_factor: float
-    ) -> tuple[NDArray[np.float_], float]:
-        r"""$\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k2^kx_{ik}\right)$"""
-        capital_target = capital_growth_factor * np.sum(self.capital)
+    def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
+        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
 
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
+        mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.UB - self.LB) * self.income / (self.outstanding_now * self.maxk)
-        )
-        qubo_diag = -np.kron(multiplier, mantisse) / capital_target
-        qubo = np.diag(qubo_diag)
-        offset = np.sum(self.LB * self.income / self.outstanding_now) / capital_target
-        return qubo, -offset
-
-    def calc_maximize_ROC3(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.N
-        capital_now = np.sum(self.capital)
-
-        alpha = np.sum(self.LB * self.income / self.outstanding_now)
-        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (
-            self.income * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
+            self.income
+            * (self.u_bound - self.l_bound)
+            / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
 
@@ -139,58 +282,34 @@ class QuboFactory:
         gamma = gamma**2 - gamma
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        np.fill_diagonal(qubo[: self.N * self.kmax, : self.N * self.kmax], beta)
-        qubo[: self.N * self.kmax, self.N * self.kmax :] += np.outer(beta, gamma)
         np.fill_diagonal(
-            qubo[self.N * self.kmax :, self.N * self.kmax :], alpha * gamma
+            qubo[: self.number_of_assets * self.k, : self.number_of_assets * self.k],
+            beta,
         )
-        offset = alpha / capital_now
+        qubo[
+            : self.number_of_assets * self.k, self.number_of_assets * self.k :
+        ] += np.outer(beta, gamma)
+        np.fill_diagonal(
+            qubo[self.number_of_assets * self.k :, self.number_of_assets * self.k :],
+            alpha * gamma,
+        )
+        offset = alpha
 
-        qubo = qubo / capital_now
+        qubo = qubo
 
         return -qubo, -offset
 
-    def calc_maximize_ROC4(self) -> tuple[NDArray[np.float_], float]:
-        r"""$\frac{\sum_i\frac{income_i}{out_now_i}\left(LB_i+\frac{UB_i-LB_i}{maxk}\sum_k 2^k x_{ik}\right)}{\sum_i \frac{LB_i+UB_i}{2out_now_i}*capital_i}$"""
-        returns = self.income / self.outstanding_now
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = returns * (self.UB - self.LB) / self.maxk
-        beta = np.kron(multiplier, mantisse)
-        scaling = -2 / (
-            np.sum((self.LB + self.UB) * self.capital / self.outstanding_now)
-        )
-
-        qubo = np.diag(beta) * scaling
-        offset = np.sum(returns * self.LB) * scaling
-
-        return qubo, offset
-
-    def calc_stabilize_c1(
-        self, capital_growth_factor: float
-    ) -> tuple[NDArray[np.float_], float]:
-        capital_target = capital_growth_factor * np.sum(self.capital)
-        alpha = np.sum(self.capital * self.LB / self.outstanding_now) - capital_target
-
-        mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
-        multiplier = (
-            self.capital * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
-        )
-        beta = np.kron(multiplier, mantisse)
-
-        qubo = np.triu(2 * np.outer(beta, beta), k=1)
-        np.fill_diagonal(qubo, beta**2 + 2 * alpha * beta)
-        offset = alpha**2
-        return qubo, offset
-
-    def calc_stabilize_c2(self) -> tuple[NDArray[np.float_], float]:
-        ancilla_qubits = self.n_vars - self.kmax * self.N
-        alpha = np.sum(self.capital * self.LB / self.outstanding_now) - np.sum(
+    def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
+        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
+        alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
             self.capital
         )
 
-        mantisse = mantisse = np.power(2, np.arange(self.kmax) - self.kmin)
+        mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            self.capital * (self.UB - self.LB) / (self.outstanding_now * self.maxk)
+            self.capital
+            * (self.u_bound - self.l_bound)
+            / (self.outstanding_now * (2**self.k - 1))
         )
         beta = np.kron(multiplier, mantisse)
 
@@ -199,14 +318,20 @@ class QuboFactory:
         )
 
         qubo = np.zeros((self.n_vars, self.n_vars))
-        qubo_upper_left = qubo[: self.N * self.kmax, : self.N * self.kmax]
+        qubo_upper_left = qubo[
+            : self.number_of_assets * self.k, : self.number_of_assets * self.k
+        ]
         qubo_upper_left += np.triu(2 * np.outer(beta, beta), k=1)
         np.fill_diagonal(qubo_upper_left, 2 * alpha * beta + beta**2)
 
-        qubo_upper_right = qubo[: self.N * self.kmax, self.N * self.kmax :]
+        qubo_upper_right = qubo[
+            : self.number_of_assets * self.k, self.number_of_assets * self.k :
+        ]
         qubo_upper_right += 2 * np.outer(beta, gamma)
 
-        qubo_lower_right = qubo[self.N * self.kmax :, self.N * self.kmax :]
+        qubo_lower_right = qubo[
+            self.number_of_assets * self.k :, self.number_of_assets * self.k :
+        ]
         qubo_lower_right += np.triu(2 * np.outer(gamma, gamma), k=1)
         np.fill_diagonal(qubo_lower_right, 2 * alpha * gamma + gamma**2)
         offset = alpha**2

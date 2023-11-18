@@ -13,8 +13,7 @@ from tno.quantum.problems.portfolio_optimization import (
 )
 
 # Define the precision of the portfolio sizes.
-kmax = 2  # 2 #number of values
-kmin = 0  # minimal value 2**kmin
+k = 2  # number of variables to use per assetin
 growth_target = 1.55
 
 
@@ -29,10 +28,14 @@ lambdas3 = np.array([1])
 lambdas4 = np.logspace(-16, 0, 21, endpoint=False, base=10.0)
 
 
-portfolio_optimizer = PortfolioOptimizer("rabobank", kmin, kmax)
-portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
-portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=lambdas2)
-portfolio_optimizer.add_emission_constraint(weights=lambdas3)
+portfolio_optimizer = PortfolioOptimizer("rabobank", k)
+portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas2)
+portfolio_optimizer.add_emission_constraint(
+    weights=lambdas3,
+    variable_now="emis_intens_now",
+    variable_future="emis_intens_future",
+)
 portfolio_optimizer.add_growth_factor_constraint(growth_target, weights=lambdas4)
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
 (x1, y1), (x2, y2), (x3, y3) = results.slice_results(growth_target)

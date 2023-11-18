@@ -20,13 +20,10 @@ Additionally, we allow for arbitrary constraints to be considered.
 The `Pareto front`_, the set of solutions where one objective can't be improved without worsening the other objective,
 can be computed for return on capital and diversification. 
 
-The codebase is based on the following TNO papers:
+The codebase is based on the following paper:
 
-- Phillipson et al.. - Portfolio Optimisation Using the D-Wave Quantum Annealer. (2021) (doi: `10.1007/978-3-030-77980-1 4`_)
-- Phillipson et al., - Multi-objective Portfolio Optimisation Using the D-Wave Quantum Annealer (2023) (doi: TODO)
+- Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2023)
 
-
-.. _10.1007/978-3-030-77980-1 4: https://doi.org/10.1007/978-3-030-77980-1_4
 .. _Herfindahl-Hirschman Index: https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_index
 .. _Pareto front: https://en.wikipedia.org/wiki/Pareto_front
 .. _QUBO: https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization

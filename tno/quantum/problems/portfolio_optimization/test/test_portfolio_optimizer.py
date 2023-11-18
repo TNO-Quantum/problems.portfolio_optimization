@@ -20,8 +20,13 @@ def test_parse_weight(weight: ArrayLike | None, expected_outcome: ArrayLike) -> 
 
 
 def test_portfolio_optimizer() -> None:
-    portfolio_optimizer = PortfolioOptimizer("rabobank", 0, 2)
-    portfolio_optimizer.add_minimize_HHI(weights=[1])
-    portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=[1])
-    portfolio_optimizer.add_emission_constraint(weights=[1])
+    portfolio_optimizer = PortfolioOptimizer("rabobank", k=2)
+    portfolio_optimizer.add_minimize_hhi(weights=[1])
+    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=[1])
+    portfolio_optimizer.add_emission_constraint(
+        weights=[1],
+        variable_now="emis_intens_now",
+        variable_future="emis_intens_future",
+        reduction_percentage_target=0.7,
+    )
     portfolio_optimizer.run()
