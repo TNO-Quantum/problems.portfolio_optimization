@@ -91,7 +91,7 @@ class PortfolioOptimizer:
     def add_maximize_roc(
         self,
         formulation: int,
-        ancilla_qubits: int = 0,
+        ancilla_variables: int = 0,
         weights_roc: Optional[ArrayLike] = None,
         weights_stabilize: Optional[ArrayLike] = None,
     ) -> None:
@@ -113,6 +113,28 @@ class PortfolioOptimizer:
             - `$r_i$` is the return for asset `$i$`,
             - `$c_i$` is the regulatory capital for asset `$i$`.
 
+        As the ROC is not a quadratic function, it is approximated using two different
+        formulations:
+        
+        formulation 1:
+            $$ROC_1(x)=\sum_{i=1}^N\frac{x_i\cdot r_i}{c_i\cdot y_i}$$
+            
+            Adds 1 qubo term, use ``weights_roc`` to scale.
+
+        formulation 2:
+            $$ROC_2(x)=\frac{1}{G_C \cdot C_{21}}\sum_{i=1}^N x_i\frac{r_i}{y_i}$$
+
+            where
+
+                - `$G_C$` is ...,
+                - `$C_{21}$` is ...,
+        
+            Adds 2 qubo terms, requires extra arg ``ancilla_variables``. Use ``weights_roc``
+            and ``weights_stabilize`` to scale.
+        
+        For the different QUBO formulations, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+
         usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
@@ -121,19 +143,10 @@ class PortfolioOptimizer:
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_maximize_roc(...)
 
-        formulation 1:
-            add 1 qubo term, use weights_roc to scale
-        formulation 2:
-            add 2 qubo terms, requires extra arg `ancilla_qubits`. Use weights_roc and
-            weights_stabilize to scale
-
-        For the different QUBO formulations, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
-
         Args:
             formulation: the ROC QUBO formulation that is being used.
                 Possible options are: [1, 2].
-            ancilla_qubits:
+            ancilla_variables:
             weights_roc:
             weights_stabilize:
 
@@ -150,7 +163,7 @@ class PortfolioOptimizer:
         self._all_lambdas.append(self._parse_weight(weights_roc))
         if formulation == 2:
             self._all_lambdas.append(self._parse_weight(weights_stabilize))
-        self._qubo_compiler.add_maximize_roc(formulation, ancilla_qubits)
+        self._qubo_compiler.add_maximize_roc(formulation, ancilla_variables)
 
     def add_emission_constraint(
         self,

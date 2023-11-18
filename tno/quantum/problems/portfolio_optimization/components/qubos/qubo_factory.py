@@ -59,7 +59,7 @@ class QuboFactory:
                 \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)^2
             }{
                 \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
-            }
+            },
 
         where:
 
@@ -255,7 +255,7 @@ class QuboFactory:
             QUBO
             =
             -\sum_i\frac{r_i}{c_i\cdot y_i}
-            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right),
 
         where
 
@@ -267,7 +267,6 @@ class QuboFactory:
             - `$c_i$` is the regulatory capital for asset `$i$`,
             - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
-
         Returns:
             qubo matrix and its offset
         """
@@ -277,10 +276,10 @@ class QuboFactory:
         multiplier = (
             theta_i * (self.u_bound - self.l_bound) / ((2**self.k - 1))
         )
-        qubo_diag = -np.kron(multiplier, mantisse)
+        qubo_diag = np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)
-        return qubo, -offset
+        return -qubo, -offset
 
     def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the to maximize ROC QUBO for variant 2.
@@ -291,6 +290,7 @@ class QuboFactory:
 
             QUBO
             =
+            -
 
         where
 
@@ -305,7 +305,7 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
+        ancilla_variables = self.n_vars - self.k * self.number_of_assets
 
         alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
         mantisse = mantisse = np.power(2, np.arange(self.k))
@@ -316,7 +316,7 @@ class QuboFactory:
         )
         beta = np.kron(multiplier, mantisse)
 
-        gamma = np.power(2.0, np.arange(-1, -ancilla_qubits - 1, -1))
+        gamma = np.power(2.0, np.arange(-1, -ancilla_variables - 1, -1))
         gamma = gamma**2 - gamma
 
         qubo = np.zeros((self.n_vars, self.n_vars))
@@ -338,7 +338,8 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the ... QUBO
+        r"""Calculate the QUBO that stabilizes the growth factor in the second ROC
+        formulation.
 
         The QUBO formulation is given by
 
@@ -346,22 +347,27 @@ class QuboFactory:
 
             QUBO
             =
-            
+            \left(
+            \sum_i\frac{c_i}{y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
+            - G_C\sum_i c_i
+            \right)^2,
+
         where
 
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - `$e_i$` is the current emission intensity for asset `$i$`,
-            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$a$` is the number of ancilla bits,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - `$c_i$` is the regulatory capital for asset `$i$`,
+            - `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$,
+            - `$G_C$` are the $j$ ancillary binary variables with $j<a$.
 
         Returns:
             qubo matrix and its offset
         """
-        ancilla_qubits = self.n_vars - self.k * self.number_of_assets
+        ancilla_variables = self.n_vars - self.k * self.number_of_assets
         alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
             self.capital
         )
@@ -374,7 +380,7 @@ class QuboFactory:
         )
         beta = np.kron(multiplier, mantisse)
 
-        gamma = -np.power(2.0, np.arange(-1, -ancilla_qubits - 1, -1)) * np.sum(
+        gamma = -np.power(2.0, np.arange(-1, -ancilla_variables - 1, -1)) * np.sum(
             self.capital
         )
 

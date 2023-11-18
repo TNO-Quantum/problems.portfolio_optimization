@@ -99,7 +99,7 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     assert len(qubo_compiler._to_compile) == 1
     assert len(qubo_compiler._compiled_qubos) == 0
 
-    qubo_compiler.add_maximize_roc(formulation=2, ancilla_qubits=5)
+    qubo_compiler.add_maximize_roc(formulation=2, ancilla_variables=5)
     assert len(qubo_compiler._to_compile) == 3
     assert len(qubo_compiler._compiled_qubos) == 0
 
