@@ -17,15 +17,12 @@ class QuboFactory:
 
     Methods:
 
-    - `calc_minimize_HHI`: Calculate the to minimize HHI QUBO
-    - `calc_maximize_ROC1`: Calculate the to maximize return on capital QUBO variant 1
-    - `calc_maximize_ROC2`: Calculate the to maximize return on capital QUBO variant 2
-    - `calc_maximize_ROC3`: Calculate the to maximize return on capital QUBO variant 3
-    - `calc_maximize_ROC4`: Calculate the to maximize return on capital QUBO variant 4
-    - `calc_emission_constraint`:
+    - `calc_minimize_hhi`: Calculate the to minimize HHI QUBO
+    - `calc_maximize_roc1`: Calculate the to maximize return on capital QUBO variant 1
+    - `calc_maximize_roc2`: Calculate the to maximize return on capital QUBO variant 2
+    - `calc_emission_constraint`: Calculate the emission constraint QUBO
     - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
-    - `calc_stabilize_c1`:
-    - `calc_stabilize_c2`:
+    - `calc_stabilize_c`:
 
     """
 
@@ -59,7 +56,7 @@ class QuboFactory:
             QUBO
             =
             \frac{
-                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)^2
+                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)^2
             }{
                 \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
             }
@@ -115,9 +112,9 @@ class QuboFactory:
             QUBO
             =
             \left(
-            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^jx_{i,j}\right)}
+            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)}
             {{\frac{1}{2}\sum_iUB_i+LB_i}}
-            - g \frac{\sum_i e_i \cdot out_i}{\sum_i out_i}
+            - g \frac{\sum_i e_i \cdot y_i}{\sum_i y_i}
             \right)^2
 
         where:
@@ -127,7 +124,7 @@ class QuboFactory:
             - `$k$` is the number of bits,
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
-            - `$out_i$` is the current outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$g$` is the target value for the relative emission reduction,
             - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
@@ -207,7 +204,7 @@ class QuboFactory:
             QUBO
             =
             \left(
-            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^jx_{i,j}}{\sum_i out_i}
+            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^j\cdot x_{i,j}}{\sum_i y_i}
             - g
             \right)^2
 
@@ -217,7 +214,7 @@ class QuboFactory:
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
             - `$g$` is the target value for the total growth factor,
-            - `$out_i$` is the current outstanding amount for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
             - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
         Args:
@@ -249,11 +246,37 @@ class QuboFactory:
         return qubo, offset
 
     def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
-        r"""
+        r"""Calculate the to maximize ROC QUBO for variant 1.
+
+        The QUBO formulation is given by
+
+        .. math::
+
+            QUBO
+            =
+            -\sum_i\frac{r_i}{c_i\cdot y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
+
+        where
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$r_i$` is the current return for asset `$i$`,
+            - `$c_i$` is the regulatory capital for asset `$i$`,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+            
+        OLD:
+
         .. math::
 
             -\sum_i\frac{income_i}{capital_i*out_now_i}
             \left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)
+
+        Returns:
+            qubo matrix and its offset
         """
         returns = self.income / self.outstanding_now
         offset = np.sum(self.l_bound / (self.capital * self.outstanding_now))
@@ -267,6 +290,28 @@ class QuboFactory:
         return qubo, -offset
 
     def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
+        r"""Calculate the to maximize ROC QUBO for variant 2.
+
+        The QUBO formulation is given by
+
+        .. math::
+
+            QUBO
+            =
+
+        where
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$income_i$` is the current ... for asset `$i$`,
+            - `$capital_i$` is the current ... for asset `$i$`,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Returns:
+            qubo matrix and its offset
+        """
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
 
         alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
@@ -300,6 +345,29 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
+        r"""Calculate the ... QUBO
+
+        The QUBO formulation is given by
+
+        .. math::
+
+            QUBO
+            =
+            
+        where
+
+            - `$LB_i$` is the lower bound for asset `$i$`,
+            - `$UB_i$` is the upper bound for asset `$i$`,
+            - `$k$` is the number of bits,
+            - `$e_i$` is the current emission intensity for asset `$i$`,
+            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
+            - `$y_i$` is the current outstanding amount for asset `$i$`,
+            - `$g$` is the target value for the relative emission reduction,
+            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+
+        Returns:
+            qubo matrix and its offset
+        """
         ancilla_qubits = self.n_vars - self.k * self.number_of_assets
         alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
             self.capital
