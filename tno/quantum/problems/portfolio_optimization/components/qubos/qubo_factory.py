@@ -267,22 +267,15 @@ class QuboFactory:
             - `$c_i$` is the regulatory capital for asset `$i$`,
             - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
 
-            
-        OLD:
-
-        .. math::
-
-            -\sum_i\frac{income_i}{capital_i*out_now_i}
-            \left(\sum_i LB_i + (UB_i-LB_i)\sum_k2^kx_{ik}\right)
 
         Returns:
             qubo matrix and its offset
         """
-        returns = self.income / self.outstanding_now
-        offset = np.sum(self.l_bound / (self.capital * self.outstanding_now))
+        theta_i = self.income / (self.outstanding_now * self.capital)
+        offset = np.sum(theta_i * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            (self.u_bound - self.l_bound) * returns / ((2**self.k - 1) * self.capital)
+            theta_i * (self.u_bound - self.l_bound) / ((2**self.k - 1))
         )
         qubo_diag = -np.kron(multiplier, mantisse)
 
