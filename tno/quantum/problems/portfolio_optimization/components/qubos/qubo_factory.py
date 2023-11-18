@@ -53,7 +53,7 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
+            QUBO(x)
             =
             \frac{
                 \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)^2
@@ -66,7 +66,7 @@ class QuboFactory:
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Returns:
             qubo matrix and its offset
@@ -109,7 +109,7 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
+            QUBO(x)
             =
             \left(
             \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)}
@@ -126,7 +126,7 @@ class QuboFactory:
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$g$` is the target value for the relative emission reduction,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Args:
             variable_now: Name of the column in the portfolio dataset corresponding to
@@ -201,7 +201,7 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
+            QUBO(x)
             =
             \left(
             \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^j\cdot x_{i,j}}{\sum_i y_i}
@@ -215,7 +215,7 @@ class QuboFactory:
             - `$k$` is the number of bits,
             - `$g$` is the target value for the total growth factor,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
@@ -252,7 +252,7 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
+            QUBO(x)
             =
             -\sum_i\frac{r_i}{c_i\cdot y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right),
@@ -265,7 +265,7 @@ class QuboFactory:
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$r_i$` is the current return for asset `$i$`,
             - `$c_i$` is the regulatory capital for asset `$i$`,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Returns:
             qubo matrix and its offset
@@ -288,19 +288,29 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
+            QUBO(x,g)
             =
             -
+            G_{inv}(g) \cdot 
+            \sum_i\frac{r_i}{y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
+            G_{inv}(g) = 
+            \left(
+            1 + \sum_{j} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
+            \right)
+            
         where
 
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
+            - `$a$` is the number of ancilla variables,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$income_i$` is the current ... for asset `$i$`,
-            - `$capital_i$` is the current ... for asset `$i$`,
-            - and `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$.
+            - `$r_i$` is the return for asset `$i$`,
+            - `$c_i$` is the regulatory capital for asset `$i$`,
+            - `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
+            - `$g_{j}$` are the $a$ binary ancilla variables with $j<a$.
 
         Returns:
             qubo matrix and its offset
@@ -345,24 +355,26 @@ class QuboFactory:
 
         .. math::
 
-            QUBO
-            =
+            QUBO(x,g)
+            &=
             \left(
             \sum_i\frac{c_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
-            - G_C\sum_i c_i
+            - G_C(g)\sum_i c_i
             \right)^2,
+
+            G_C &= 1 + \sum_j 2^{-j - 1} \cdot g_j,
 
         where
 
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - `$a$` is the number of ancilla bits,
+            - `$a$` is the number of ancilla variables,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$c_i$` is the regulatory capital for asset `$i$`,
-            - `$x_{i,j}$` are the $j$ binary variables for asset `$i$` with $j<k$,
-            - `$G_C$` are the $j$ ancillary binary variables with $j<a$.
+            - `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$,
+            - `$g_j$` are the $a$ ancillary binary variables with $j<a$.
 
         Returns:
             qubo matrix and its offset

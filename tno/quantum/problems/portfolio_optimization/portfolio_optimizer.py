@@ -126,7 +126,7 @@ class PortfolioOptimizer:
 
             where
 
-                - `$G_C$` is ...,
+                - `$1≤G_C<2$` approximates a fixed regulatory capital growth that is equal for all assets,
                 - `$C_{21}$` is ...,
         
             Adds 2 qubo terms, requires extra arg ``ancilla_variables``. Use ``weights_roc``

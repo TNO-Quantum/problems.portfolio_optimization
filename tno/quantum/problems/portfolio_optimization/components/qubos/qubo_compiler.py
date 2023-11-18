@@ -56,14 +56,15 @@ class QuboCompiler:
         formulation: int,
         ancilla_variables: int = 0,
     ) -> QuboCompilerT:
-        """Add the maximize ROC objective an based on the input a stabilize c constraint.
+        """Add the maximize ROC objective and based on the chosen formulation a
+        stabilize c constraint.
 
         Args:
             formulation: Integer representing which formulation to pick. If formulation
                 is ``1``, then one QUBO term will be added. If formulation is ``2``,
                 then 2 QUBO terms will be added as well, but the argument
                 `ancilla_variables` must be provided.
-            ancilla_variables: Number of ancilla variables to use for formulation 3.
+            ancilla_variables: Number of ancilla variables to use for formulation ``2``.
 
         Returns:
             Self.
