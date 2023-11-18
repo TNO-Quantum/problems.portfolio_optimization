@@ -85,23 +85,23 @@ def print_portfolio_info(
 
     # Calculate the total outstanding amount in now
     total_outstanding_now = np.sum(outstanding_now)
-    print(f"Total outstanding now: {total_outstanding_now}")
+    print(f"Total outstanding now: {total_outstanding_now:.2f}")
 
     # Calculate the ROC for now
     ROC_now = np.sum(income) / np.sum(capital)
-    print(f"ROC now: {ROC_now}")
+    print(f"ROC now: {ROC_now:.6f}")
 
     # Calculate the HHI diversification for now
     HHI_now = np.sum(total_outstanding_now**2) / np.sum(total_outstanding_now) ** 2
-    print("HHI now: ", HHI_now)
+    print(f"HHI now: {HHI_now:.4f}")
 
     # Calculate the total emissions for now
     total_emission_now = np.sum(e * total_outstanding_now)
-    print("Emission now: ", total_emission_now)
+    print(f"Total Emission now: {total_emission_now:.2f}")
 
     # Calculate the average emission intensity now
     relative_total_emission = total_emission_now / total_outstanding_now
-    print("Emission intensity now:", relative_total_emission)
+    print(f"Relative emission intensity now: {relative_total_emission:.4f}")
 
     # Estimate the total outstanding amount and its standard deviation for future. This
     # follows from the assumption of a symmetric probability distribution on the
@@ -109,8 +109,8 @@ def print_portfolio_info(
     expected_total_outstanding_future = np.sum(u_bound + l_bound) / 2
     expected_stddev_total_outstanding_future = np.linalg.norm(((u_bound - l_bound) / 2))
     print(
-        f"Expected total outstanding future: {expected_total_outstanding_future}",
-        f"Std dev: {expected_stddev_total_outstanding_future}",
+        f"Expected total outstanding future: {expected_total_outstanding_future:.2f}",
+        f"Std dev: {expected_stddev_total_outstanding_future:.2f}",
     )
 
     # Estimate a average growth factor and its standard deviation for now-future. This
@@ -123,6 +123,6 @@ def print_portfolio_info(
         (u_bound - l_bound) / (2 * total_outstanding_now)
     )
     print(
-        f"Expected average growth factor: {expected_average_growth_fac}",
-        f"Std dev: {expected_stddev_average_growth_fac}",
+        f"Expected average growth factor: {expected_average_growth_fac:.4f}",
+        f"Std dev: {expected_stddev_average_growth_fac:.4f}",
     )
