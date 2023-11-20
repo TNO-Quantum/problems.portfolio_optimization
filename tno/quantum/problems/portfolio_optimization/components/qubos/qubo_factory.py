@@ -46,6 +46,7 @@ class QuboFactory:
         self.l_bound = portfolio_data.get_l_bound()
         self.u_bound = portfolio_data.get_u_bound()
         self.income = portfolio_data.get_income()
+        self.returns = portfolio_data.get_returns()
         self.capital = portfolio_data.get_capital()
         self.k = k
 
@@ -273,7 +274,7 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        theta = self.income / (self.outstanding_now * self.capital)
+        theta = self.returns / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
         multiplier = theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
@@ -318,10 +319,10 @@ class QuboFactory:
         """
         ancilla_variables = self.n_vars - self.k * self.number_of_assets
 
-        alpha = np.sum(self.l_bound * self.income / self.outstanding_now)
+        alpha = np.sum(self.l_bound * self.returns / self.outstanding_now)
         mantisse = mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            self.income
+            self.returns
             * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )

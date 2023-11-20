@@ -149,6 +149,16 @@ class PortfolioData:
         """
         return cast(NDArray[np.float_], self.portfolio_df["regcap_now"].to_numpy())
 
+    def get_returns(self) -> NDArray[np.float_]:
+        """Get the `returns` data from the dataset.
+
+        Returns:
+            Returns is defined as income / outstanding_now
+        """
+        income = self.get_income()
+        outstanding_now = self.get_outstanding_now()
+        return cast(NDArray[np.float_], income / outstanding_now)
+
     def get_column(self, column_name: str) -> NDArray[np.float_]:
         """Get the specified column from the dataset.
 
