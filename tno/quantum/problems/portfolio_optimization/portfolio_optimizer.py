@@ -233,6 +233,7 @@ class PortfolioOptimizer:
             weights: The coefficients that are considered as penalty parameter.
         """
         self._all_lambdas.append(self._parse_weight(weights))
+        self._provided_constraints.append((variable_now, reduction_percentage_target))
         self._qubo_compiler.add_emission_constraint(
             variable_now=variable_now,
             variable_future=variable_future,
@@ -242,7 +243,8 @@ class PortfolioOptimizer:
     def add_growth_factor_constraint(
         self, growth_target: float, weights: Optional[ArrayLike] = None
     ) -> None:
-        r"""Add an growth factor constraint to the portfolio optimization problem.
+        r"""Add an outstanding amount growth factor constraint to the portfolio
+        optimization problem.
 
         The constraint is given by
 
@@ -270,8 +272,8 @@ class PortfolioOptimizer:
             growth_target:
             weights: The coefficients that are considered as penalty parameter.
         """
-        self._growth_target = growth_target
         self._all_lambdas.append(self._parse_weight(weights))
+        self._provided_constraints.append(("Growth target", growth_target))
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
     def run(
@@ -317,6 +319,13 @@ class PortfolioOptimizer:
             print("Status: creating model")
             if hasattr(self, "_growth_target"):
                 print(f"Growth target: {self._growth_target - 1:.1%}")
+
+            for constraint_name, target_value in self._provided_constraints:
+                if constraint_name == "Growth target":
+                    print(f"Outstanding amount growth target: {target_value - 1:.1%}")
+                print(f"Emission constraint: {constraint_name}, "
+                      f"target reduction percentage: {target_value - 1:.1%}")
+
         self._qubo_compiler.compile()
 
         results = Results(self.portfolio_data, self._provided_constraints)

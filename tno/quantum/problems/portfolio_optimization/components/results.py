@@ -13,11 +13,12 @@ from tno.quantum.problems.portfolio_optimization.components.io import PortfolioD
 class Results:
     """Results container"""
 
-    def __init__(self, portfolio_data: PortfolioData) -> None:
+    def __init__(self, portfolio_data: PortfolioData, provided_constraints: list[tuple(str, float)]) -> None:
         """Init of Results container.
 
         Args:
             portfolio_data: the portfolio data
+            provided_constraints: the constraints that are added to the problem
         """
         self._outstanding_now = portfolio_data.get_outstanding_now()
         self._e = portfolio_data.get_column("emis_intens_now")
