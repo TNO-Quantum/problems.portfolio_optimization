@@ -56,7 +56,7 @@ class Results:
 
     def __len__(self) -> int:
         """Return the number of samples stored in the ``Results`` object."""
-        return len(self.results_df)
+        return self.results_df.shape[0]
 
     def add_result(self, outstanding_future: NDArray[np.float_]) -> None:
         """Add a new outstanding_future data point to results container.
@@ -65,8 +65,8 @@ class Results:
             outstanding_future: the in future outstanding amounts.
         """
         # Skip if outstanding future already in dataset.
-        if outstanding_future in self.results_df["outstanding amount"]:
-            return
+        # if outstanding_future in self.results_df["outstanding amount"]:
+        #     return
 
         total_outstanding_future = np.sum(outstanding_future, axis=1)
         # Compute the ROC growth
