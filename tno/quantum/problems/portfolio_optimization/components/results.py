@@ -6,22 +6,23 @@ from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
-from pandas import DataFrame
+
+from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 
 class Results:
     """Results container"""
 
-    def __init__(self, portfolio_data: DataFrame) -> None:
+    def __init__(self, portfolio_data: PortfolioData) -> None:
         """Init of Results container.
 
         Args:
             portfolio_data: the portfolio data
         """
-        self._outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-        self._e = portfolio_data["emis_intens_now"].to_numpy()
-        income = portfolio_data["income_now"].to_numpy()
-        self._capital = portfolio_data["regcap_now"].to_numpy()
+        self._outstanding_now = portfolio_data.get_outstanding_now()
+        self._e = portfolio_data.get_column("emis_intens_now")
+        income = portfolio_data.get_income()
+        self._capital = portfolio_data.get_capital()
         self._returns = income / self._outstanding_now
         self._roc_now = np.sum(income) / np.sum(self._capital)
         self._hhi_now = (

@@ -6,8 +6,9 @@ from typing import Mapping
 import numpy as np
 from dimod import SampleSet
 from numpy.typing import ArrayLike, NDArray
-from pandas import DataFrame
 from scipy.spatial import ConvexHull
+
+from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 
 class Decoder:
@@ -15,14 +16,15 @@ class Decoder:
 
     def __init__(
         self,
-        portfolio_data: DataFrame,
+        portfolio_data: PortfolioData,
         k: int,
     ) -> None:
         """
         Decoder ...
 
         Args:
-            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            portfolio_data: A ``PortfolioData`` object containing the portfolio to
+                optimize.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
@@ -30,9 +32,9 @@ class Decoder:
         self.number_of_assets = len(portfolio_data)
         self.k = k
         self.mantissa = np.power(2, np.arange(self.k))
-        self.LB = portfolio_data["min_outstanding_future"].to_numpy()
-        self.UB = portfolio_data["max_outstanding_future"].to_numpy()
-        self.multiplier = (self.UB - self.LB) / (2**self.k - 1)
+        self.l_bound = portfolio_data.get_l_bound()
+        self.u_bound = portfolio_data.get_u_bound()
+        self.multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
         # Compute the future portfolio
@@ -41,8 +43,10 @@ class Decoder:
         )
         sample_reshaped = sample_array.reshape((self.number_of_assets, self.k))
         ints = np.sum(sample_reshaped * self.mantissa, axis=1)
-        outstanding_future = self.LB + self.multiplier * ints
-        if (self.LB > outstanding_future).any() or (self.UB < outstanding_future).any():
+        outstanding_future = self.l_bound + self.multiplier * ints
+        if (self.l_bound > outstanding_future).any() or (
+            self.u_bound < outstanding_future
+        ).any():
             raise ValueError("Bounds not obeyed.")
 
         return np.asarray(outstanding_future, dtype=np.float_)
@@ -55,9 +59,11 @@ class Decoder:
         )
 
         ints = np.sum(samples_reshaped * self.mantissa, axis=2)
-        outstanding_future = self.LB + self.multiplier * ints
+        outstanding_future = self.l_bound + self.multiplier * ints
 
-        if (self.LB > outstanding_future).any() or (self.UB < outstanding_future).any():
+        if (self.l_bound > outstanding_future).any() or (
+            self.u_bound < outstanding_future
+        ).any():
             raise ValueError("Bounds not obeyed.")
 
         return np.asarray(outstanding_future, dtype=np.float_)

@@ -17,14 +17,14 @@ import numpy as np
 from dimod.core.sampler import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
+from pandas import DataFrame
 from tqdm import tqdm
 
 from tno.quantum.problems.portfolio_optimization.components import (
     Decoder,
+    PortfolioData,
     QuboCompiler,
     Results,
-    print_portfolio_info,
-    read_portfolio_data,
 )
 
 
@@ -33,27 +33,40 @@ class PortfolioOptimizer:
 
     def __init__(
         self,
-        filename: str | Path,
+        portfolio_data: PortfolioData | DataFrame | str | Path,
         k: int = 2,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> None:
         """Init ``PortfolioOptimizer``.
 
         Args:
-            filename: path to where portfolio data is stored. See the docstring of
-                :py:func:`~portfolio_optimization.components.io.read_portfolio_data`
-                for data input conventions.
+            portfolio_data: Portfolio data represented by a ``PortfolioData`` object,
+                a pandas ``DataFrame`` or a path to where portfolio data is stored. See
+                the docstring of
+                :py:class:`~portfolio_optimization.components.io.PortfolioData` for data
+                input conventions.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
             column_rename: can be used to rename data columns. See the docstring of
-                :py:func:`~portfolio_optimization.components.io.read_portfolio_data` for
+                :py:class:`~portfolio_optimization.components.io.PortfolioData` for
                 example.
         """
-        portfolio_data = read_portfolio_data(filename, columns_rename)
-        self.portfolio_data = portfolio_data
-        self._qubo_compiler = QuboCompiler(portfolio_data, k)
-        self.decoder = Decoder(portfolio_data, k)
+        if isinstance(portfolio_data, PortfolioData):
+            self.portfolio_data = portfolio_data
+        elif isinstance(portfolio_data, DataFrame):
+            self.portfolio_data = PortfolioData(portfolio_data, columns_rename)
+        elif isinstance(portfolio_data, (Path, str)):
+            self.portfolio_data = PortfolioData.from_file(
+                portfolio_data, columns_rename
+            )
+        else:
+            raise TypeError(
+                "`portfolio_data` must be of type `PortfolioData`, `DataFrame`, `Path` "
+                f"or `str`, but was of type {type(portfolio_data)}"
+            )
+        self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
+        self.decoder = Decoder(self.portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
         self._provided_constraints: list[tuple(str, float)] = []
 
@@ -292,7 +305,7 @@ class PortfolioOptimizer:
 
         """
         if verbose:
-            print_portfolio_info(self.portfolio_data)
+            self.portfolio_data.print_portfolio_info()
 
         sampler = SimulatedAnnealingSampler() if sampler is None else sampler
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
