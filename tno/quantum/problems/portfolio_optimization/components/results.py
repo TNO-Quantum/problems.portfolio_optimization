@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+import pandas as pd
 
 
 class Results:
@@ -26,26 +27,35 @@ class Results:
             provided_emission_constraints: list of all the emission constraints that are
                 provided. Each list element contains the ``variable_now``,
                 ``variable_future`` and ``reduction_percentage_target`` input.
-            provided_growth_target: target growth value if growth factor constraint is
-                set, otherwise None.
+            provided_growth_target: target outstanding amount growth factor if the
+                growth factor constraint is set, otherwise None.
         """
         self.portfolio_data = portfolio_data
         self.provided_emission_constraints = provided_emission_constraints
         self.provided_growth_target = provided_growth_target
 
         self._outstanding_now = portfolio_data.get_outstanding_now()
-        self._e = portfolio_data.get_column("emis_intens_now")
-        income = portfolio_data.get_income()
+        self._total_outstanding_now = np.sum(self._outstanding_now)
+
+        self._returns = portfolio_data.get_income() / self._outstanding_now
         self._capital = portfolio_data.get_capital()
-        self._returns = income / self._outstanding_now
-        self._roc_now = np.sum(income) / np.sum(self._capital)
+        self._roc_now = np.sum(portfolio_data.get_income()) / np.sum(self._capital)
         self._hhi_now = (
             np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
         )
+
+        self._e = portfolio_data.get_column("emis_intens_now")
         self._relelative_total_emission_now = np.sum(
             self._e * self._outstanding_now
         ) / np.sum(self._outstanding_now)
-        self._total_outstanding_now = np.sum(self._outstanding_now)
+
+        self.columns = [
+            "Outstanding amount",
+            "ROC",
+            "HHI",
+            "Outstanding growth",
+        ] + [constraint[0] for constraint in self.provided_emission_constraints]
+        self.results_df = pd.DataFrame(columns=self.columns)
 
         self._x: deque[NDArray[np.float_]] = deque()
         self._y: deque[NDArray[np.float_]] = deque()
@@ -62,21 +72,45 @@ class Results:
             outstanding_future: the in future outstanding amounts.
         """
         total_outstanding_future = np.sum(outstanding_future, axis=1)
-        # Compute the future HHI.
-        hhi_future = (
-            np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
-        )
-        # Compute the future ROC
+
+        # Compute the ROC growth
         roc = np.sum(outstanding_future * self._returns, axis=1) / np.sum(
             outstanding_future * self._capital / self._outstanding_now, axis=1
         )
-        # Compute the emissions from the resulting future portfolio.
-        diversification = 100 * (1 - (hhi_future / self._hhi_now))
         roc_growth = 100 * (roc / self._roc_now - 1)
+
+        # Compute the diversification.
+        hhi = np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
+        diversification = 100 * (1 - (hhi / self._hhi_now))
+
+        # Compute the outstanding growth
+        outstanding_growth = total_outstanding_future / self._total_outstanding_now
 
         self._x.extend(diversification)
         self._y.extend(roc_growth)
+
+        new_result = pd.DataFrame(
+            [
+                [
+                    outstanding_future,
+                    roc,
+                    hhi,
+                    outstanding_growth,
+                ]
+            ],
+            columns=self.columns,
+        )
+        self.results_df = pd.concat([self.results_df, new_result], ignore_index=True)
+
         self._outstanding_future.extend(outstanding_future)
+
+    def head(self, n=5):
+        """Return first n rows of self.results_df DataFrame
+
+        Args:
+            n: number of results to return
+        """
+        return self.results_df.head(n)
 
     def aggregate(self) -> None:
         """Aggregate unique results."""
