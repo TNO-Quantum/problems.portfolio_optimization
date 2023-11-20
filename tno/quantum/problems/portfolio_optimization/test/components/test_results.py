@@ -17,17 +17,12 @@ def results_fixture() -> Results:
 
 
 def test_add_result(results: Results) -> None:
-    assert len(results._x) == 0
-    assert len(results._y) == 0
-    assert len(results._outstanding_future) == 0
-
+    assert len(results) == 0
     outstanding_future = np.array([[19, 39], [10, 30]])
 
     for i in range(2, 10, 2):
         results.add_result(outstanding_future)
-        assert len(results._x) == i
-        assert len(results._y) == i
-        assert len(results._outstanding_future) == i
+        assert len(results) == i
 
 
 def test_aggregate(results: Results) -> None:
