@@ -51,6 +51,9 @@ class PortfolioOptimizer:
             column_rename: can be used to rename data columns. See the docstring of
                 :py:class:`~portfolio_optimization.components.io.PortfolioData` for
                 example.
+
+        Raises:
+            TypeError: If the provided ``portfolio_data`` input has the wrong type.
         """
         if isinstance(portfolio_data, PortfolioData):
             self.portfolio_data = portfolio_data
