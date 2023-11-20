@@ -22,6 +22,8 @@ PortfolioDataT = TypeVar("PortfolioDataT", bound="PortfolioData")
 
 
 class PortfolioData:
+    """The ``PortfolioData`` stores the data used for portfolio optimization."""
+
     def __init__(
         self,
         portfolio_dataframe: DataFrame,
@@ -194,13 +196,14 @@ class PortfolioData:
 
         if "emis_intens_now" in self.portfolio_df:
             # Calculate the total emissions for now
-            e = self.get_column("emis_intens_now")
-            total_emission_now = np.sum(e * total_outstanding_now)
+            total_emission_now = np.sum(
+                self.get_column("emis_intens_now") * total_outstanding_now
+            )
             print(f"Total Emission now: {total_emission_now:.2f}")
 
-        # Calculate the average emission intensity now
-        relative_total_emission = total_emission_now / total_outstanding_now
-        print(f"Relative emission intensity now: {relative_total_emission:.4f}")
+            # Calculate the average emission intensity now
+            relative_total_emission = total_emission_now / total_outstanding_now
+            print(f"Relative emission intensity now: {relative_total_emission:.4f}")
 
         # Estimate the total outstanding amount and its standard deviation for future. This
         # follows from the assumption of a symmetric probability distribution on the

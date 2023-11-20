@@ -6,13 +6,13 @@ from typing import Mapping
 import numpy as np
 from dimod import SampleSet
 from numpy.typing import ArrayLike, NDArray
-from scipy.spatial import ConvexHull
+from scipy.spatial import ConvexHull  # pylint: disable=no-name-in-module
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 
 class Decoder:
-    """Decoder class ..."""
+    """``Decoder`` class for decoding samples and samplesets."""
 
     def __init__(
         self,
@@ -20,7 +20,7 @@ class Decoder:
         k: int,
     ) -> None:
         """
-        Decoder ...
+        Init for the ``Decoder`` Class.
 
         Args:
             portfolio_data: A ``PortfolioData`` object containing the portfolio to
@@ -37,7 +37,14 @@ class Decoder:
         self.multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
-        # Compute the future portfolio
+        """Decode a sample to the `oustanding_future` array.
+
+        Args:
+            sample: Sample as returned by D-Wave.
+
+        Returns:
+            Array containing all `outstanding future` values.
+        """
         sample_array = np.array(
             [sample[i] for i in range(self.number_of_assets * self.k)], dtype=np.uint8
         )
@@ -52,7 +59,16 @@ class Decoder:
         return np.asarray(outstanding_future, dtype=np.float_)
 
     def decode_sampleset(self, sampleset: SampleSet) -> NDArray[np.float_]:
-        # Compute the future portfolio
+        """Efficiently decode a `sampleset` create a matrix of `oustanding_future`values.
+
+        Each row in the matrix corresponds to a different sample in the `sampleset`.
+
+        Args:
+            sampleset: ``SampleSet`` as returned by D-Wave.
+
+        Returns:
+            Matrix containing all `outstanding future` values.
+        """
         samples_matrix = sampleset.record.sample[:, : self.number_of_assets * self.k]
         samples_reshaped = samples_matrix.reshape(
             (len(sampleset), self.number_of_assets, self.k)
@@ -70,14 +86,17 @@ class Decoder:
 
 
 def pareto_front(
-    x: ArrayLike, y: ArrayLike, min_points: int = 50, upper_right_quadrant: bool = True
+    xvals: ArrayLike,
+    yvals: ArrayLike,
+    min_points: int = 50,
+    upper_right_quadrant: bool = True,
 ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
     """Calculate the pareto front with at least min_points data points by repeatedly
     creating a convex hull around data points.
 
     Args:
-        x: x-values of data points
-        y: y-values of data points
+        xvals: x-values of data points
+        yvals: y-values of data points
         min_points: minimum number of points to be selected
         upper_right_quadrant: If ``True``, only show the upper right quadrant of the
             pareto front.
@@ -85,7 +104,7 @@ def pareto_front(
     Returns:
         x, y values of the points that are on the pareto front
     """
-    points = np.vstack((x, y)).T
+    points = np.vstack((xvals, yvals)).T
     points = np.unique(points, axis=0)
     if len(points) < 3:
         return points.T[0], points.T[1]
