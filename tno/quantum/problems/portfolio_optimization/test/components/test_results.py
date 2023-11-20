@@ -18,7 +18,7 @@ def results_fixture() -> Results:
 
 def test_add_result(results: Results) -> None:
     assert len(results) == 0
-    
+
     outstanding_future = np.array([[19, 39], [10, 30]])
     for i in range(10):
         results.add_result(outstanding_future)
@@ -30,10 +30,5 @@ def test_aggregate(results: Results) -> None:
     for _ in range(100):
         results.add_result(outstanding_future)
 
-    assert len(results._x) == 200
-    assert len(results._y) == 200
-    assert len(results._outstanding_future) == 200
-    results.aggregate()
-    assert len(results._x) == 2
-    assert len(results._y) == 2
-    assert len(results._outstanding_future) == 2
+    assert len(results) == 100
+    assert len(results) == 1
