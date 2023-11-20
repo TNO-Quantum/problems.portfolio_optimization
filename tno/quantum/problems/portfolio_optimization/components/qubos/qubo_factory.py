@@ -5,7 +5,8 @@ from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
-from pandas import DataFrame
+
+from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 
 class QuboFactory:
@@ -26,24 +27,24 @@ class QuboFactory:
 
     """
 
-    def __init__(self, portfolio_data: DataFrame, k: int) -> None:
+    def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
         """
 
         Args:
-            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            portfolio_data: A ``PortfolioData`` object containing the portfolio to
+                optimize.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
-
         """
         self.portfolio_data = portfolio_data
         self.number_of_assets = len(portfolio_data)
         self.n_vars = self.number_of_assets * k
-        self.outstanding_now = portfolio_data["outstanding_now"].to_numpy()
-        self.l_bound = portfolio_data["min_outstanding_future"].to_numpy()
-        self.u_bound = portfolio_data["max_outstanding_future"].to_numpy()
-        self.income = portfolio_data["income_now"].to_numpy()
-        self.capital = portfolio_data["regcap_now"].to_numpy()
+        self.outstanding_now = portfolio_data.get_outstanding_now()
+        self.l_bound = portfolio_data.get_l_bound()
+        self.u_bound = portfolio_data.get_u_bound()
+        self.income = portfolio_data.get_income()
+        self.capital = portfolio_data.get_capital()
         self.k = k
 
     def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
@@ -155,8 +156,8 @@ class QuboFactory:
                 f"Column name {variable_future} not present in portfolio dataset."
             )
 
-        emission_intensity_now = self.portfolio_data[variable_now].to_numpy()
-        emission_intensity_future = self.portfolio_data[variable_future].to_numpy()
+        emission_intensity_now = self.portfolio_data.get_column(variable_now)
+        emission_intensity_future = self.portfolio_data.get_column(variable_future)
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
         relelative_total_emission_now = total_emission_now / np.sum(
@@ -273,9 +274,7 @@ class QuboFactory:
         theta = self.income / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
-        multiplier = (
-            theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
-        )
+        multiplier = theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
         qubo_diag = np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)
@@ -291,15 +290,15 @@ class QuboFactory:
             QUBO(x,g)
             =
             -
-            G_{inv}(g) \cdot 
+            G_{inv}(g) \cdot
             \sum_i\frac{r_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
-            G_{inv}(g) = 
+            G_{inv}(g) =
             \left(
             1 + \sum_{j} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
             \right)
-            
+
         where
 
             - `$LB_i$` is the lower bound for asset `$i$`,

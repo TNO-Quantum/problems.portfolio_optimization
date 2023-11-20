@@ -6,7 +6,8 @@ from typing import Callable, Optional, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
-from pandas import DataFrame
+
+from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 from .qubo_factory import QuboFactory
 
@@ -14,14 +15,15 @@ QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
 
 class QuboCompiler:
-    def __init__(self, portfolio_data: DataFrame, k: int) -> None:
+    def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
         """Init of the ``QuboCompiler`` class.
 
         The ``QuboCompiler`` can create a verity of QUBO formulation by combining
         different objectives and constraints.
 
         Args:
-            portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
+            portfolio_data: A ``PortfolioData`` object containing the portfolio to
+                optimize.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
