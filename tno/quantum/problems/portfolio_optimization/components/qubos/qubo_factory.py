@@ -1,4 +1,8 @@
-"""This module contains the ``QuboFactory`` class."""
+"""This module contains the ``QuboFactory`` class.
+
+The ``QuboFactory` class provides a convenient interface for constructing intermediate
+QUBO matrices for different objectives and constraints.
+"""
 from __future__ import annotations
 
 from typing import Optional
@@ -23,18 +27,15 @@ class QuboFactory:
     - `calc_emission_constraint`: Calculate the emission constraint QUBO
     - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
     - `calc_stabilize_c`: Calculate the constraint QUBO that stabilizes growth factor.
-
     """
 
     def __init__(self, portfolio_data: DataFrame, k: int) -> None:
         """
-
         Args:
             portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
-
         """
         self.portfolio_data = portfolio_data
         self.number_of_assets = len(portfolio_data)
@@ -273,9 +274,7 @@ class QuboFactory:
         theta = self.income / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
-        multiplier = (
-            theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
-        )
+        multiplier = theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
         qubo_diag = np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)
@@ -291,15 +290,15 @@ class QuboFactory:
             QUBO(x,g)
             =
             -
-            G_{inv}(g) \cdot 
+            G_{inv}(g) \cdot
             \sum_i\frac{r_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
-            G_{inv}(g) = 
+            G_{inv}(g) =
             \left(
             1 + \sum_{j} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
             \right)
-            
+
         where
 
             - `$LB_i$` is the lower bound for asset `$i$`,

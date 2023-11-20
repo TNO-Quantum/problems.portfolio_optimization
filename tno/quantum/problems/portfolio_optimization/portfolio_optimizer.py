@@ -115,24 +115,24 @@ class PortfolioOptimizer:
 
         As the ROC is not a quadratic function, it is approximated using two different
         formulations:
-        
+
         formulation 1:
             $$ROC_1(x)=\sum_{i=1}^N\frac{x_i\cdot r_i}{c_i\cdot y_i}$$
-            
+
             Adds 1 qubo term, use ``weights_roc`` to scale.
 
         formulation 2:
             $$ROC_2(x)=\frac{1}{G_C \cdot C_{21}}\sum_{i=1}^N x_i\frac{r_i}{y_i}$$
 
             In this formulation, $G_C \cdot C_{21}$ approximates a fixed regulatory
-            capital growth which is equal for all assets, where 
+            capital growth which is equal for all assets, where
 
                 - `$1≤G_C<2$` is a growth factor to be estimated using ancilla variables,
                 - `$C_{21} = \sum{i} c_{i}$` is the sum of all assets' regulatory capital.
-        
+
             Adds 2 qubo terms, requires extra arg ``ancilla_variables``. Use ``weights_roc``
             and ``weights_stabilize`` to scale.
-        
+
         For the different QUBO formulations, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
 
