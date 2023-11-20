@@ -142,7 +142,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], self.portfolio_df["regcap_now"].to_numpy())
 
     def get_column(self, column_name: str) -> NDArray[np.float_]:
-        """Get the specified colum from the dataset.
+        """Get the specified column from the dataset.
 
         Args:
             column_name: Name of the column to get.
@@ -211,7 +211,7 @@ class PortfolioData:
         )
 
     def __len__(self) -> int:
-        """Lenght of the dataset."""
+        """Length of the dataset."""
         return len(self.portfolio_df)
 
     def __repr__(self) -> str:
