@@ -270,11 +270,11 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        theta_i = self.income / (self.outstanding_now * self.capital)
-        offset = np.sum(theta_i * self.l_bound)
+        theta = self.income / (self.outstanding_now * self.capital)
+        offset = np.sum(theta * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
         multiplier = (
-            theta_i * (self.u_bound - self.l_bound) / ((2**self.k - 1))
+            theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
         )
         qubo_diag = np.kron(multiplier, mantisse)
 
