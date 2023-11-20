@@ -29,6 +29,10 @@ class Results:
             provided_growth_target: target growth value if growth factor constraint is
                 set, otherwise None.
         """
+        self.portfolio_data = portfolio_data
+        self.provided_emission_constraints = provided_emission_constraints
+        self.provided_growth_target = provided_growth_target
+
         self._outstanding_now = portfolio_data.get_outstanding_now()
         self._e = portfolio_data.get_column("emis_intens_now")
         income = portfolio_data.get_income()
