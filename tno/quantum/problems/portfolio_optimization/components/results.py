@@ -5,10 +5,10 @@ from collections import deque
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
-import pandas as pd
 
 
 class Results:
@@ -44,17 +44,10 @@ class Results:
             np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
         )
 
-        self._e = portfolio_data.get_column("emis_intens_now")
-        self._relelative_total_emission_now = np.sum(
-            self._e * self._outstanding_now
-        ) / np.sum(self._outstanding_now)
-
-        self.columns = [
-            "Outstanding amount",
-            "ROC",
-            "HHI",
-            "Outstanding growth",
-        ] + [constraint[0] for constraint in self.provided_emission_constraints]
+        self.columns = ["Outstanding amount", "ROC", "HHI", "Outstanding growth",] + [
+            constraint[0] + " growth"
+            for constraint in self.provided_emission_constraints
+        ]
         self.results_df = pd.DataFrame(columns=self.columns)
 
         self._x: deque[NDArray[np.float_]] = deque()
@@ -83,25 +76,35 @@ class Results:
         hhi = np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
         diversification = 100 * (1 - (hhi / self._hhi_now))
 
-        # Compute the outstanding growth
-        outstanding_growth = total_outstanding_future / self._total_outstanding_now
+        # Compute the growth outstanding in outstanding amount
+        growth_outstanding = total_outstanding_future / self._total_outstanding_now
 
+        new_data = [
+            outstanding_future,
+            roc,
+            hhi,
+            growth_outstanding,
+        ]
+
+        # Compute the emission constraint growths
+        for (
+            column_name_now,
+            column_name_future,
+            _,
+        ) in self.provided_emission_constraints:
+            total_emission_now = np.sum(
+                self._outstanding_now * self.portfolio_data.get_column(column_name_now)
+            )
+            total_emission_future = np.sum(
+                outstanding_future * self.portfolio_data.get_column(column_name_future)
+            )
+
+            new_data.append(total_emission_future / total_emission_now)
+        
+        # Write results
+        self.results_df.loc[len(self.results_df)] = new_data
         self._x.extend(diversification)
         self._y.extend(roc_growth)
-
-        new_result = pd.DataFrame(
-            [
-                [
-                    outstanding_future,
-                    roc,
-                    hhi,
-                    outstanding_growth,
-                ]
-            ],
-            columns=self.columns,
-        )
-        self.results_df = pd.concat([self.results_df, new_result], ignore_index=True)
-
         self._outstanding_future.extend(outstanding_future)
 
     def head(self, n=5):
@@ -151,9 +154,10 @@ class Results:
 
         if growth_target is None:
             res_emis = 0.76 * np.sum(self._e * self._outstanding_future, axis=1)
-            norm1 = (
-                self._relelative_total_emission_now * 0.70 * total_outstanding_future
-            )
+            # norm1 = (
+            #     self._relelative_total_emission_now * 0.70 * total_outstanding_future
+            # )
+            norm1 = 10 # TODO TEMP BREAKING 
             norm2 = 1.020 * norm1
             discriminator1 = res_emis < norm1
             discriminator2 = res_emis < norm2

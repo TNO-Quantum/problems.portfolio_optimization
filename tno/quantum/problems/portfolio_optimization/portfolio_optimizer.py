@@ -239,7 +239,7 @@ class PortfolioOptimizer:
         """
         self._all_lambdas.append(self._parse_weight(weights))
         self._provided_emission_constraints.append(
-            (variable_now, reduction_percentage_target)
+            (variable_now, variable_future, reduction_percentage_target)
         )
         self._qubo_compiler.add_emission_constraint(
             variable_now=variable_now,
@@ -335,7 +335,7 @@ class PortfolioOptimizer:
             if self._provided_growth_target is not None:
                 print(f"Growth target: {self._provided_growth_target - 1:.1%}")
 
-            for constraint_name, target_value in self._provided_emission_constraints:
+            for constraint_name, _, target_value in self._provided_emission_constraints:
                 print(
                     f"Emission constraint: {constraint_name}, "
                     f"target reduction percentage: {target_value - 1:.1%}"
