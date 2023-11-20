@@ -13,7 +13,11 @@ from tno.quantum.problems.portfolio_optimization.components.io import PortfolioD
 class Results:
     """Results container"""
 
-    def __init__(self, portfolio_data: PortfolioData, provided_constraints: list[tuple(str, float)]) -> None:
+    def __init__(
+        self,
+        portfolio_data: PortfolioData,
+        provided_constraints: list[tuple(str, float)],
+    ) -> None:
         """Init of Results container.
 
         Args:

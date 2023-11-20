@@ -323,8 +323,10 @@ class PortfolioOptimizer:
             for constraint_name, target_value in self._provided_constraints:
                 if constraint_name == "Growth target":
                     print(f"Outstanding amount growth target: {target_value - 1:.1%}")
-                print(f"Emission constraint: {constraint_name}, "
-                      f"target reduction percentage: {target_value - 1:.1%}")
+                print(
+                    f"Emission constraint: {constraint_name}, "
+                    f"target reduction percentage: {target_value - 1:.1%}"
+                )
 
         self._qubo_compiler.compile()
 

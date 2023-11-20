@@ -126,13 +126,12 @@ def test_ordering() -> None:
     """Test order"""
     portfolio_data = make_test_dataset()
 
-    qubo_compiler1 =  QuboCompiler(portfolio_data, k=2)
+    qubo_compiler1 = QuboCompiler(portfolio_data, k=2)
     qubo_compiler1.add_minimize_hhi()
     qubo_compiler1.add_maximize_roc(formulation=2)
     qubo1, offset1 = qubo_compiler1.compile().make_qubo(1, 1, 1)
 
-
-    qubo_compiler2 =  QuboCompiler(portfolio_data, k=2)
+    qubo_compiler2 = QuboCompiler(portfolio_data, k=2)
     qubo_compiler2.add_maximize_roc(formulation=2)
     qubo_compiler2.add_minimize_hhi()
     qubo2, offset2 = qubo_compiler2.compile().make_qubo(1, 1, 1)
