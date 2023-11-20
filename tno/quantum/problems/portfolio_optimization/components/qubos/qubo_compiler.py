@@ -19,6 +19,22 @@ QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
 
 class QuboCompiler:
+    """QuboCompiler - A compiler class for creating QUBO instances.
+
+    This class provides a convenient interface for combining different QUBO formulations
+    without needing to worry about the qubo size.
+
+    Methods:
+
+    - `add_minimize_hhi`: Add the to minimize HHI QUBO to the compile list.
+    - `add_maximize_roc`: Add a ROC and optionally a stabilizing QUBO to the compile
+      list.
+    - `add_emission_constraint`: Add an emission constraint QUBO to the compile list.
+    - `add_growth_factor_constraint`: Add the growth factor constraint QUBO to the
+      compile list.
+
+    """
+
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
         """Init of the ``QuboCompiler`` class.
 
@@ -37,7 +53,10 @@ class QuboCompiler:
         self._to_compile: list[Callable[[], tuple[NDArray[np.float_], float]]] = []
         self._compiled_qubos: list[NDArray[np.float_]] = []
 
-    def add_minimize_hhi(self: QuboCompilerT) -> QuboCompilerT:
+    def add_minimize_hhi(
+        self: QuboCompilerT,
+    ) -> QuboCompilerT:
+        # pylint: disable=line-too-long
         r"""Add the minimize HHI objective to the compile list.
 
         The HHI objective is given by
@@ -54,6 +73,7 @@ class QuboCompiler:
         Returns:
             Self.
         """
+        # pylint: enable=line-too-long
         self._to_compile.append(self._qubo_factory.calc_minimize_hhi)
         return self
 
@@ -90,11 +110,16 @@ class QuboCompiler:
         variable_future: Optional[str] = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
+        # pylint: disable=line-too-long
         r"""Add the emission constraint to the compile list.
 
         The constraint is given by
 
-        $$\frac{\sum_if_i \cdot x_i}{\sum_i x_i} = g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},$$
+        .. math::
+
+            \frac{\sum_if_i \cdot x_i}{\sum_i x_i}
+            =
+            g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},
 
         where:
 
@@ -119,6 +144,7 @@ class QuboCompiler:
         Returns:
             Self.
         """
+        # pylint: enable=line-too-long
         method = partial(
             self._qubo_factory.calc_emission_constraint,
             variable_now=variable_now,
@@ -131,9 +157,8 @@ class QuboCompiler:
     def add_growth_factor_constraint(
         self: QuboCompilerT, growth_target: float
     ) -> QuboCompilerT:
+        # pylint: disable=line-too-long
         r"""Add the capital growth factor constraint to the compile list.
-
-        The constraint is formulated as total_outstanding_future/total_outstanding_now = growth_target.
 
         The constraint is given by
 
@@ -154,6 +179,7 @@ class QuboCompiler:
         Returns:
             Self.
         """
+        # pylint: enable=line-too-long
         method = partial(
             self._qubo_factory.calc_growth_factor_constraint,
             growth_target=growth_target,

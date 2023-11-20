@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from numpy.typing import ArrayLike
 
-from tno.quantum.problems.portfolio_optimization.components import pareto_front
+from tno.quantum.problems.portfolio_optimization.components.postprocess import (
+    pareto_front,
+)
 
 
 def plot_points(
@@ -13,7 +15,7 @@ def plot_points(
     roc_values: ArrayLike,
     color: Optional[str] = None,
     label: Optional[str] = None,
-    ax: Optional[Axes] = None,
+    ax: Optional[Axes] = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plot the given data-points in a Diversification-ROC plot.
 
@@ -51,7 +53,7 @@ def plot_front(
     roc_values: ArrayLike,
     color: Optional[str] = None,
     label: Optional[str] = None,
-    ax: Optional[Axes] = None,
+    ax: Optional[Axes] = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plot a pareto front of the given data-points in a Diversification-ROC plot.
 
