@@ -100,7 +100,7 @@ class Results:
             )
 
             new_data.append(total_emission_future / total_emission_now)
-        
+
         # Write results
         self.results_df.loc[len(self.results_df)] = new_data
         self._x.extend(diversification)
@@ -111,9 +111,13 @@ class Results:
         """Return first n rows of self.results_df DataFrame
 
         Args:
+            selected_columns: By default all columns
             n: number of results to return
         """
-        return self.results_df.head(n)
+        selected_columns = [
+            column for column in self.columns if column != "Outstanding amount"
+        ]
+        return self.results_df[selected_columns].head(n)
 
     def aggregate(self) -> None:
         """Aggregate unique results."""
@@ -157,7 +161,7 @@ class Results:
             # norm1 = (
             #     self._relelative_total_emission_now * 0.70 * total_outstanding_future
             # )
-            norm1 = 10 # TODO TEMP BREAKING 
+            norm1 = 10  # TODO TEMP BREAKING
             norm2 = 1.020 * norm1
             discriminator1 = res_emis < norm1
             discriminator2 = res_emis < norm2
