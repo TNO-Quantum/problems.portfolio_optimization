@@ -76,14 +76,88 @@ using the simulated annealing sampler from D-Wave.
 Data input
 ----------
 
-TODO: Explain dataset constrains + refer to docs.
+The data used for the portfolio optimization can be given with an excel file, csv file,
+json file or as a pandas ``DataFrame``.
+The data needs to contain at least the following columns:
+
+    - asset
+    - outstanding_now
+    - min_outstanding_future
+    - max_outstanding_future
+    - income_now
+    - regcap_now
+
+The table below shows an example dataset with the correct structure.
+Note that this is the least amount of columns that need to be present.
+More columns are allowed and required for some functionalities.
+For more information, see
+:py:class:`~portfolio_optimization.components.io.PortfolioData`.
+
+.. list-table:: Example Dataset
+   :widths: 25 25 25 25 25 25
+   :header-rows: 1
+
+   * - asset
+     - outstanding_now
+     - min_outstanding_future
+     - max_outstanding_future
+     - income_now
+     - regcap_now
+   * - Sector 1 COUNTRY 1
+     - 10
+     - 14
+     - 19
+     - 5
+     - 5
+   * - Sector 2 COUNTRY 1
+     - 600
+     - 473
+     - 528
+     - 70
+     - 40
+   * - Sector 3 COUNTRY 1
+     - 20
+     - 24
+     - 28
+     - 5
+     - 10
+   * - Sector 4 COUNTRY 1
+     - 800
+     - 1090
+     - 1410
+     - 1
+     - 2
+   * - Sector 1 COUNTRY 2
+     - 40
+     - 56
+     - 74
+     - 10
+     - 5
+   * - Sector 2 COUNTRY 2
+     - 200
+     - 291
+     - 397
+     - 40
+     - 20
+   * - ...
+     - ...
+     - ...
+     - ...
+     - ...
+     - ...
+
+If the input datafile contains all the correct information, but has different column
+names, it is possible to rename the columns without altering the input file.
+Details and examples can be found in the documentation of
+:py:class:`~portfolio_optimization.components.io.PortfolioData`.
 
 
 Using Quantum Annealing Solvers
 -------------------------------
 
 By default, the portfolio optimization QUBO is solved using simulated annealing.
-Any D-Wave ``Sampler`` is however supported and can be provided to the :py:meth:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer.run` method.
+Any D-Wave ``Sampler`` is however supported and can be provided to the
+:py:meth:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer.run` method.
  
 
 Below is an example how to initialise a quantum annealing sampler that uses `100` micro seconds annealing time per sample.

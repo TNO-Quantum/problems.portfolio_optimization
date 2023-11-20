@@ -94,7 +94,15 @@ class PortfolioData:
         if str(filename) == "rabobank":
             filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
 
-        portfolio_data = pd.read_excel(str(filename))
+        filename = str(filename)
+        if filename.endswith(".xlsx"):
+            portfolio_data = pd.read_excel(filename)
+        elif filename.endswith(".csv"):
+            portfolio_data = pd.read_csv(filename)
+        elif filename.endswith(".json"):
+            portfolio_data = pd.read_json(filename)
+        else:
+            ValueError("Datatype not supported.")
         return cls(portfolio_data, columns_rename)
 
     def get_outstanding_now(self) -> NDArray[np.float_]:
