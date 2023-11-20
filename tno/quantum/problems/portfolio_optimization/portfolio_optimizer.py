@@ -371,7 +371,6 @@ class PortfolioOptimizer:
             print("Number of generated samples: ", len(results))
             print("Time consumed:", datetime.now() - starttime)
 
-        results.aggregate()
         return results
 
     @staticmethod
