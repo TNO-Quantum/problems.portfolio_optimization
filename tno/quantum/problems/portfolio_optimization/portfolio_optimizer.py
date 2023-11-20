@@ -71,7 +71,8 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
         self.decoder = Decoder(self.portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._provided_constraints: list[tuple(str, float)] = []
+        self._provided_emission_constraints: list[tuple(str, str, float)] = []
+        self._provided_growth_target: float = None
 
     def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
@@ -167,7 +168,7 @@ class PortfolioOptimizer:
                 maximizing the roc objective.
             ancilla_variables: The number of ancillary variables that are used to
                 represent ``G_C`` using fixed point representation. Only relevant for
-                roc formulation ``2``. 
+                roc formulation ``2``.
             weights_stabilize: The coefficients that are considered as penalty parameter
                 for the stabilizing constraint. Only relevant for roc formulation ``2``.
 
@@ -237,7 +238,9 @@ class PortfolioOptimizer:
             weights: The coefficients that are considered as penalty parameter.
         """
         self._all_lambdas.append(self._parse_weight(weights))
-        self._provided_constraints.append((variable_now, reduction_percentage_target))
+        self._provided_emission_constraints.append(
+            (variable_now, reduction_percentage_target)
+        )
         self._qubo_compiler.add_emission_constraint(
             variable_now=variable_now,
             variable_future=variable_future,
@@ -260,7 +263,9 @@ class PortfolioOptimizer:
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$g$` is the target value for the total growth factor.
 
-        usage example:
+        Constraint can only be added once.
+
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
@@ -275,9 +280,15 @@ class PortfolioOptimizer:
         Args:
             growth_target: target value for growth factor total outstanding amount.
             weights: The coefficients that are considered as penalty parameter.
+
+        Raises:
+            ValueError: If constraint has been added before.
         """
+        if self._provided_growth_target is not None:
+            raise ValueError("Growth factor constraint has been set before.")
+
         self._all_lambdas.append(self._parse_weight(weights))
-        self._provided_constraints.append(("Growth target", growth_target))
+        self._provided_growth_target = growth_target
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
     def run(
@@ -321,12 +332,10 @@ class PortfolioOptimizer:
 
         if verbose:
             print("Status: creating model")
-            if hasattr(self, "_growth_target"):
-                print(f"Growth target: {self._growth_target - 1:.1%}")
+            if self._provided_growth_target is not None:
+                print(f"Growth target: {self._provided_growth_target - 1:.1%}")
 
-            for constraint_name, target_value in self._provided_constraints:
-                if constraint_name == "Growth target":
-                    print(f"Outstanding amount growth target: {target_value - 1:.1%}")
+            for constraint_name, target_value in self._provided_emission_constraints:
                 print(
                     f"Emission constraint: {constraint_name}, "
                     f"target reduction percentage: {target_value - 1:.1%}"
@@ -334,7 +343,11 @@ class PortfolioOptimizer:
 
         self._qubo_compiler.compile()
 
-        results = Results(self.portfolio_data, self._provided_constraints)
+        results = Results(
+            portfolio_data=self.portfolio_data,
+            provided_emission_constraints=self._provided_emission_constraints,
+            provided_growth_target=self._provided_growth_target,
+        )
 
         if verbose:
             print("Status: calculating")

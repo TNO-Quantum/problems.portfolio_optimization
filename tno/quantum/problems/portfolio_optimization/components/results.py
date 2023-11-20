@@ -16,13 +16,18 @@ class Results:
     def __init__(
         self,
         portfolio_data: PortfolioData,
-        provided_constraints: list[tuple(str, float)],
+        provided_emission_constraints: list[tuple(str, str, float)] = [],
+        provided_growth_target: Optional[float] = None,
     ) -> None:
         """Init of Results container.
 
         Args:
             portfolio_data: the portfolio data
-            provided_constraints: the constraints that are added to the problem
+            provided_emission_constraints: list of all the emission constraints that are
+                provided. Each list element contains the ``variable_now``,
+                ``variable_future`` and ``reduction_percentage_target`` input.
+            provided_growth_target: target growth value if growth factor constraint is
+                set, otherwise None.
         """
         self._outstanding_now = portfolio_data.get_outstanding_now()
         self._e = portfolio_data.get_column("emis_intens_now")
