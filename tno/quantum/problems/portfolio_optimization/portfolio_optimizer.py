@@ -124,10 +124,11 @@ class PortfolioOptimizer:
         formulation 2:
             $$ROC_2(x)=\frac{1}{G_C \cdot C_{21}}\sum_{i=1}^N x_i\frac{r_i}{y_i}$$
 
-            where
+            In this formulation, $G_C \cdot C_{21}$ approximates a fixed regulatory
+            capital growth which is equal for all assets, where 
 
-                - `$1≤G_C<2$` approximates a fixed regulatory capital growth that is equal for all assets,
-                - `$C_{21} = \sum{i} c_{i}$`,
+                - `$1≤G_C<2$` is a growth factor to be estimated using ancilla variables,
+                - `$C_{21} = \sum{i} c_{i}$` is the sum of all assets' regulatory capital.
         
             Adds 2 qubo terms, requires extra arg ``ancilla_variables``. Use ``weights_roc``
             and ``weights_stabilize`` to scale.
