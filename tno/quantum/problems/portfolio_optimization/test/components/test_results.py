@@ -20,15 +20,15 @@ def test_add_result(results: Results) -> None:
     assert len(results) == 0
 
     outstanding_future = np.array([[19, 39], [10, 30]])
-    for i in range(10):
-        results.add_result(outstanding_future)
-        assert len(results) == i + 1
-
-
-def test_aggregate(results: Results) -> None:
-    outstanding_future = np.array([[19, 39], [10, 30]])
-    for _ in range(100):
-        results.add_result(outstanding_future)
-
-    assert len(results) == 100
+    results.add_result(outstanding_future)
     assert len(results) == 1
+
+    # Add duplicate result
+    results.add_result(outstanding_future) 
+    assert len(results) == 1
+
+    # Add different results
+    for i in range(10):
+        outstanding_future = np.array([[19 + i, 39], [10, 30]])
+        results.add_result(outstanding_future)
+        assert len(results) == i + 2
