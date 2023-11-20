@@ -54,16 +54,17 @@ class QuboCompiler:
     def add_maximize_roc(
         self: QuboCompilerT,
         formulation: int,
-        ancilla_qubits: int = 0,
+        ancilla_variables: int = 0,
     ) -> QuboCompilerT:
-        """Add the maximize ROC objective an based on the input a stabilize c constraint.
+        """Add the maximize ROC objective and based on the chosen formulation a
+        stabilize c constraint.
 
         Args:
             formulation: Integer representing which formulation to pick. If formulation
                 is ``1``, then one QUBO term will be added. If formulation is ``2``,
                 then 2 QUBO terms will be added as well, but the argument
-                `ancilla_qubits` must be provided.
-            ancilla_qubits: Number of ancilla qubits to use for formulation 3.
+                `ancilla_variables` must be provided.
+            ancilla_variables: Number of ancilla variables to use for formulation ``2``.
 
         Returns:
             Self.
@@ -71,7 +72,7 @@ class QuboCompiler:
         if formulation == 1:
             self._to_compile.append(self._qubo_factory.calc_maximize_roc1)
         elif formulation == 2:
-            self._qubo_factory.n_vars += ancilla_qubits
+            self._qubo_factory.n_vars += ancilla_variables
             self._to_compile.append(self._qubo_factory.calc_maximize_roc2)
             self._to_compile.append(self._qubo_factory.calc_stabilize_c)
 

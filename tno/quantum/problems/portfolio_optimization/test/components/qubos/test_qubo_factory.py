@@ -71,7 +71,7 @@ def test_calc_maximize_roc1(qubo_factory: QuboFactory) -> None:
 
 
 def test_calc_maximize_roc2(qubo_factory: QuboFactory) -> None:
-    # Use 3 ancilla qubits
+    # Use 3 ancilla variables
     qubo_factory.n_vars += 3
 
     expected_qubo = [
@@ -91,7 +91,7 @@ def test_calc_maximize_roc2(qubo_factory: QuboFactory) -> None:
 
 
 def test_calc_stabilize_c(qubo_factory: QuboFactory) -> None:
-    # Use 3 ancilla qubits
+    # Use 3 ancilla variables
     qubo_factory.n_vars += 3
 
     expected_qubo = np.array(

@@ -15,7 +15,7 @@ The following objectives can be considered
 - `return on capital`, indicated by ROC,
 - `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
 
-Additionally, we allow for arbitrary constraints to be considered.
+Additionally, we allow for capital growth factor and arbitrary emission reduction constraints to be considered.
 
 The `Pareto front`_, the set of solutions where one objective can't be improved without worsening the other objective,
 can be computed for return on capital and diversification. 
@@ -48,34 +48,29 @@ using the simulated annealing sampler from D-Wave.
     import numpy as np
     from dwave.samplers import SimulatedAnnealingSampler
 
-    from tno.quantum.problems.portfolio_optimization import (
-        PortfolioOptimizer,
-        plot_front,
-    )
+    from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
 
-    # Choose sampler to solve qubo with
+    # Choose sampler and solve qubo.
     sampler = SimulatedAnnealingSampler()
     sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
-
 
     # Set up penalty coefficients for the constraints
     lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
     lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
     lambdas3 = np.array([1])
 
-    # Define the problem
+    # Create portfolio optimization problem
     portfolio_optimizer = PortfolioOptimizer("rabobank")
-    portfolio_optimizer.add_minimize_HHI(weights=lambdas1)
-    portfolio_optimizer.add_maximize_ROC(formulation=1, weights_roc=lambdas1)
-    portfolio_optimizer.add_emission_constraint(weights=lambdas3)
+    portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
+    portfolio_optimizer.add_emission_constraint(
+        weights=lambdas3,
+        variable_now="emis_intens_now",
+        variable_future="emis_intens_future",
+    )
 
-    # Solve the multi-objective optimization problem.
+    # Solve the portfolio optimization problem
     results = portfolio_optimizer.run(sampler, sampler_kwargs)
-    results.slice_results()
-
-    # Make a plot of the results.
-    fig = plot_front(results, "green", "orange", "red")
-    fig.savefig(f"figures/pareto_front.png")
 
 
 Data input
