@@ -65,8 +65,8 @@ class Results:
             outstanding_future: the in future outstanding amounts.
         """
         # Skip if outstanding future already in dataset.
-        # if outstanding_future in self.results_df["outstanding amount"]:
-        #     return
+        if any([np.array_equal(outstanding_future, a) for a in self.results_df['outstanding amount'].to_numpy()]):
+            return 
 
         total_outstanding_future = np.sum(outstanding_future, axis=1)
         # Compute the ROC growth

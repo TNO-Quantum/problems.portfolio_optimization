@@ -24,11 +24,11 @@ def test_add_result(results: Results) -> None:
     assert len(results) == 1
 
     # Add duplicate result
-    results.add_result(outstanding_future) 
+    results.add_result(outstanding_future)
     assert len(results) == 1
 
     # Add different results
     for i in range(10):
-        outstanding_future = np.array([[19 + i, 39], [10, 30]])
+        outstanding_future = np.array([[i, 1], [1, 1]])
         results.add_result(outstanding_future)
         assert len(results) == i + 2
