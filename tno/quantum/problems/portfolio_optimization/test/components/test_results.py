@@ -12,7 +12,8 @@ from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 @pytest.fixture(name="results")
 def results_fixture() -> Results:
     portfolio_data = make_test_dataset()
-    return Results(portfolio_data)
+    provided_constraints = []
+    return Results(portfolio_data, provided_constraints)
 
 
 def test_add_result(results: Results) -> None:
