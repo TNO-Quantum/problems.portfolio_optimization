@@ -44,15 +44,15 @@ class Results:
             np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
         )
 
-        self.columns = ["Outstanding amount", "ROC", "HHI", "Outstanding growth",] + [
-            constraint[0] + " growth"
-            for constraint in self.provided_emission_constraints
+        self.columns = [
+            "outstanding amount",
+            "diff ROC",
+            "diff diversification",
+            "diff outstanding",
+        ] + [
+            "diff " + constraint[0] for constraint in self.provided_emission_constraints
         ]
         self.results_df = pd.DataFrame(columns=self.columns)
-
-        self._x: deque[NDArray[np.float_]] = deque()
-        self._y: deque[NDArray[np.float_]] = deque()
-        self._outstanding_future: deque[NDArray[np.float_]] = deque()
 
     def __len__(self) -> int:
         """Return the number of samples stored in the ``Results`` object."""
@@ -64,8 +64,11 @@ class Results:
         Args:
             outstanding_future: the in future outstanding amounts.
         """
-        total_outstanding_future = np.sum(outstanding_future, axis=1)
+        # Skip if outstanding future already in dataset.
+        if outstanding_future in self.results_df["Outstanding amount"]:
+            return
 
+        total_outstanding_future = np.sum(outstanding_future, axis=1)
         # Compute the ROC growth
         roc = np.sum(outstanding_future * self._returns, axis=1) / np.sum(
             outstanding_future * self._capital / self._outstanding_now, axis=1
@@ -74,15 +77,15 @@ class Results:
 
         # Compute the diversification.
         hhi = np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
-        diversification = 100 * (1 - (hhi / self._hhi_now))
+        diff_diversification = 100 * (1 - (hhi / self._hhi_now))
 
         # Compute the growth outstanding in outstanding amount
         growth_outstanding = total_outstanding_future / self._total_outstanding_now
 
         new_data = [
             outstanding_future,
-            roc,
-            hhi,
+            roc_growth,
+            diff_diversification,
             growth_outstanding,
         ]
 
@@ -103,9 +106,6 @@ class Results:
 
         # Write results
         self.results_df.loc[len(self.results_df)] = new_data
-        self._x.extend(diversification)
-        self._y.extend(roc_growth)
-        self._outstanding_future.extend(outstanding_future)
 
     def head(self, n=5):
         """Return first n rows of self.results_df DataFrame
@@ -119,66 +119,54 @@ class Results:
         ]
         return self.results_df[selected_columns].head(n)
 
-    def aggregate(self) -> None:
-        """Aggregate unique results."""
-        diversification = np.asarray(self._x)
-        roc_growth = np.asarray(self._y)
-        outstanding_future = np.asarray(self._outstanding_future)
-
-        data = np.vstack((np.asarray(self._x), np.asarray(self._y)))
-        _, indices = np.unique(data, axis=1, return_index=True)
-
-        self._x = deque(diversification[indices])
-        self._y = deque(roc_growth[indices])
-        self._outstanding_future = deque(outstanding_future[indices])
-
     def slice_results(
-        self, growth_target: Optional[float] = None
+        self, tolerance: float = 0.0
     ) -> tuple[
         tuple[NDArray[np.float_], NDArray[np.float_]],
         tuple[NDArray[np.float_], NDArray[np.float_]],
-        tuple[NDArray[np.float_], NDArray[np.float_]],
     ]:
-        """Slice the results in three groups, growth targets met, almost met, not met or
-        not.
-
-            - Realized growth > growth target
-            - 98% of the growth target < Realized growth < growth target
-            - Realized growth < 98% of the growth target
+        """Slice the results in two groups, those that satisfy and those that violate
+        the growth factor and emission constraints.
 
         Args:
-            growth_target: the target to
+            tolerance: tolerance on how strict the constraints need to be satisfied.
 
-        #TODO: Handle growth_target is None docs, is quite specific/hardcoded
+        Returns:
+            Relative difference (diversification, roc) coordinates for solutions that
+            satisfy the constraints, and for those that do not satisfy the constraints.
+
+        Raises:
+            ValueError: when there are no emission or growth factor constraints set.
         """
-        diversification = np.asarray(self._x)
-        roc_growth = np.asarray(self._y)
-        outstanding_future = np.array(self._outstanding_future)
-        total_outstanding_future = np.sum(outstanding_future, axis=1)
+        if (
+            self.provided_growth_target is None
+            and len(self.provided_emission_constraints) == 0
+        ):
+            raise ValueError("There are no emission or growth constraints set.")
 
-        if growth_target is None:
-            res_emis = 0.76 * np.sum(self._e * self._outstanding_future, axis=1)
-            # norm1 = (
-            #     self._relelative_total_emission_now * 0.70 * total_outstanding_future
-            # )
-            norm1 = 10  # TODO TEMP BREAKING
-            norm2 = 1.020 * norm1
-            discriminator1 = res_emis < norm1
-            discriminator2 = res_emis < norm2
-        else:
-            realized_growth = total_outstanding_future / self._total_outstanding_now
-            discriminator1 = realized_growth > growth_target
-            discriminator2 = realized_growth > 0.98 * growth_target
+        mask_growth_target = (
+            True
+            if self.provided_growth_target is None
+            else (
+                self.results_df["diff outstanding"]
+                >= self.provided_growth_target * (1 + tolerance)
+            )
+        )
 
-        mask1 = discriminator1
-        mask2 = ~mask1 & (discriminator2)
-        mask3 = ~(mask1 | mask2)
+        mask_emission_constraint = True
+        for name, _, value in self.provided_emission_constraints:
+            mask_emission_constraint &= self.results_df["diff " + name] <= value * (
+                1 + tolerance
+            )
 
-        x_met = diversification[mask1]
-        y_met = roc_growth[mask1]
-        x_reduced = diversification[mask2]
-        y_reduced = roc_growth[mask2]
-        x_violated = diversification[mask3]
-        y_violated = roc_growth[mask3]
+        combined_mask = mask_growth_target & mask_emission_constraint
 
-        return (x_met, y_met), (x_reduced, y_reduced), (x_violated, y_violated)
+        # Filter data based on masks
+        filtered_data_met = self.results_df[combined_mask]
+        filtered_data_violated = self.results_df[~combined_mask]
+
+        x_met = filtered_data_met["diff diversification"].to_numpy()
+        y_met = filtered_data_met["diff ROC"].to_numpy()
+        x_violated = filtered_data_violated["diff diversification"].to_numpy()
+        y_violated = filtered_data_violated["diff ROC"].to_numpy()
+        return (x_met, y_met), (x_violated, y_violated)
