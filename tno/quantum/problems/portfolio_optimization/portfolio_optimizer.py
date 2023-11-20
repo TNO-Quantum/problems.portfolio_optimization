@@ -55,7 +55,7 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(portfolio_data, k)
         self.decoder = Decoder(portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._growth_target: float
+        self._provided_constraints: list[tuple(str, float)] = []
 
     def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
@@ -303,7 +303,7 @@ class PortfolioOptimizer:
                 print(f"Growth target: {self._growth_target - 1:.1%}")
         self._qubo_compiler.compile()
 
-        results = Results(self.portfolio_data)
+        results = Results(self.portfolio_data, self._provided_constraints)
 
         if verbose:
             print("Status: calculating")
