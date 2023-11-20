@@ -1,4 +1,8 @@
-"""This module contains the ``QuboCompiler`` class."""
+"""This module contains the ``QuboCompiler`` class.
+
+The ``QuboCompiler`` can create a verity of QUBO formulation by combining different
+objectives and constraints with their corresponding penalty or preference parameters.
+"""
 from __future__ import annotations
 
 from functools import partial
@@ -18,7 +22,7 @@ class QuboCompiler:
         """Init of the ``QuboCompiler`` class.
 
         The ``QuboCompiler`` can create a verity of QUBO formulation by combining
-        different objectives and constraints.
+        different objectives and constraints with penalty or preference parameters.
 
         Args:
             portfolio_data: A ``pandas.Dataframe`` containing the portfolio to optimize.
