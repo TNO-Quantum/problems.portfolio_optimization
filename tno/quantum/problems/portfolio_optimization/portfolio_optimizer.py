@@ -107,8 +107,8 @@ class PortfolioOptimizer:
     def add_maximize_roc(
         self,
         formulation: int,
-        ancilla_variables: int = 0,
         weights_roc: Optional[ArrayLike] = None,
+        ancilla_variables: int = 0,
         weights_stabilize: Optional[ArrayLike] = None,
     ) -> None:
         r"""Adds the maximize ROC objective to the portfolio optimization problem.
@@ -163,9 +163,13 @@ class PortfolioOptimizer:
         Args:
             formulation: the ROC QUBO formulation that is being used.
                 Possible options are: [1, 2].
-            ancilla_variables:
-            weights_roc:
-            weights_stabilize:
+            weights_roc: The coefficients that are considered as penalty parameter for
+                maximizing the roc objective.
+            ancilla_variables: The number of ancillary variables that are used to
+                represent ``G_C`` using fixed point representation. Only relevant for
+                roc formulation ``2``. 
+            weights_stabilize: The coefficients that are considered as penalty parameter
+                for the stabilizing constraint. Only relevant for roc formulation ``2``.
 
         Raises:
             ValueError: If invalid formulation is provided.
@@ -269,7 +273,7 @@ class PortfolioOptimizer:
         :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
-            growth_target:
+            growth_target: target value for growth factor total outstanding amount.
             weights: The coefficients that are considered as penalty parameter.
         """
         self._all_lambdas.append(self._parse_weight(weights))
