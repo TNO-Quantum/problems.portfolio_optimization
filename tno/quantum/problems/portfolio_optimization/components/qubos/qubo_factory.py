@@ -244,7 +244,7 @@ class QuboFactory:
         # Add the diagonal elements
         np.fill_diagonal(qubo_slice, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        return qubo, offset
+        return qubo, float(offset)
 
     def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the to maximize ROC QUBO for variant 1.

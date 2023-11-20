@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, cast
 
 import numpy as np
 import pandas as pd
@@ -64,7 +64,7 @@ class PortfolioData:
 
     @classmethod
     def from_file(
-        cls: PortfolioDataT,
+        cls: type[PortfolioDataT],
         filename: str | Path,
         columns_rename: Optional[dict[str, str]] = None,
     ) -> PortfolioDataT:
@@ -103,7 +103,7 @@ class PortfolioData:
         Returns:
             The `outstanding_now` column from the dataset as a numpy array.
         """
-        return self.portfolio_df["outstanding_now"].to_numpy()
+        return cast(NDArray[np.float_], self.portfolio_df["outstanding_now"].to_numpy())
 
     def get_l_bound(self) -> NDArray[np.float_]:
         """Get the `l_bound` data from the dataset.
@@ -111,7 +111,9 @@ class PortfolioData:
         Returns:
             The `min_outstanding_future` column from the dataset as a numpy array.
         """
-        return self.portfolio_df["min_outstanding_future"].to_numpy()
+        return cast(
+            NDArray[np.float_], self.portfolio_df["min_outstanding_future"].to_numpy()
+        )
 
     def get_u_bound(self) -> NDArray[np.float_]:
         """Get the `u_bound` data from the dataset.
@@ -119,7 +121,9 @@ class PortfolioData:
         Returns:
             The `max_outstanding_future` column from the dataset as a numpy array.
         """
-        return self.portfolio_df["max_outstanding_future"].to_numpy()
+        return cast(
+            NDArray[np.float_], self.portfolio_df["max_outstanding_future"].to_numpy()
+        )
 
     def get_income(self) -> NDArray[np.float_]:
         """Get the `income` data from the dataset.
@@ -127,7 +131,7 @@ class PortfolioData:
         Returns:
             The `income_now` column from the dataset as a numpy array.
         """
-        return self.portfolio_df["income_now"].to_numpy()
+        return cast(NDArray[np.float_], self.portfolio_df["income_now"].to_numpy())
 
     def get_capital(self) -> NDArray[np.float_]:
         """Get the `capital` data from the dataset.
@@ -135,7 +139,7 @@ class PortfolioData:
         Returns:
             The `regcap_now` column from the dataset as a numpy array.
         """
-        return self.portfolio_df["regcap_now"].to_numpy()
+        return cast(NDArray[np.float_], self.portfolio_df["regcap_now"].to_numpy())
 
     def get_column(self, column_name: str) -> NDArray[np.float_]:
         """Get the specified colum from the dataset.
@@ -146,7 +150,7 @@ class PortfolioData:
         Returns:
             The `regcap_now` columns from the dataset as a numpy array.
         """
-        return self.portfolio_df[column_name].to_numpy()
+        return cast(NDArray[np.float_], self.portfolio_df[column_name].to_numpy())
 
     def print_portfolio_info(self) -> None:
         """Print information about portfolio data to terminal."""
