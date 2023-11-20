@@ -8,10 +8,11 @@ from numpy.typing import NDArray
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
+# pylint: disable=too-many-instance-attributes
+
 
 class QuboFactory:
-    """
-    QuboFactory - A factory class for creating QUBO instances.
+    """QuboFactory - A factory class for creating QUBO instances.
 
     This class provides a convenient interface for constructing intermediate QUBO
     matrices for different objectives and constraints.
@@ -24,11 +25,10 @@ class QuboFactory:
     - `calc_emission_constraint`: Calculate the emission constraint QUBO
     - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
     - `calc_stabilize_c`: Calculate the constraint QUBO that stabilizes growth factor.
-
     """
 
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
-        """
+        """Init of the ``QuboFactory``.
 
         Args:
             portfolio_data: A ``PortfolioData`` object containing the portfolio to
@@ -342,9 +342,6 @@ class QuboFactory:
             alpha * gamma,
         )
         offset = alpha
-
-        qubo = qubo
-
         return -qubo, -offset
 
     def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
