@@ -103,7 +103,7 @@ class Results:
                     * self.portfolio_data.get_column(column_name_future)
                 )
 
-                new_data.append(total_emission_future / total_emission_now)
+                new_data.append(100 * (total_emission_future / total_emission_now - 1))
 
             # Write results
             self.results_df.loc[len(self.results_df)] = new_data
@@ -135,7 +135,11 @@ class Results:
         or emission constraints.
 
         Args:
-            tolerance: tolerance on how strict the constraints need to be satisfied.
+            tolerance: tolerance on how strict the constraints need to be satisfied (in
+                percentage point). Example: if the desired target growth rate is 1.2, if
+                the tolerance is set to 0.05 (5%). Solutions that increase outstanding
+                amount by a factor of 1.15 are considered to satisfy the constraints
+                given the tolerance.
 
         Returns:
             Relative difference (diversification, roc) coordinates for solutions that
@@ -155,14 +159,14 @@ class Results:
             if self.provided_growth_target is None
             else (
                 self.results_df["diff outstanding"]
-                >= self.provided_growth_target * (1 + tolerance)
+                >= 100 * (self.provided_growth_target - tolerance - 1) 
             )
         )
 
         mask_emission_constraint = True
         for _, _, value, name in self.provided_emission_constraints:
-            mask_emission_constraint &= self.results_df["diff " + name] <= value * (
-                1 + tolerance
+            mask_emission_constraint &= self.results_df["diff " + name] <= 100 * (
+                (value + tolerance) - 1
             )
 
         combined_mask = mask_growth_target & mask_emission_constraint
