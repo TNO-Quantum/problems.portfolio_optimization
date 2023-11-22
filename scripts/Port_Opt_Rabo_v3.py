@@ -34,12 +34,14 @@ portfolio_optimizer.add_emission_constraint(
     weights=lambdas3,
     variable_now="emis_intens_now",
     variable_future="emis_intens_future",
+    name="emission"
 )
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
-(x1, y1), (x2, y2), (x3, y3) = results.slice_results()
+print(results.head())
 
 
 # Make a plot of the results.
+(x1, y1), (x2, y2) = results.slice_results()
 
 # x/y_rabo1 corresponds to a front optimized including the emission target.
 # x/y_rabo2 corresponds to a front optimized without the emission target.
@@ -47,11 +49,11 @@ with (Path(__file__).parent / "rabo_matlab.json").open(encoding="utf-8") as json
     x_rabo1, y_rabo1, x_rabo2, y_rabo2 = json.load(json_file)
 
 fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
-colors = ["red", "orange", "green", "blue", "gray"]
-labels = ["QUBO constraint not met", "QUBO reduced", "QUBO constraint met"]
+colors = ["orange", "green", "blue", "gray"]
+labels = ["QUBO constraint not met", "QUBO constraint met"]
 labels += ["classical constrained", "classical unconstrained"]
-x_values = [x3, x2, x1, x_rabo1, x_rabo2]
-y_values = [y3, y2, y1, y_rabo1, y_rabo2]
+x_values = [x2, x1, x_rabo1, x_rabo2]
+y_values = [y2, y1, y_rabo1, y_rabo2]
 
 for x_val, y_val, color, label in zip(x_values, y_values, colors, labels):
     plot_points(x_val, y_val, color=color, label=label, ax=ax1)
