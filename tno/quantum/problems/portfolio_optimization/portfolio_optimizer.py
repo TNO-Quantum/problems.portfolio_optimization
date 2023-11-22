@@ -231,11 +231,11 @@ class PortfolioOptimizer:
 
         Args:
             variable_now: Name of the column in the portfolio dataset corresponding to
-                the variables at current time.
+                the variables emission intensity at current time.
             variable_future: Name of the column in the portfolio dataset corresponding
-                to the variables at future time. If no value is provided, it is assumed
-                that the value is constant over time, i.e., the variable
-                ``variable_now`` will be used.
+                to the variables emission intensity at future time. If no value is
+                provided, it is assumed that the emission intensity is constant over
+                time, i.e., the variable ``variable_now`` will be used.
             reduction_percentage_target: target value for reduction percentage amount.
             name: Name that will be used for emission constraint in the results df.
             weights: The coefficients that are considered as penalty parameter.
