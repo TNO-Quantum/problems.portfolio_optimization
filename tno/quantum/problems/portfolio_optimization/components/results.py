@@ -94,16 +94,16 @@ class Results:
                 _,
                 _,
             ) in self.provided_emission_constraints:
-                total_emission_now = np.sum(
+                total_relative_emission_now = np.sum(
                     self._outstanding_now
                     * self.portfolio_data.get_column(column_name_now)
-                )
-                total_emission_future = np.sum(
+                ) / np.sum(self._outstanding_now)
+                total_relative_emission_future = np.sum(
                     oustanding_future
                     * self.portfolio_data.get_column(column_name_future)
-                )
+                )/ np.sum(oustanding_future)
 
-                new_data.append(100 * (total_emission_future / total_emission_now - 1))
+                new_data.append(100 * (total_relative_emission_future / total_relative_emission_now - 1))
 
             # Write results
             self.results_df.loc[len(self.results_df)] = new_data
