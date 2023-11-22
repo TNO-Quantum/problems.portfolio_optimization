@@ -105,6 +105,12 @@ constraints using the method :py:meth:`~portfolio_optimization.components.result
     fig.tight_layout()
     plt.show()
 
+.. image:: _static/diversification_roc_example.png
+   :width: 1200
+   :height: 500
+   :alt: (Diversification, ROC)-Graph
+   :align: center
+
 Data input
 ----------
 
