@@ -72,7 +72,7 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
         self.decoder = Decoder(self.portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._provided_emission_constraints: list[tuple(str, str, float)] = []
+        self._provided_emission_constraints: list[tuple(str, str, float, str)] = []
         self._provided_growth_target: float = None
 
     def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
@@ -193,6 +193,7 @@ class PortfolioOptimizer:
         variable_now: str,
         variable_future: Optional[str] = None,
         reduction_percentage_target: float = 0.7,
+        name: Optional[str] = None,
         weights: Optional[ArrayLike] = None,
     ) -> None:
         r"""Add emission constraint to the portfolio optimization problem.
@@ -236,12 +237,17 @@ class PortfolioOptimizer:
                 that the value is constant over time, i.e., the variable
                 ``variable_now`` will be used.
             reduction_percentage_target: target value for reduction percentage amount.
+            name: Name that will be used for emission constraint in the results df.
             weights: The coefficients that are considered as penalty parameter.
         """
-        self._all_lambdas.append(self._parse_weight(weights))
+        # Store emission constraint information
+        if name is None:
+            name = variable_now
         self._provided_emission_constraints.append(
-            (variable_now, variable_future, reduction_percentage_target)
+            (variable_now, variable_future, reduction_percentage_target, name)
         )
+        self._all_lambdas.append(self._parse_weight(weights))
+
         self._qubo_compiler.add_emission_constraint(
             variable_now=variable_now,
             variable_future=variable_future,
@@ -336,9 +342,9 @@ class PortfolioOptimizer:
             if self._provided_growth_target is not None:
                 print(f"Growth target: {self._provided_growth_target - 1:.1%}")
 
-            for constraint_name, _, target_value in self._provided_emission_constraints:
+            for _, _, target_value, name in self._provided_emission_constraints:
                 print(
-                    f"Emission constraint: {constraint_name}, "
+                    f"Emission constraint: {name}, "
                     f"target reduction percentage: {target_value - 1:.1%}"
                 )
 

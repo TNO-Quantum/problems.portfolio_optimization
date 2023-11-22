@@ -17,7 +17,7 @@ class Results:
     def __init__(
         self,
         portfolio_data: PortfolioData,
-        provided_emission_constraints: list[tuple(str, str, float)] = [],
+        provided_emission_constraints: list[tuple(str, str, float, str)] = [],
         provided_growth_target: Optional[float] = None,
     ) -> None:
         """Init of Results container.
@@ -50,7 +50,7 @@ class Results:
             "diff diversification",
             "diff outstanding",
         ] + [
-            "diff " + constraint[0] for constraint in self.provided_emission_constraints
+            "diff " + constraint[3] for constraint in self.provided_emission_constraints
         ]
         self.results_df = pd.DataFrame(columns=self.columns)
 
@@ -91,6 +91,7 @@ class Results:
             for (
                 column_name_now,
                 column_name_future,
+                _,
                 _,
             ) in self.provided_emission_constraints:
                 total_emission_now = np.sum(
@@ -159,7 +160,7 @@ class Results:
         )
 
         mask_emission_constraint = True
-        for name, _, value in self.provided_emission_constraints:
+        for _, _, value, name in self.provided_emission_constraints:
             mask_emission_constraint &= self.results_df["diff " + name] <= value * (
                 1 + tolerance
             )
