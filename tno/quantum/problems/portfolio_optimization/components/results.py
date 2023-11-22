@@ -81,7 +81,7 @@ class Results:
             growth_outstanding = total_outstanding_future / self._total_outstanding_now
 
             new_data = [
-                oustanding_future,
+                tuple(oustanding_future),
                 roc_growth,
                 diff_diversification,
                 growth_outstanding,
@@ -119,16 +119,9 @@ class Results:
         ]
         return self.results_df[selected_columns].head(n)
 
-    def aggregate(self):
+    def drop_duplicates(self):
         """Drop duplicates in results DataFrame"""
-        # TODO: Drop duplicates more efficiently here by maybe taking a set on
-        # 'outstanding amount' and applying those indices smartly.
-
-        # Implementation below has issues with unhashable np.array
-        unique_x_values = self.results_df["outstanding amount"].unique()
-        self.results_df = self.results_df[
-            self.results_df["outstanding amount"].isin(unique_x_values)
-        ]
+        self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)
 
     def slice_results(
         self, tolerance: float = 0.0

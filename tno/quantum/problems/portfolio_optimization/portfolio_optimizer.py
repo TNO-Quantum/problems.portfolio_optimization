@@ -370,10 +370,10 @@ class PortfolioOptimizer:
 
         if verbose:
             print("Drop duplicate samples in results.")
-        results.aggregate()
+        results.drop_duplicates()
 
         if verbose:
-            print("Number of generated samples: ", len(results))
+            print("Number of unique samples: ", len(results))
             print("Time consumed:", datetime.now() - starttime)
 
         return results
