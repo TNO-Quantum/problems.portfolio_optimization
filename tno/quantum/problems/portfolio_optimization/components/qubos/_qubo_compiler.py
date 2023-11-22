@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
-from .qubo_factory import QuboFactory
+from ._qubo_factory import QuboFactory
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
@@ -56,7 +56,6 @@ class QuboCompiler:
     def add_minimize_hhi(
         self: QuboCompilerT,
     ) -> QuboCompilerT:
-        # pylint: disable=line-too-long
         r"""Add the minimize HHI objective to the compile list.
 
         The HHI objective is given by
@@ -68,12 +67,11 @@ class QuboCompiler:
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_hhi`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
 
         Returns:
             Self.
         """
-        # pylint: enable=line-too-long
         self._to_compile.append(self._qubo_factory.calc_minimize_hhi)
         return self
 
@@ -110,7 +108,6 @@ class QuboCompiler:
         variable_future: Optional[str] = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
-        # pylint: disable=line-too-long
         r"""Add the emission constraint to the compile list.
 
         The constraint is given by
@@ -130,7 +127,7 @@ class QuboCompiler:
             - `$g$` is the target value for the relative emission reduction.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_emission_constraint`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
 
         Args:
             variable_now: Name of the column in the portfolio dataset corresponding to
@@ -144,7 +141,6 @@ class QuboCompiler:
         Returns:
             Self.
         """
-        # pylint: enable=line-too-long
         method = partial(
             self._qubo_factory.calc_emission_constraint,
             variable_now=variable_now,
@@ -171,7 +167,7 @@ class QuboCompiler:
             - `$g$` is the target value for the total growth factor.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_growth_factor_constraint`.
+        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.

@@ -17,7 +17,9 @@ class Results:
     def __init__(
         self,
         portfolio_data: PortfolioData,
-        provided_emission_constraints: list[tuple(str, str, float, str)] = [],
+        provided_emission_constraints: Optional[
+            list[tuple(str, str, float, str)]
+        ] = None,
         provided_growth_target: Optional[float] = None,
     ) -> None:
         """Init of Results container.
@@ -31,7 +33,10 @@ class Results:
                 growth factor constraint is set, otherwise None.
         """
         self.portfolio_data = portfolio_data
-        self.provided_emission_constraints = provided_emission_constraints
+        if provided_emission_constraints is None:
+            self.provided_emission_constraints = []
+        else:
+            self.provided_emission_constraints = provided_emission_constraints
         self.provided_growth_target = provided_growth_target
 
         self._outstanding_now = portfolio_data.get_outstanding_now()
@@ -101,9 +106,12 @@ class Results:
                 total_relative_emission_future = np.sum(
                     oustanding_future
                     * self.portfolio_data.get_column(column_name_future)
-                )/ np.sum(oustanding_future)
+                ) / np.sum(oustanding_future)
 
-                new_data.append(100 * (total_relative_emission_future / total_relative_emission_now - 1))
+                new_data.append(
+                    100
+                    * (total_relative_emission_future / total_relative_emission_now - 1)
+                )
 
             # Write results
             self.results_df.loc[len(self.results_df)] = new_data
@@ -159,7 +167,7 @@ class Results:
             if self.provided_growth_target is None
             else (
                 self.results_df["diff outstanding"]
-                >= 100 * (self.provided_growth_target - tolerance - 1) 
+                >= 100 * (self.provided_growth_target - tolerance - 1)
             )
         )
 
