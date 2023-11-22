@@ -310,7 +310,6 @@ percent = 0
 for counter1 in range(steps1):
     for counter2 in range(steps2):
         for counter4 in range(steps4):
-
             # Progress estimation
             if (100.0 * (steps2 * counter1 + counter2) * steps4 + counter4 + 1) / (
                 steps1 * steps2 * steps4

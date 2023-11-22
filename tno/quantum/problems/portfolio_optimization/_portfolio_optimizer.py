@@ -69,7 +69,7 @@ class PortfolioOptimizer:
         # Solve the portfolio optimization problem
         results = portfolio_optimizer.run(sampler, sampler_kwargs)
         print(results.head())
-    
+
     .. _Herfindahl-Hirschman Index: https://nl.wikipedia.org/wiki/Herfindahl-index
     """
 

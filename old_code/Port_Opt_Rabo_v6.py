@@ -313,7 +313,6 @@ for counter1 in range(steps1):
     for counter2 in range(steps2):
         for counter3 in range(steps3):
             for counter4 in range(steps4):
-
                 # Progress estimation
                 if (100.0 * (steps2 * counter1 + counter2) * steps3 + counter3 + 1) / (
                     steps1 * steps2 * steps3

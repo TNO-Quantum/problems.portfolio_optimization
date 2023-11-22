@@ -359,7 +359,6 @@ for counter1 in range(steps1):
                 # Postprocess solution.Iterate over all found solutions.
                 dummy_ctr = 0
                 for sample in response.samples():
-
                     Energy = response.record[dummy_ctr][-2]
                     dummy_ctr += 1
                     # Compute the 2030 portfolio

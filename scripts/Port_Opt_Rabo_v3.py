@@ -34,7 +34,7 @@ portfolio_optimizer.add_emission_constraint(
     weights=lambdas3,
     variable_now="emis_intens_now",
     variable_future="emis_intens_future",
-    name="emission"
+    name="emission",
 )
 results = portfolio_optimizer.run(sampler, sampler_kwargs)
 print(results.head())
