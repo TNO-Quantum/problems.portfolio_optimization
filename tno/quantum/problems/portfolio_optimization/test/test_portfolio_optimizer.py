@@ -20,7 +20,7 @@ def test_parse_weight(weight: ArrayLike | None, expected_outcome: ArrayLike) -> 
 
 
 def test_portfolio_optimizer() -> None:
-    portfolio_optimizer = PortfolioOptimizer("rabobank", k=2)
+    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset", k=2)
     portfolio_optimizer.add_minimize_hhi(weights=[1])
     portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=[1])
     portfolio_optimizer.add_emission_constraint(
@@ -33,7 +33,7 @@ def test_portfolio_optimizer() -> None:
 
 
 def test_multiple_growth_factor_constraints() -> None:
-    portfolio_optimizer = PortfolioOptimizer("rabobank", k=2)
+    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset", k=2)
 
     portfolio_optimizer.add_growth_factor_constraint(
         growth_target=1.2,

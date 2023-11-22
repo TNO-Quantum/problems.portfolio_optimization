@@ -85,7 +85,8 @@ class PortfolioData:
         renaming dictionary to the ``columns_rename`` argument.
 
         Args:
-            filename: path to portfolio data.
+            filename: path to portfolio data. If instead ``benchmark_dataset`` is
+                provided, a default benchmark dataset containing 52 assets will be used.
             column_rename: to rename columns provided as dict with new column names as keys
                 and to replace column name as value. Example
                 ``{"outstanding_2021": "outstanding_now"}``.
@@ -93,8 +94,8 @@ class PortfolioData:
         Raises:
             ValueError if required columns are not present in dataset.
         """
-        if str(filename) == "rabobank":
-            filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
+        if str(filename) == "benchmark_dataset":
+            filename = Path(__file__).parents[1] / "datasets" / "benchmark_dataset.xlsx"
 
         filename = str(filename)
         if filename.endswith(".xlsx"):

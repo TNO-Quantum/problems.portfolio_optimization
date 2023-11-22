@@ -10,13 +10,13 @@ from tno.quantum.problems.portfolio_optimization.test.dataset_for_tests import (
 
 
 def test_default_dataset() -> None:
-    PortfolioData.from_file("rabobank")
+    PortfolioData.from_file("benchmark_dataset")
 
 
 def test_from_file() -> None:
-    rabobank_file = Path(__file__).parents[1] / "datasets" / "rabobank.xlsx"
-    PortfolioData.from_file(rabobank_file)
-    PortfolioData.from_file(str(rabobank_file))
+    dataset_file = Path(__file__).parents[1] / "datasets" / "benchmark_dataset.xlsx"
+    PortfolioData.from_file(dataset_file)
+    PortfolioData.from_file(str(dataset_file))
 
 
 def test_init() -> None:

@@ -60,7 +60,7 @@ using the simulated annealing sampler from D-Wave.
     lambdas3 = np.array([1])
 
     # Create portfolio optimization problem
-    portfolio_optimizer = PortfolioOptimizer("rabobank")
+    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
     portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
     portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
     portfolio_optimizer.add_emission_constraint(

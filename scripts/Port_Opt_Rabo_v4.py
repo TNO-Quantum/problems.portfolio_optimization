@@ -28,7 +28,7 @@ lambdas3 = np.array([1])
 lambdas4 = np.logspace(-16, 0, 21, endpoint=False, base=10.0)
 
 
-portfolio_optimizer = PortfolioOptimizer("rabobank", k)
+portfolio_optimizer = PortfolioOptimizer("benchmark_dataset", k)
 portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
 portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas2)
 portfolio_optimizer.add_emission_constraint(

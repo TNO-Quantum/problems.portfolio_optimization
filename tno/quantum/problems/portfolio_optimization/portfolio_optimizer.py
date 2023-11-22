@@ -91,7 +91,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_minimize_hhi(weights=lambdas)
 
@@ -158,7 +158,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_maximize_roc(...)
 
@@ -219,7 +219,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(
         ...   variable_now="emis_intens_now", weights=lambdas
@@ -276,7 +276,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(growth_target=1.2, weights=lambdas)
 
@@ -311,7 +311,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> from dwave.samplers import SimulatedAnnealingSampler
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> portfolio_optimizer.add_minimize_HHI()
         >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False)
 
