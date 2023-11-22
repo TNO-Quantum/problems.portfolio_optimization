@@ -1,9 +1,51 @@
 """This module contains the ``PortfolioOptimizer`` class.
 
-Example script:
+The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
+optimization problems into QUBO problems which can then be solved using QUBO solving
+techniques such as simulated or quantum annealing.
 
+The following objectives can be considered
 
+- `return on capital`, indicated by ROC,
+- `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
 
+The following constraints can be added
+
+- `capital growth`, require minimum increase in outstanding assets
+- `emission reduction`, require a minimum reduction for an arbitrary emission type 
+
+Example usage:
+
+.. code-block::
+
+    import numpy as np
+    from dwave.samplers import SimulatedAnnealingSampler
+
+    from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+
+    # Choose sampler for solving qubo
+    sampler = SimulatedAnnealingSampler()
+    sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
+
+    # Set up penalty coefficients for the constraints
+    lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+    lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+    lambdas3 = np.array([1])
+
+    # Create portfolio optimization problem
+    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
+    portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
+    portfolio_optimizer.add_emission_constraint(
+        weights=lambdas3,
+        variable_now="emis_intens_now",
+        variable_future="emis_intens_future",
+        name="emission",
+    )
+
+    # Solve the portfolio optimization problem
+    results = portfolio_optimizer.run(sampler, sampler_kwargs)
+    print(results.head())
 """
 from __future__ import annotations
 
@@ -14,7 +56,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
-import pandas as pd
 from dimod.core.sampler import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray

@@ -50,7 +50,7 @@ using the simulated annealing sampler from D-Wave.
 
     from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
 
-    # Choose sampler and solve qubo.
+    # Choose sampler for solving qubo
     sampler = SimulatedAnnealingSampler()
     sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
@@ -67,10 +67,12 @@ using the simulated annealing sampler from D-Wave.
         weights=lambdas3,
         variable_now="emis_intens_now",
         variable_future="emis_intens_future",
+        name="emission"
     )
 
     # Solve the portfolio optimization problem
     results = portfolio_optimizer.run(sampler, sampler_kwargs)
+    print(results.head())
 
 
 Data input
