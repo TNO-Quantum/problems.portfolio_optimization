@@ -35,8 +35,8 @@ def plot_points(
     if ax is None:
         _, ax = plt.subplots()
     ax.scatter(diversification_values, roc_values, color=color, label=label)
-    ax.set_xlabel("Diversification")
-    ax.set_ylabel("ROC")
+    ax.set_xlabel("Diversification Change (%)")
+    ax.set_ylabel("ROC Change (%)")
     ax.grid()
     ax.legend()
 
