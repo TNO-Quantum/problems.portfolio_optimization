@@ -21,14 +21,16 @@ def test_add_result(results: Results) -> None:
 
     outstanding_future_samples = np.array([[19, 39], [10, 30]])
     results.add_result(outstanding_future_samples)
-    assert len(results) == 1
+    assert len(results) == 2
 
     # Add duplicate result
     results.add_result(outstanding_future_samples)
-    assert len(results) == 1
+    results.drop_duplicates()
+    assert len(results) == 2
 
     # Add different results
     for i in range(10):
-        outstanding_future_samples = np.array([[i, 1], [1, 1]])
+        outstanding_future_samples = np.array([[i, 1]])
         results.add_result(outstanding_future_samples)
-        assert len(results) == i + 2
+        results.drop_duplicates()
+        assert len(results) == i + 3
