@@ -1,6 +1,6 @@
 include:
   - project: quantum/cicd/templates/python
-    file: quantum-toolbox-template-microlib.yaml
+    file: quantum-toolbox-template-microlib.yml
     ref: "python312"
 
 
