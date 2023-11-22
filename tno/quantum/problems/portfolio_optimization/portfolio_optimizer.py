@@ -364,8 +364,8 @@ class PortfolioOptimizer:
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
-            out_future = self.decoder.decode_sampleset(response)
-            results.add_result(out_future)
+            outstanding_future_samples = self.decoder.decode_sampleset(response)
+            results.add_result(outstanding_future_samples)
 
         if verbose:
             print("Number of generated samples: ", len(results))

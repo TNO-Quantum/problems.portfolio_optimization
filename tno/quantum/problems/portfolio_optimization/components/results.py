@@ -58,59 +58,60 @@ class Results:
         """Return the number of samples stored in the ``Results`` object."""
         return self.results_df.shape[0]
 
-    def add_result(self, outstanding_future: NDArray[np.float_]) -> None:
+    def add_result(self, outstanding_future_samples: NDArray[np.float_]) -> None:
         """Add a new outstanding_future data point to results container.
 
         Args:
-            outstanding_future: the in future outstanding amounts.
+            outstanding_future_samples: outstanding amounts in the future for each
+                sample of the dataset.
         """
-        # Skip if outstanding future already in dataset.
-        if any(
-            [
-                np.array_equal(outstanding_future, result)
-                for result in self.results_df["outstanding amount"].to_numpy()
+        for oustanding_future in outstanding_future_samples:
+            # Skip if outstanding sample already in dataset.
+            if any(
+                [
+                    np.array_equal(oustanding_future, result)
+                    for result in self.results_df["outstanding amount"].to_numpy()
+                ]
+            ):
+                continue
+            total_outstanding_future = np.sum(oustanding_future)
+            # Compute the ROC growth
+            roc = np.sum(oustanding_future * self._returns) / np.sum(
+                oustanding_future * self._capital / self._outstanding_now
+            )
+            roc_growth = 100 * (roc / self._roc_now - 1)
+
+            # Compute the diversification.
+            hhi = np.sum(oustanding_future**2) / total_outstanding_future**2
+            diff_diversification = 100 * (1 - (hhi / self._hhi_now))
+
+            # Compute the growth outstanding in outstanding amount
+            growth_outstanding = total_outstanding_future / self._total_outstanding_now
+
+            new_data = [
+                oustanding_future,
+                roc_growth,
+                diff_diversification,
+                growth_outstanding,
             ]
-        ):
-            return
 
-        total_outstanding_future = np.sum(outstanding_future, axis=1)
-        # Compute the ROC growth
-        roc = np.sum(outstanding_future * self._returns, axis=1) / np.sum(
-            outstanding_future * self._capital / self._outstanding_now, axis=1
-        )
-        roc_growth = 100 * (roc / self._roc_now - 1)
+            # Compute the emission constraint growths
+            for (
+                column_name_now,
+                column_name_future,
+                _,
+            ) in self.provided_emission_constraints:
+                total_emission_now = np.sum(
+                    self._outstanding_now * self.portfolio_data.get_column(column_name_now)
+                )
+                total_emission_future = np.sum(
+                    oustanding_future * self.portfolio_data.get_column(column_name_future)
+                )
 
-        # Compute the diversification.
-        hhi = np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
-        diff_diversification = 100 * (1 - (hhi / self._hhi_now))
+                new_data.append(total_emission_future / total_emission_now)
 
-        # Compute the growth outstanding in outstanding amount
-        growth_outstanding = total_outstanding_future / self._total_outstanding_now
-
-        new_data = [
-            outstanding_future,
-            roc_growth,
-            diff_diversification,
-            growth_outstanding,
-        ]
-
-        # Compute the emission constraint growths
-        for (
-            column_name_now,
-            column_name_future,
-            _,
-        ) in self.provided_emission_constraints:
-            total_emission_now = np.sum(
-                self._outstanding_now * self.portfolio_data.get_column(column_name_now)
-            )
-            total_emission_future = np.sum(
-                outstanding_future * self.portfolio_data.get_column(column_name_future)
-            )
-
-            new_data.append(total_emission_future / total_emission_now)
-
-        # Write results
-        self.results_df.loc[len(self.results_df)] = new_data
+            # Write results
+            self.results_df.loc[len(self.results_df)] = new_data
 
     def head(self, n=5):
         """Return first n rows of self.results_df DataFrame
@@ -130,15 +131,16 @@ class Results:
         tuple[NDArray[np.float_], NDArray[np.float_]],
         tuple[NDArray[np.float_], NDArray[np.float_]],
     ]:
-        """Slice the results in two groups, those that satisfy and those that violate
-        the growth factor and emission constraints.
+        """Helper function that slices the results in two groups, those results that
+        satisfy all constraints and those that violate at least one of the growth factor
+        or emission constraints.
 
         Args:
             tolerance: tolerance on how strict the constraints need to be satisfied.
 
         Returns:
             Relative difference (diversification, roc) coordinates for solutions that
-            satisfy the constraints, and for those that do not satisfy the constraints.
+            satisfy all constraints, and for those that do not satisfy all constraints.
 
         Raises:
             ValueError: when there are no emission or growth factor constraints set.

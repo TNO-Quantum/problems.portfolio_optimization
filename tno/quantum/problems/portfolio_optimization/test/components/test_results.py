@@ -19,16 +19,16 @@ def results_fixture() -> Results:
 def test_add_result(results: Results) -> None:
     assert len(results) == 0
 
-    outstanding_future = np.array([[19, 39], [10, 30]])
-    results.add_result(outstanding_future)
+    outstanding_future_samples = np.array([[19, 39], [10, 30]])
+    results.add_result(outstanding_future_samples)
     assert len(results) == 1
 
     # Add duplicate result
-    results.add_result(outstanding_future)
+    results.add_result(outstanding_future_samples)
     assert len(results) == 1
 
     # Add different results
     for i in range(10):
-        outstanding_future = np.array([[i, 1], [1, 1]])
-        results.add_result(outstanding_future)
+        outstanding_future_samples = np.array([[i, 1], [1, 1]])
+        results.add_result(outstanding_future_samples)
         assert len(results) == i + 2
