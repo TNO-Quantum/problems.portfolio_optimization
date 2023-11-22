@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
+import pandas as pd
 from dimod.core.sampler import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
@@ -366,6 +367,10 @@ class PortfolioOptimizer:
             # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
             outstanding_future_samples = self.decoder.decode_sampleset(response)
             results.add_result(outstanding_future_samples)
+
+        if verbose:
+            print("Drop duplicate samples in results.")
+        results.aggregate()
 
         if verbose:
             print("Number of generated samples: ", len(results))

@@ -66,14 +66,6 @@ class Results:
                 sample of the dataset.
         """
         for oustanding_future in outstanding_future_samples:
-            # Skip if outstanding sample already in dataset.
-            if any(
-                [
-                    np.array_equal(oustanding_future, result)
-                    for result in self.results_df["outstanding amount"].to_numpy()
-                ]
-            ):
-                continue
             total_outstanding_future = np.sum(oustanding_future)
             # Compute the ROC growth
             roc = np.sum(oustanding_future * self._returns) / np.sum(
@@ -102,10 +94,12 @@ class Results:
                 _,
             ) in self.provided_emission_constraints:
                 total_emission_now = np.sum(
-                    self._outstanding_now * self.portfolio_data.get_column(column_name_now)
+                    self._outstanding_now
+                    * self.portfolio_data.get_column(column_name_now)
                 )
                 total_emission_future = np.sum(
-                    oustanding_future * self.portfolio_data.get_column(column_name_future)
+                    oustanding_future
+                    * self.portfolio_data.get_column(column_name_future)
                 )
 
                 new_data.append(total_emission_future / total_emission_now)
@@ -124,6 +118,17 @@ class Results:
             column for column in self.columns if column != "Outstanding amount"
         ]
         return self.results_df[selected_columns].head(n)
+
+    def aggregate(self):
+        """Drop duplicates in results DataFrame"""
+        # TODO: Drop duplicates more efficiently here by maybe taking a set on
+        # 'outstanding amount' and applying those indices smartly.
+
+        # Implementation below has issues with unhashable np.array
+        unique_x_values = self.results_df["outstanding amount"].unique()
+        self.results_df = self.results_df[
+            self.results_df["outstanding amount"].isin(unique_x_values)
+        ]
 
     def slice_results(
         self, tolerance: float = 0.0
