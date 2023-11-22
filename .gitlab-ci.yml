@@ -1,0 +1,13 @@
+include:
+  - project: quantum/cicd/templates/python
+    file: quantum-toolbox-template-microlib.yaml
+    ref: "python312"
+
+
+python:twine:
+  rules:
+    - when: never
+
+semantic-release:
+  rules:
+    - when: never
