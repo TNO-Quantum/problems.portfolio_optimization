@@ -1,9 +1,6 @@
 """This module contains a container for Results object."""
 from __future__ import annotations
 
-from collections import deque
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -17,10 +14,8 @@ class Results:
     def __init__(
         self,
         portfolio_data: PortfolioData,
-        provided_emission_constraints: Optional[
-            list[tuple(str, str, float, str)]
-        ] = None,
-        provided_growth_target: Optional[float] = None,
+        provided_emission_constraints: list[tuple[str, str, float, str]] | None = None,
+        provided_growth_target: float | None = None,
     ) -> None:
         """Init of Results container.
 

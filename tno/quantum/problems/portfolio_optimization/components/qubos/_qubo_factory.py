@@ -5,8 +5,6 @@ QUBO matrices for different objectives and constraints.
 """
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -106,7 +104,7 @@ class QuboFactory:
     def calc_emission_constraint(
         self,
         variable_now: str,
-        variable_future: Optional[str] = None,
+        variable_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the emission constraint QUBO for arbitrary target reduction target

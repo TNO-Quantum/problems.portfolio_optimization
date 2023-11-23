@@ -1,7 +1,8 @@
 """This module contains test for the ``QuboCompiler`` class."""
 from __future__ import annotations
 
-from typing import Any, MutableSequence
+from collections.abc import MutableSequence
+from typing import Any
 
 import numpy as np
 import pytest

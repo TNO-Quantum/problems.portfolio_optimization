@@ -5,7 +5,7 @@ import itertools
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from dimod.core.sampler import Sampler
@@ -77,7 +77,7 @@ class PortfolioOptimizer:
         self,
         portfolio_data: PortfolioData | DataFrame | str | Path,
         k: int = 2,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ) -> None:
         """Init ``PortfolioOptimizer``.
 
@@ -116,7 +116,7 @@ class PortfolioOptimizer:
         self._provided_emission_constraints: list[tuple(str, str, float, str)] = []
         self._provided_growth_target: float = None
 
-    def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
+    def add_minimize_hhi(self, weights: ArrayLike | None = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
 
         The HHI objective is given by
@@ -150,9 +150,9 @@ class PortfolioOptimizer:
     def add_maximize_roc(
         self,
         formulation: int,
-        weights_roc: Optional[ArrayLike] = None,
+        weights_roc: ArrayLike | None = None,
         ancilla_variables: int = 0,
-        weights_stabilize: Optional[ArrayLike] = None,
+        weights_stabilize: ArrayLike | None = None,
     ) -> None:
         r"""Adds the maximize ROC objective to the portfolio optimization problem.
 
@@ -232,10 +232,10 @@ class PortfolioOptimizer:
     def add_emission_constraint(
         self,
         variable_now: str,
-        variable_future: Optional[str] = None,
+        variable_future: str | None = None,
         reduction_percentage_target: float = 0.7,
-        name: Optional[str] = None,
-        weights: Optional[ArrayLike] = None,
+        name: str | None = None,
+        weights: ArrayLike | None = None,
     ) -> None:
         r"""Add emission constraint to the portfolio optimization problem.
 
@@ -296,7 +296,7 @@ class PortfolioOptimizer:
         )
 
     def add_growth_factor_constraint(
-        self, growth_target: float, weights: Optional[ArrayLike] = None
+        self, growth_target: float, weights: ArrayLike | None = None
     ) -> None:
         # pylint: disable=line-too-long
         r"""Add an outstanding amount growth factor constraint to the portfolio
@@ -343,8 +343,8 @@ class PortfolioOptimizer:
 
     def run(
         self,
-        sampler: Optional[Sampler] = None,
-        sampler_kwargs: Optional[dict[str, Any]] = None,
+        sampler: Sampler | None = None,
+        sampler_kwargs: dict[str, Any] | None = None,
         verbose: bool = True,
     ) -> Results:
         # pylint: disable=line-too-long
@@ -430,7 +430,7 @@ class PortfolioOptimizer:
         return results
 
     @staticmethod
-    def _parse_weight(weights: Optional[ArrayLike] = None) -> NDArray[np.float_]:
+    def _parse_weight(weights: ArrayLike | None = None) -> NDArray[np.float_]:
         """Convert weights into NumPy array and if needed set default weights to [1.0]
 
         Args:

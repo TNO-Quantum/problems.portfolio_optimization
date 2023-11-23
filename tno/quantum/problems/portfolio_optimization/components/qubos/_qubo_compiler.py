@@ -6,7 +6,7 @@ objectives and constraints with their corresponding penalty or preference parame
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, Optional, TypeVar
+from typing import Callable, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -105,7 +105,7 @@ class QuboCompiler:
     def add_emission_constraint(
         self: QuboCompilerT,
         variable_now: str,
-        variable_future: Optional[str] = None,
+        variable_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
         r"""Add the emission constraint to the compile list.

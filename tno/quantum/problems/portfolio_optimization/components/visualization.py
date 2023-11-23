@@ -1,6 +1,4 @@
 """This module contains visualization tools."""
-from typing import Optional
-
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from numpy.typing import ArrayLike
@@ -13,9 +11,9 @@ from tno.quantum.problems.portfolio_optimization.components.postprocess import (
 def plot_points(
     diversification_values: ArrayLike,
     roc_values: ArrayLike,
-    color: Optional[str] = None,
-    label: Optional[str] = None,
-    ax: Optional[Axes] = None,  # pylint: disable=invalid-name
+    color: str | None = None,
+    label: str | None = None,
+    ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plot the given data-points in a Diversification-ROC plot.
 
@@ -51,9 +49,9 @@ def plot_points(
 def plot_front(
     diversification_values: ArrayLike,
     roc_values: ArrayLike,
-    color: Optional[str] = None,
-    label: Optional[str] = None,
-    ax: Optional[Axes] = None,  # pylint: disable=invalid-name
+    color: str | None = None,
+    label: str | None = None,
+    ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plot a pareto front of the given data-points in a Diversification-ROC plot.
 

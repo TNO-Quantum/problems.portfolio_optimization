@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, TypeVar, cast
+from typing import TypeVar, cast
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class PortfolioData:
     def __init__(
         self,
         portfolio_dataframe: DataFrame,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ):
         """Create a ``PortfolioData`` object from a pandas ``DataFrame``.
 
@@ -68,7 +68,7 @@ class PortfolioData:
     def from_file(
         cls: type[PortfolioDataT],
         filename: str | Path,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ) -> PortfolioDataT:
         """Read portfolio data object into ``PortfolioData``.
 
