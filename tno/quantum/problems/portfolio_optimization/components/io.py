@@ -105,7 +105,7 @@ class PortfolioData:
         elif filename.endswith(".json"):
             portfolio_data = pd.read_json(filename)
         else:
-            ValueError("Datatype not supported.")
+            raise ValueError("Datatype not supported.")
         return cls(portfolio_data, columns_rename)
 
     def get_outstanding_now(self) -> NDArray[np.float_]:
