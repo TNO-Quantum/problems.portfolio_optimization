@@ -3,9 +3,6 @@ include:
     file: quantum-toolbox-template-microlib.yml
     ref: "python312"
 
-variables:
-  PYTHON_PACKAGE: "tno.quantum.problems.portfolio_optimization"
-
 
 python:twine:
   rules:
