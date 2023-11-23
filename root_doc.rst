@@ -29,6 +29,9 @@ The codebase is based on the following paper:
 .. _QUBO: https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization
 
 
+**Funding:** This research was funded by Rabobank and Stichting TKI High Tech Systems
+and Materials, under a program by Brightland's Techruption.
+
 Quick Install
 -------------
 The portfolio optimization module can be installed using pip as follows::
