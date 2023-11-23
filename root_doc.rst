@@ -38,7 +38,7 @@ The portfolio optimization module can be installed using pip as follows::
 Examples
 --------
 
-Here's an example of how the :py:class:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer` class 
+Here's an example of how the :py:class:`~portfolio_optimization.PortfolioOptimizer` class 
 can be used to define an portfolio optimization problem, and subsequently, how the Pareto front be computed 
 using the simulated annealing sampler from D-Wave. 
 
@@ -194,7 +194,7 @@ Using Quantum Annealing Solvers
 
 By default, the portfolio optimization QUBO is solved using simulated annealing.
 Any D-Wave ``Sampler`` is however supported and can be provided to the
-:py:meth:`~portfolio_optimization.portfolio_optimizer.PortfolioOptimizer.run` method.
+:py:meth:`~portfolio_optimization.PortfolioOptimizer.run` method.
  
 
 Below is an example how to initialise a quantum annealing sampler that uses `100` micro seconds annealing time per sample.
