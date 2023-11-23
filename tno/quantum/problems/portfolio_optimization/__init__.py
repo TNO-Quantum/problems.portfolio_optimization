@@ -7,11 +7,11 @@ The following objectives can be considered
 - `return on capital`, indicated by ROC,
 - `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
 
-Additionally, we allow for capital growth factor and arbitrary emission reduction 
+Additionally, we allow for capital growth factor and arbitrary emission reduction
 constraints to be considered.
 
 The `Pareto front`_, the set of solutions where one objective can't be improved without
-worsening the other objective, can be computed for return on capital and diversification. 
+worsening the other objective, can be computed for return on capital and diversification.
 
 The codebase is based on the following paper:
 
