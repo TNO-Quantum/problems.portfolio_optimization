@@ -1,7 +1,7 @@
 """This module implements required post processing steps."""
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 from dimod import SampleSet

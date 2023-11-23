@@ -1,7 +1,8 @@
 """This module contains test for the ``QuboCompiler`` class."""
 from __future__ import annotations
 
-from typing import Any, MutableSequence
+from collections.abc import MutableSequence
+from typing import Any
 
 import numpy as np
 import pytest
@@ -120,6 +121,23 @@ def test_mixing(qubo_compiler: QuboCompiler) -> None:
     np.testing.assert_array_equal(
         qubo, sum((i + 1) * qubo_compiler._compiled_qubos[i] for i in range(5))
     )
+
+
+def test_ordering() -> None:
+    """Test order"""
+    portfolio_data = make_test_dataset()
+
+    qubo_compiler1 = QuboCompiler(portfolio_data, k=2)
+    qubo_compiler1.add_minimize_hhi()
+    qubo_compiler1.add_maximize_roc(formulation=2)
+    qubo1, offset1 = qubo_compiler1.compile().make_qubo(1, 1, 1)
+
+    qubo_compiler2 = QuboCompiler(portfolio_data, k=2)
+    qubo_compiler2.add_maximize_roc(formulation=2)
+    qubo_compiler2.add_minimize_hhi()
+    qubo2, offset2 = qubo_compiler2.compile().make_qubo(1, 1, 1)
+    assert np.allclose(qubo1, qubo2)
+    assert np.equal(offset1, offset2) | (np.isnan(offset1) & np.isnan(offset2))
 
 
 def test_incorrect_lambdas(qubo_compiler: QuboCompiler) -> None:

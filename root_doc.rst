@@ -50,7 +50,7 @@ using the simulated annealing sampler from D-Wave.
 
     from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
 
-    # Choose sampler and solve qubo.
+    # Choose sampler for solving qubo
     sampler = SimulatedAnnealingSampler()
     sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
 
@@ -60,18 +60,55 @@ using the simulated annealing sampler from D-Wave.
     lambdas3 = np.array([1])
 
     # Create portfolio optimization problem
-    portfolio_optimizer = PortfolioOptimizer("rabobank")
+    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
     portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
     portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
     portfolio_optimizer.add_emission_constraint(
         weights=lambdas3,
         variable_now="emis_intens_now",
         variable_future="emis_intens_future",
+        name="emission"
     )
 
     # Solve the portfolio optimization problem
     results = portfolio_optimizer.run(sampler, sampler_kwargs)
+    print(results.head())
 
+The results can be inspected in more detail by looking at the results DataFrame
+`results.results_df`.
+
+Alternatively, the results can be plotted in a `(Diversification, ROC)`-graph. The
+following example first slices the results in data points that do and do not satisfy the
+constraints using the method :py:meth:`~portfolio_optimization.components.results.Results.slice_results()`. 
+
+- Individual data points can subsequently be plotted using :py:func:`~portfolio_optimization.components.visualization.plot_points()`
+- The Pareto front can be plotted using :py:func:`~portfolio_optimization.components.visualization.plot_front()`
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+
+    from tno.quantum.problems.portfolio_optimization import plot_front, plot_points
+
+    (x1, y1), (x2, y2) = results.slice_results()
+    fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
+
+    # Plot data points
+    plot_points(x2, y2, color="orange", label="QUBO constraint not met", ax=ax1)
+    plot_points(x1, y1, color="green", label="QUBO constraint met", ax=ax1)
+    ax1.set_title("Points")
+
+    # Plot Pareto front
+    plot_front(x2, y2, color="green", label="QUBO constraint not met", ax=ax2)
+    plot_front(x1, y1, color="green", label="QUBO constraint met", ax=ax2)
+    ax2.set_title("Pareto Front")
+    fig.tight_layout()
+    plt.show()
+
+.. image:: ../images_for_docs/example.png
+    :width: 1200
+    :align: center
+    :alt: (Diversification, ROC)-Graph
 
 Data input
 ----------

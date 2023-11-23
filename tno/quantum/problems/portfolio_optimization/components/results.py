@@ -1,10 +1,8 @@
 """This module contains a container for Results object."""
 from __future__ import annotations
 
-from collections import deque
-from typing import Optional
-
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
@@ -13,116 +11,175 @@ from tno.quantum.problems.portfolio_optimization.components.io import PortfolioD
 class Results:
     """Results container"""
 
-    def __init__(self, portfolio_data: PortfolioData) -> None:
+    def __init__(
+        self,
+        portfolio_data: PortfolioData,
+        provided_emission_constraints: list[tuple[str, str, float, str]] | None = None,
+        provided_growth_target: float | None = None,
+    ) -> None:
         """Init of Results container.
 
         Args:
             portfolio_data: the portfolio data
+            provided_emission_constraints: list of all the emission constraints that are
+                provided. Each list element contains the ``variable_now``,
+                ``variable_future`` and ``reduction_percentage_target`` input.
+            provided_growth_target: target outstanding amount growth factor if the
+                growth factor constraint is set, otherwise None.
         """
+        self.portfolio_data = portfolio_data
+        if provided_emission_constraints is None:
+            self.provided_emission_constraints = []
+        else:
+            self.provided_emission_constraints = provided_emission_constraints
+        self.provided_growth_target = provided_growth_target
+
         self._outstanding_now = portfolio_data.get_outstanding_now()
-        self._e = portfolio_data.get_column("emis_intens_now")
-        income = portfolio_data.get_income()
+        self._total_outstanding_now = np.sum(self._outstanding_now)
+
+        self._returns = portfolio_data.get_income() / self._outstanding_now
         self._capital = portfolio_data.get_capital()
-        self._returns = income / self._outstanding_now
-        self._roc_now = np.sum(income) / np.sum(self._capital)
+        self._roc_now = np.sum(portfolio_data.get_income()) / np.sum(self._capital)
         self._hhi_now = (
             np.sum(self._outstanding_now**2) / np.sum(self._outstanding_now) ** 2
         )
-        self._relelative_total_emission_now = np.sum(
-            self._e * self._outstanding_now
-        ) / np.sum(self._outstanding_now)
-        self._total_outstanding_now = np.sum(self._outstanding_now)
 
-        self._x: deque[NDArray[np.float_]] = deque()
-        self._y: deque[NDArray[np.float_]] = deque()
-        self._outstanding_future: deque[NDArray[np.float_]] = deque()
+        self.columns = [
+            "outstanding amount",
+            "diff ROC",
+            "diff diversification",
+            "diff outstanding",
+        ] + [
+            "diff " + constraint[3] for constraint in self.provided_emission_constraints
+        ]
+        self.results_df = pd.DataFrame(columns=self.columns)
 
     def __len__(self) -> int:
         """Return the number of samples stored in the ``Results`` object."""
-        return len(self._x)
+        return len(self.results_df)
 
-    def add_result(self, outstanding_future: NDArray[np.float_]) -> None:
+    def add_result(self, outstanding_future_samples: NDArray[np.float_]) -> None:
         """Add a new outstanding_future data point to results container.
 
         Args:
-            outstanding_future: the in future outstanding amounts.
+            outstanding_future_samples: outstanding amounts in the future for each
+                sample of the dataset.
         """
-        total_outstanding_future = np.sum(outstanding_future, axis=1)
-        # Compute the future HHI.
-        hhi_future = (
-            np.sum(outstanding_future**2, axis=1) / total_outstanding_future**2
-        )
-        # Compute the future ROC
-        roc = np.sum(outstanding_future * self._returns, axis=1) / np.sum(
-            outstanding_future * self._capital / self._outstanding_now, axis=1
-        )
-        # Compute the emissions from the resulting future portfolio.
-        diversification = 100 * (1 - (hhi_future / self._hhi_now))
-        roc_growth = 100 * (roc / self._roc_now - 1)
+        for oustanding_future in outstanding_future_samples:
+            total_outstanding_future = np.sum(oustanding_future)
+            # Compute the ROC growth
+            roc = np.sum(oustanding_future * self._returns) / np.sum(
+                oustanding_future * self._capital / self._outstanding_now
+            )
+            roc_growth = 100 * (roc / self._roc_now - 1)
 
-        self._x.extend(diversification)
-        self._y.extend(roc_growth)
-        self._outstanding_future.extend(outstanding_future)
+            # Compute the diversification.
+            hhi = np.sum(oustanding_future**2) / total_outstanding_future**2
+            diff_diversification = 100 * (1 - (hhi / self._hhi_now))
 
-    def aggregate(self) -> None:
-        """Aggregate unique results."""
-        diversification = np.asarray(self._x)
-        roc_growth = np.asarray(self._y)
-        outstanding_future = np.asarray(self._outstanding_future)
+            # Compute the growth outstanding in outstanding amount
+            growth_outstanding = total_outstanding_future / self._total_outstanding_now
 
-        data = np.vstack((np.asarray(self._x), np.asarray(self._y)))
-        _, indices = np.unique(data, axis=1, return_index=True)
+            new_data = [
+                tuple(oustanding_future),
+                roc_growth,
+                diff_diversification,
+                growth_outstanding,
+            ]
 
-        self._x = deque(diversification[indices])
-        self._y = deque(roc_growth[indices])
-        self._outstanding_future = deque(outstanding_future[indices])
+            # Compute the emission constraint growths
+            for (
+                column_name_now,
+                column_name_future,
+                _,
+                _,
+            ) in self.provided_emission_constraints:
+                total_relative_emission_now = np.sum(
+                    self._outstanding_now
+                    * self.portfolio_data.get_column(column_name_now)
+                ) / np.sum(self._outstanding_now)
+                total_relative_emission_future = np.sum(
+                    oustanding_future
+                    * self.portfolio_data.get_column(column_name_future)
+                ) / np.sum(oustanding_future)
+
+                new_data.append(
+                    100
+                    * (total_relative_emission_future / total_relative_emission_now - 1)
+                )
+
+            # Write results
+            self.results_df.loc[len(self.results_df)] = new_data
+
+    def head(self, n: int = 5) -> pd.DataFrame:
+        """Return first n rows of self.results_df DataFrame
+
+        Args:
+            selected_columns: By default all columns
+            n: number of results to return
+        """
+        selected_columns = [
+            column for column in self.columns if column != "Outstanding amount"
+        ]
+        return self.results_df[selected_columns].head(n)
+
+    def drop_duplicates(self) -> None:
+        """Drop duplicates in results DataFrame"""
+        self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)
 
     def slice_results(
-        self, growth_target: Optional[float] = None
+        self, tolerance: float = 0.0
     ) -> tuple[
         tuple[NDArray[np.float_], NDArray[np.float_]],
         tuple[NDArray[np.float_], NDArray[np.float_]],
-        tuple[NDArray[np.float_], NDArray[np.float_]],
     ]:
-        """Slice the results in three groups, growth targets met, almost met, not met or
-        not.
-
-            - Realized growth > growth target
-            - 98% of the growth target < Realized growth < growth target
-            - Realized growth < 98% of the growth target
+        """Helper function that slices the results in two groups, those results that
+        satisfy all constraints and those that violate at least one of the growth factor
+        or emission constraints.
 
         Args:
-            growth_target: the target to
+            tolerance: tolerance on how strict the constraints need to be satisfied (in
+                percentage point). Example: if the desired target growth rate is 1.2, if
+                the tolerance is set to 0.05 (5%). Solutions that increase outstanding
+                amount by a factor of 1.15 are considered to satisfy the constraints
+                given the tolerance.
 
-        #TODO: Handle growth_target is None docs, is quite specific/hardcoded
+        Returns:
+            Relative difference (diversification, roc) coordinates for solutions that
+            satisfy all constraints, and for those that do not satisfy all constraints.
+
+        Raises:
+            ValueError: when there are no emission or growth factor constraints set.
         """
-        diversification = np.asarray(self._x)
-        roc_growth = np.asarray(self._y)
-        outstanding_future = np.array(self._outstanding_future)
-        total_outstanding_future = np.sum(outstanding_future, axis=1)
+        if (
+            self.provided_growth_target is None
+            and len(self.provided_emission_constraints) == 0
+        ):
+            raise ValueError("There are no emission or growth constraints set.")
 
-        if growth_target is None:
-            res_emis = 0.76 * np.sum(self._e * self._outstanding_future, axis=1)
-            norm1 = (
-                self._relelative_total_emission_now * 0.70 * total_outstanding_future
+        mask_growth_target = (
+            True
+            if self.provided_growth_target is None
+            else (
+                self.results_df["diff outstanding"]
+                >= 100 * (self.provided_growth_target - tolerance - 1)
             )
-            norm2 = 1.020 * norm1
-            discriminator1 = res_emis < norm1
-            discriminator2 = res_emis < norm2
-        else:
-            realized_growth = total_outstanding_future / self._total_outstanding_now
-            discriminator1 = realized_growth > growth_target
-            discriminator2 = realized_growth > 0.98 * growth_target
+        )
 
-        mask1 = discriminator1
-        mask2 = ~mask1 & (discriminator2)
-        mask3 = ~(mask1 | mask2)
+        mask_emission_constraint = True
+        for _, _, value, name in self.provided_emission_constraints:
+            mask_emission_constraint &= self.results_df["diff " + name] <= 100 * (
+                (value + tolerance) - 1
+            )
 
-        x_met = diversification[mask1]
-        y_met = roc_growth[mask1]
-        x_reduced = diversification[mask2]
-        y_reduced = roc_growth[mask2]
-        x_violated = diversification[mask3]
-        y_violated = roc_growth[mask3]
+        combined_mask = mask_growth_target & mask_emission_constraint
 
-        return (x_met, y_met), (x_reduced, y_reduced), (x_violated, y_violated)
+        # Filter data based on masks
+        filtered_data_met = self.results_df[combined_mask]
+        filtered_data_violated = self.results_df[~combined_mask]
+
+        x_met = filtered_data_met["diff diversification"].to_numpy()
+        y_met = filtered_data_met["diff ROC"].to_numpy()
+        x_violated = filtered_data_violated["diff diversification"].to_numpy()
+        y_violated = filtered_data_violated["diff ROC"].to_numpy()
+        return (x_met, y_met), (x_violated, y_violated)

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, TypeVar, cast
+from typing import TypeVar, cast
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class PortfolioData:
     def __init__(
         self,
         portfolio_dataframe: DataFrame,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ):
         """Create a ``PortfolioData`` object from a pandas ``DataFrame``.
 
@@ -68,7 +68,7 @@ class PortfolioData:
     def from_file(
         cls: type[PortfolioDataT],
         filename: str | Path,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ) -> PortfolioDataT:
         """Read portfolio data object into ``PortfolioData``.
 
@@ -85,7 +85,8 @@ class PortfolioData:
         renaming dictionary to the ``columns_rename`` argument.
 
         Args:
-            filename: path to portfolio data.
+            filename: path to portfolio data. If instead ``benchmark_dataset`` is
+                provided, a default benchmark dataset containing 52 assets will be used.
             column_rename: to rename columns provided as dict with new column names as keys
                 and to replace column name as value. Example
                 ``{"outstanding_2021": "outstanding_now"}``.
@@ -93,8 +94,8 @@ class PortfolioData:
         Raises:
             ValueError if required columns are not present in dataset.
         """
-        if str(filename) == "rabobank":
-            filename = Path(__file__).parents[1] / "datasets" / "rabodata.xlsx"
+        if str(filename) == "benchmark_dataset":
+            filename = Path(__file__).parents[1] / "datasets" / "benchmark_dataset.xlsx"
 
         filename = str(filename)
         if filename.endswith(".xlsx"):
@@ -210,7 +211,7 @@ class PortfolioData:
         # interval [l_bound, u_bound] and the central limit theorem.
         expected_total_outstanding_future = np.sum(u_bound + l_bound) / 2
         expected_stddev_total_outstanding_future = np.linalg.norm(
-            ((u_bound - l_bound) / 2)
+            (u_bound - l_bound) / 2
         )
         print(
             f"Expected total outstanding future: {expected_total_outstanding_future:.2f}",

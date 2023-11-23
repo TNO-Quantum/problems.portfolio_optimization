@@ -1,17 +1,11 @@
-"""This module contains the ``PortfolioOptimizer`` class.
-
-Example script:
-
-
-
-"""
+"""This module contains the ``PortfolioOptimizer`` class."""
 from __future__ import annotations
 
 import itertools
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from dimod.core.sampler import Sampler
@@ -29,13 +23,61 @@ from tno.quantum.problems.portfolio_optimization.components import (
 
 
 class PortfolioOptimizer:
-    """Portfolio Optimizer"""
+    """The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
+    optimization problems into QUBO problems which can then be solved using QUBO solving
+    techniques such as simulated or quantum annealing.
+
+    The following objectives can be considered
+
+    - `return on capital`, indicated by ROC,
+    - `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
+
+    The following constraints can be added
+
+    - `capital growth`, require minimum increase in outstanding assets.
+    - `emission reduction`, require a minimum reduction for an arbitrary emission type.
+
+    Example usage:
+
+    .. code-block::
+
+        import numpy as np
+        from dwave.samplers import SimulatedAnnealingSampler
+
+        from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+
+        # Choose sampler for solving qubo
+        sampler = SimulatedAnnealingSampler()
+        sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
+
+        # Set up penalty coefficients for the constraints
+        lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+        lambdas3 = np.array([1])
+
+        # Create portfolio optimization problem
+        portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
+        portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+        portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
+        portfolio_optimizer.add_emission_constraint(
+            weights=lambdas3,
+            variable_now="emis_intens_now",
+            variable_future="emis_intens_future",
+            name="emission",
+        )
+
+        # Solve the portfolio optimization problem
+        results = portfolio_optimizer.run(sampler, sampler_kwargs)
+        print(results.head())
+
+    .. _Herfindahl-Hirschman Index: https://nl.wikipedia.org/wiki/Herfindahl-index
+    """
 
     def __init__(
         self,
         portfolio_data: PortfolioData | DataFrame | str | Path,
         k: int = 2,
-        columns_rename: Optional[dict[str, str]] = None,
+        columns_rename: dict[str, str] | None = None,
     ) -> None:
         """Init ``PortfolioOptimizer``.
 
@@ -51,6 +93,9 @@ class PortfolioOptimizer:
             column_rename: can be used to rename data columns. See the docstring of
                 :py:class:`~portfolio_optimization.components.io.PortfolioData` for
                 example.
+
+        Raises:
+            TypeError: If the provided ``portfolio_data`` input has the wrong type.
         """
         if isinstance(portfolio_data, PortfolioData):
             self.portfolio_data = portfolio_data
@@ -68,9 +113,10 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
         self.decoder = Decoder(self.portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._growth_target: float
+        self._provided_emission_constraints: list[tuple[str, str, float, str]] = []
+        self._provided_growth_target: float | None = None
 
-    def add_minimize_hhi(self, weights: Optional[ArrayLike] = None) -> None:
+    def add_minimize_hhi(self, weights: ArrayLike | None = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
 
         The HHI objective is given by
@@ -86,13 +132,13 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_minimize_hhi(weights=lambdas)
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_minimize_hhi`.
+        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.calc_minimize_hhi`.
 
         Args:
             weights: The coefficients that are considered as penalty parameter.
@@ -104,9 +150,9 @@ class PortfolioOptimizer:
     def add_maximize_roc(
         self,
         formulation: int,
+        weights_roc: ArrayLike | None = None,
         ancilla_variables: int = 0,
-        weights_roc: Optional[ArrayLike] = None,
-        weights_stabilize: Optional[ArrayLike] = None,
+        weights_stabilize: ArrayLike | None = None,
     ) -> None:
         r"""Adds the maximize ROC objective to the portfolio optimization problem.
 
@@ -147,22 +193,26 @@ class PortfolioOptimizer:
             and ``weights_stabilize`` to scale.
 
         For the different QUBO formulations, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
+        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
 
         usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_maximize_roc(...)
 
         Args:
             formulation: the ROC QUBO formulation that is being used.
                 Possible options are: [1, 2].
-            ancilla_variables:
-            weights_roc:
-            weights_stabilize:
+            weights_roc: The coefficients that are considered as penalty parameter for
+                maximizing the roc objective.
+            ancilla_variables: The number of ancillary variables that are used to
+                represent ``G_C`` using fixed point representation. Only relevant for
+                roc formulation ``2``.
+            weights_stabilize: The coefficients that are considered as penalty parameter
+                for the stabilizing constraint. Only relevant for roc formulation ``2``.
 
         Raises:
             ValueError: If invalid formulation is provided.
@@ -182,9 +232,10 @@ class PortfolioOptimizer:
     def add_emission_constraint(
         self,
         variable_now: str,
-        variable_future: Optional[str] = None,
+        variable_future: str | None = None,
         reduction_percentage_target: float = 0.7,
-        weights: Optional[ArrayLike] = None,
+        name: str | None = None,
+        weights: ArrayLike | None = None,
     ) -> None:
         r"""Add emission constraint to the portfolio optimization problem.
 
@@ -209,27 +260,37 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(
         ...   variable_now="emis_intens_now", weights=lambdas
         ... )
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_emission_constraint`.
+        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
 
         Args:
             variable_now: Name of the column in the portfolio dataset corresponding to
-                the variables at current time.
+                the variables emission intensity at current time.
             variable_future: Name of the column in the portfolio dataset corresponding
-                to the variables at future time. If no value is provided, it is assumed
-                that the value is constant over time, i.e., the variable
-                ``variable_now`` will be used.
+                to the variables emission intensity at future time. If no value is
+                provided, it is assumed that the emission intensity is constant over
+                time, i.e., the variable ``variable_now`` will be used.
             reduction_percentage_target: target value for reduction percentage amount.
+            name: Name that will be used for emission constraint in the results df.
             weights: The coefficients that are considered as penalty parameter.
         """
+        # Store emission constraint information
+        if name is None:
+            name = variable_now
+        if variable_future is None:
+            variable_future = variable_now
+        self._provided_emission_constraints.append(
+            (variable_now, variable_future, reduction_percentage_target, name)
+        )
         self._all_lambdas.append(self._parse_weight(weights))
+
         self._qubo_compiler.add_emission_constraint(
             variable_now=variable_now,
             variable_future=variable_future,
@@ -237,9 +298,11 @@ class PortfolioOptimizer:
         )
 
     def add_growth_factor_constraint(
-        self, growth_target: float, weights: Optional[ArrayLike] = None
+        self, growth_target: float, weights: ArrayLike | None = None
     ) -> None:
-        r"""Add an growth factor constraint to the portfolio optimization problem.
+        # pylint: disable=line-too-long
+        r"""Add an outstanding amount growth factor constraint to the portfolio
+        optimization problem.
 
         The constraint is given by
 
@@ -251,32 +314,42 @@ class PortfolioOptimizer:
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$g$` is the target value for the total growth factor.
 
-        usage example:
+        Constraint can only be added once.
+
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(growth_target=1.2, weights=lambdas)
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.QuboFactory.calc_growth_factor_constraint`.
+        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
-            growth_target:
+            growth_target: target value for growth factor total outstanding amount.
             weights: The coefficients that are considered as penalty parameter.
+
+        Raises:
+            ValueError: If constraint has been added before.
         """
-        self._growth_target = growth_target
+        # pylint: enable=line-too-long
+        if self._provided_growth_target is not None:
+            raise ValueError("Growth factor constraint has been set before.")
+
         self._all_lambdas.append(self._parse_weight(weights))
+        self._provided_growth_target = growth_target
         self._qubo_compiler.add_growth_factor_constraint(growth_target)
 
     def run(
         self,
-        sampler: Optional[Sampler] = None,
-        sampler_kwargs: Optional[dict[str, Any]] = None,
+        sampler: Sampler | None = None,
+        sampler_kwargs: dict[str, Any] | None = None,
         verbose: bool = True,
     ) -> Results:
+        # pylint: disable=line-too-long
         """
         Optimize a portfolio given the set of provided constraints.
 
@@ -284,7 +357,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> from dwave.samplers import SimulatedAnnealingSampler
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="rabobank")
+        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> portfolio_optimizer.add_minimize_HHI()
         >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False)
 
@@ -304,6 +377,7 @@ class PortfolioOptimizer:
         .. _D-Wave Ocean Documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
 
         """
+        # pylint: enable=line-too-long
         if verbose:
             self.portfolio_data.print_portfolio_info()
 
@@ -312,11 +386,22 @@ class PortfolioOptimizer:
 
         if verbose:
             print("Status: creating model")
-            if hasattr(self, "_growth_target"):
-                print(f"Growth target: {self._growth_target - 1:.1%}")
+            if self._provided_growth_target is not None:
+                print(f"Growth target: {self._provided_growth_target - 1:.1%}")
+
+            for _, _, target_value, name in self._provided_emission_constraints:
+                print(
+                    f"Emission constraint: {name}, "
+                    f"target reduction percentage: {target_value - 1:.1%}"
+                )
+
         self._qubo_compiler.compile()
 
-        results = Results(self.portfolio_data)
+        results = Results(
+            portfolio_data=self.portfolio_data,
+            provided_emission_constraints=self._provided_emission_constraints,
+            provided_growth_target=self._provided_growth_target,
+        )
 
         if verbose:
             print("Status: calculating")
@@ -329,22 +414,25 @@ class PortfolioOptimizer:
 
         for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
-            qubo, offset = self._qubo_compiler.make_qubo(*lambdas)
+            qubo, _ = self._qubo_compiler.make_qubo(*lambdas)
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
-            out_future = self.decoder.decode_sampleset(response)
-            results.add_result(out_future)
+            outstanding_future_samples = self.decoder.decode_sampleset(response)
+            results.add_result(outstanding_future_samples)
 
         if verbose:
-            print("Number of generated samples: ", len(results))
+            print("Drop duplicate samples in results.")
+        results.drop_duplicates()
+
+        if verbose:
+            print("Number of unique samples: ", len(results))
             print("Time consumed:", datetime.now() - starttime)
 
-        results.aggregate()
         return results
 
     @staticmethod
-    def _parse_weight(weights: Optional[ArrayLike] = None) -> NDArray[np.float_]:
+    def _parse_weight(weights: ArrayLike | None = None) -> NDArray[np.float_]:
         """Convert weights into NumPy array and if needed set default weights to [1.0]
 
         Args:

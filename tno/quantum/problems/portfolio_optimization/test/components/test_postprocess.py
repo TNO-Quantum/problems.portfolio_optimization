@@ -1,5 +1,7 @@
 """This module contains tests for post-processing of results."""
-from typing import Mapping
+from __future__ import annotations
+
+from collections.abc import Mapping
 
 import numpy as np
 import pytest
