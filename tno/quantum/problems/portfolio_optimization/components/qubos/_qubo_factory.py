@@ -1,6 +1,6 @@
 """This module contains the ``QuboFactory`` class.
 
-The ``QuboFactory` class provides a convenient interface for constructing intermediate
+The ``QuboFactory`` class provides a convenient interface for constructing intermediate
 QUBO matrices for different objectives and constraints.
 """
 from __future__ import annotations
