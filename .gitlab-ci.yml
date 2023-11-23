@@ -11,3 +11,7 @@ python:twine:
 semantic-release:
   rules:
     - when: never
+
+find-next-release:
+  rules:
+    - when: never
