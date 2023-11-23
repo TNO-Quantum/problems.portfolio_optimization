@@ -168,7 +168,7 @@ class QuboCompiler:
             - `$g$` is the target value for the total growth factor.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.qubo_factory.calc_growth_factor_constraint`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
