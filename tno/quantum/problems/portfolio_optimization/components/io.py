@@ -211,7 +211,7 @@ class PortfolioData:
         # interval [l_bound, u_bound] and the central limit theorem.
         expected_total_outstanding_future = np.sum(u_bound + l_bound) / 2
         expected_stddev_total_outstanding_future = np.linalg.norm(
-            ((u_bound - l_bound) / 2)
+            (u_bound - l_bound) / 2
         )
         print(
             f"Expected total outstanding future: {expected_total_outstanding_future:.2f}",

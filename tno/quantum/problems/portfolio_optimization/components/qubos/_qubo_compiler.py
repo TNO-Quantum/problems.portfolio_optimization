@@ -5,8 +5,9 @@ objectives and constraints with their corresponding penalty or preference parame
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 import numpy as np
 from numpy.typing import NDArray

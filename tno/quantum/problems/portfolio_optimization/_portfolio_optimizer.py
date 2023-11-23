@@ -113,8 +113,8 @@ class PortfolioOptimizer:
         self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
         self.decoder = Decoder(self.portfolio_data, k)
         self._all_lambdas: list[NDArray[np.float_]] = []
-        self._provided_emission_constraints: list[tuple(str, str, float, str)] = []
-        self._provided_growth_target: float = None
+        self._provided_emission_constraints: list[tuple[str, str, float, str]] = []
+        self._provided_growth_target: float | None = None
 
     def add_minimize_hhi(self, weights: ArrayLike | None = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
@@ -284,6 +284,8 @@ class PortfolioOptimizer:
         # Store emission constraint information
         if name is None:
             name = variable_now
+        if variable_future is None:
+            variable_future = variable_now
         self._provided_emission_constraints.append(
             (variable_now, variable_future, reduction_percentage_target, name)
         )

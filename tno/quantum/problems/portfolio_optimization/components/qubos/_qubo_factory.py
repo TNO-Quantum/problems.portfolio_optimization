@@ -75,7 +75,7 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        expected_total_outstanding_future = np.sum((self.u_bound + self.l_bound)) / 2
+        expected_total_outstanding_future = np.sum(self.u_bound + self.l_bound) / 2
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.l_bound**2) / expected_total_outstanding_future**2
@@ -277,7 +277,7 @@ class QuboFactory:
         theta = self.returns / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
         mantisse = np.power(2, np.arange(self.k))
-        multiplier = theta * (self.u_bound - self.l_bound) / ((2**self.k - 1))
+        multiplier = theta * (self.u_bound - self.l_bound) / (2**self.k - 1)
         qubo_diag = np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)

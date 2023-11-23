@@ -1,4 +1,6 @@
 """This module contains visualization tools."""
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from numpy.typing import ArrayLike

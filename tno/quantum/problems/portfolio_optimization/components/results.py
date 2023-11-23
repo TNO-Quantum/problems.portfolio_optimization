@@ -56,7 +56,7 @@ class Results:
 
     def __len__(self) -> int:
         """Return the number of samples stored in the ``Results`` object."""
-        return self.results_df.shape[0]
+        return len(self.results_df)
 
     def add_result(self, outstanding_future_samples: NDArray[np.float_]) -> None:
         """Add a new outstanding_future data point to results container.
@@ -111,7 +111,7 @@ class Results:
             # Write results
             self.results_df.loc[len(self.results_df)] = new_data
 
-    def head(self, n=5):
+    def head(self, n: int = 5) -> pd.DataFrame:
         """Return first n rows of self.results_df DataFrame
 
         Args:
@@ -123,7 +123,7 @@ class Results:
         ]
         return self.results_df[selected_columns].head(n)
 
-    def drop_duplicates(self):
+    def drop_duplicates(self) -> None:
         """Drop duplicates in results DataFrame"""
         self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)
 

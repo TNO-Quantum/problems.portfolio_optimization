@@ -1,4 +1,6 @@
 """This module contains tests for the Results module."""
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -12,7 +14,7 @@ from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 @pytest.fixture(name="results")
 def results_fixture() -> Results:
     portfolio_data = make_test_dataset()
-    provided_constraints = []
+    provided_constraints: list[tuple[str, str, float, str]] = []
     return Results(portfolio_data, provided_constraints)
 
 
