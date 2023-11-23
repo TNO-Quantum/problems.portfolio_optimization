@@ -15,3 +15,7 @@ semantic-release:
 find-next-release:
   rules:
     - when: never
+
+tbump:
+  rules:
+    - when: never
