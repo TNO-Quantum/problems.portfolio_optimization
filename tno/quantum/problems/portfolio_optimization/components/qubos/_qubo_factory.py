@@ -103,8 +103,8 @@ class QuboFactory:
 
     def calc_emission_constraint(
         self,
-        variable_now: str,
-        variable_future: str | None = None,
+        emission_now: str,
+        emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> tuple[NDArray[np.float_], float]:
         r"""Calculate the emission constraint QUBO for arbitrary target reduction target
@@ -133,12 +133,12 @@ class QuboFactory:
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Args:
-            variable_now: Name of the column in the portfolio dataset corresponding to
+            emission_now: Name of the column in the portfolio dataset corresponding to
                 the variables at current time.
-            variable_future: Name of the column in the portfolio dataset corresponding
+            emission_future: Name of the column in the portfolio dataset corresponding
                 to the variables at future time. If no value is provided, it is assumed
                 that the value is constant over time, i.e., the variable
-                ``variable_now`` will be used.
+                ``emission_now`` will be used.
             reduction_percentage_target: Target value for reduction percentage amount.
 
         Raises:
@@ -147,20 +147,20 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        if variable_future is None:
-            variable_future = variable_now
+        if emission_future is None:
+            emission_future = emission_now
 
-        if variable_now not in self.portfolio_data:
+        if emission_now not in self.portfolio_data:
             raise KeyError(
-                f"Column name {variable_now} not present in portfolio dataset."
+                f"Column name {emission_now} not present in portfolio dataset."
             )
-        if variable_future not in self.portfolio_data:
+        if emission_future not in self.portfolio_data:
             raise KeyError(
-                f"Column name {variable_future} not present in portfolio dataset."
+                f"Column name {emission_future} not present in portfolio dataset."
             )
 
-        emission_intensity_now = self.portfolio_data.get_column(variable_now)
-        emission_intensity_future = self.portfolio_data.get_column(variable_future)
+        emission_intensity_now = self.portfolio_data.get_column(emission_now)
+        emission_intensity_future = self.portfolio_data.get_column(emission_future)
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
         relelative_total_emission_now = total_emission_now / np.sum(

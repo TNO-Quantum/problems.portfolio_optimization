@@ -22,8 +22,8 @@ class Results:
         Args:
             portfolio_data: the portfolio data
             provided_emission_constraints: list of all the emission constraints that are
-                provided. Each list element contains the ``variable_now``,
-                ``variable_future`` and ``reduction_percentage_target`` input.
+                provided. Each list element contains the ``emission_now``,
+                ``emission_future`` and ``reduction_percentage_target`` input.
             provided_growth_target: target outstanding amount growth factor if the
                 growth factor constraint is set, otherwise None.
         """

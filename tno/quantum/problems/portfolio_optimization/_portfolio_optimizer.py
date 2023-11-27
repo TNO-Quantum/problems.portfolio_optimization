@@ -34,10 +34,10 @@ class PortfolioOptimizer:
 
     The following constraints can be added
 
-    - `capital growth`, require minimum increase in outstanding assets.
-    - `emission reduction`, require a minimum reduction for an arbitrary emission type.
+    - `capital growth`, demand a minimum increase in outstanding assets.
+    - `emission reduction`, demand a minimum reduction for an arbitrary emission type.
 
-    Example usage:
+    Usage example:
 
     .. code-block::
 
@@ -61,8 +61,8 @@ class PortfolioOptimizer:
         portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
         portfolio_optimizer.add_emission_constraint(
             weights=lambdas3,
-            variable_now="emis_intens_now",
-            variable_future="emis_intens_future",
+            emission_now="emis_intens_now",
+            emission_future="emis_intens_future",
             name="emission",
         )
 
@@ -128,7 +128,12 @@ class PortfolioOptimizer:
             - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
-        usage example:
+        As the objective contains non-quadratic terms, a QUBO formulation requires
+        approximations. For the QUBO formulation, see the docs of
+        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
+        
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
@@ -136,13 +141,8 @@ class PortfolioOptimizer:
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_minimize_hhi(weights=lambdas)
 
-        For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.calc_minimize_hhi`.
-
         Args:
             weights: The coefficients that are considered as penalty parameter.
-
         """
         self._all_lambdas.append(self._parse_weight(weights))
         self._qubo_compiler.add_minimize_hhi()
@@ -161,8 +161,8 @@ class PortfolioOptimizer:
         .. math::
 
             ROC(x) =
-            \frac{\sum_{i=1}^N \frac{1}{y_i} x_i \cdot r_i}
-            {\sum_{i=1}^N \frac{1}{y_i} x_i \cdot c_i},
+            \frac{\sum_{i=1}^N \frac{x_i \cdot r_i}{y_i}}
+            {\sum_{i=1}^N \frac{x_i \cdot c_i}{y_i}},
 
         where
 
@@ -187,15 +187,16 @@ class PortfolioOptimizer:
             capital growth which is equal for all assets, where
 
                 - `$1≤G_C<2$` is a growth factor to be estimated using ancilla variables,
-                - `$C_{21} = \sum{i} c_{i}$` is the sum of all assets' regulatory capital.
+                - `$C_{21} = \sum_{i=1}^N c_{i}$` is the sum of all assets' regulatory capital.
 
-            Adds 2 qubo terms, requires extra arg ``ancilla_variables``. Use ``weights_roc``
-            and ``weights_stabilize`` to scale.
+            This formulation adds 2 qubo terms, one for the ROC term, and one to stabilize the 
+            capital growth. The stabilize qubo requires an extra argument ``ancilla_variables``.
+            Use ``weights_roc`` and ``weights_stabilize`` to scale both qubo's accordingly.
 
         For the different QUBO formulations, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
 
-        usage example:
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
@@ -231,21 +232,21 @@ class PortfolioOptimizer:
 
     def add_emission_constraint(
         self,
-        variable_now: str,
-        variable_future: str | None = None,
+        emission_now: str,
+        emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
         name: str | None = None,
         weights: ArrayLike | None = None,
     ) -> None:
-        r"""Add emission constraint to the portfolio optimization problem.
+        r"""Adds emission constraint to the portfolio optimization problem.
 
         The constraint is given by
 
         .. math::
 
-            \frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_i x_i}
+            \frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_{i=1}^N x_i}
             =
-            g \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},
+            g_e \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},
 
         where:
 
@@ -254,16 +255,16 @@ class PortfolioOptimizer:
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction.
+            - `$g_e$` is the target value for the relative emission reduction.
 
-        usage example:
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
         >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(
-        ...   variable_now="emis_intens_now", weights=lambdas
+        ...   emission_now="emis_intens_now", weights=lambdas
         ... )
 
         For the QUBO formulation, see the docs of
@@ -271,29 +272,29 @@ class PortfolioOptimizer:
         :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
 
         Args:
-            variable_now: Name of the column in the portfolio dataset corresponding to
+            emission_now: Name of the column in the portfolio dataset corresponding to
                 the variables emission intensity at current time.
-            variable_future: Name of the column in the portfolio dataset corresponding
+            emission_future: Name of the column in the portfolio dataset corresponding
                 to the variables emission intensity at future time. If no value is
                 provided, it is assumed that the emission intensity is constant over
-                time, i.e., the variable ``variable_now`` will be used.
+                time, i.e., the variable ``emission_now`` will be used.
             reduction_percentage_target: target value for reduction percentage amount.
             name: Name that will be used for emission constraint in the results df.
             weights: The coefficients that are considered as penalty parameter.
         """
         # Store emission constraint information
         if name is None:
-            name = variable_now
-        if variable_future is None:
-            variable_future = variable_now
+            name = emission_now
+        if emission_future is None:
+            emission_future = emission_now
         self._provided_emission_constraints.append(
-            (variable_now, variable_future, reduction_percentage_target, name)
+            (emission_now, emission_future, reduction_percentage_target, name)
         )
         self._all_lambdas.append(self._parse_weight(weights))
 
         self._qubo_compiler.add_emission_constraint(
-            variable_now=variable_now,
-            variable_future=variable_future,
+            emission_now=emission_now,
+            emission_future=emission_future,
             reduction_percentage_target=reduction_percentage_target,
         )
 
@@ -306,15 +307,16 @@ class PortfolioOptimizer:
 
         The constraint is given by
 
-        $$\frac{\sum_i x_i}{\sum_i y_i} = g,$$
+        $$\frac{\sum_{i=1}^N x_i}{\sum_{i=1}^N y_i} = g_c,$$
 
         where
 
+            - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$g$` is the target value for the total growth factor.
+            - `$g_c$` is the target value for the total growth factor.
 
-        Constraint can only be added once.
+        This constraint can only be added once.
 
         Usage example:
 
@@ -353,7 +355,7 @@ class PortfolioOptimizer:
         """
         Optimize a portfolio given the set of provided constraints.
 
-        usage example:
+        Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> from dwave.samplers import SimulatedAnnealingSampler

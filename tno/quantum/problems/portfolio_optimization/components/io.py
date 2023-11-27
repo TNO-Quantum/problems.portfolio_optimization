@@ -29,16 +29,16 @@ class PortfolioData:
         portfolio_dataframe: DataFrame,
         columns_rename: dict[str, str] | None = None,
     ):
-        """Create a ``PortfolioData`` object from a pandas ``DataFrame``.
+        """Creates a ``PortfolioData`` object from a pandas ``DataFrame``.
 
         The portfolio data is expected to contain at least the following columns names:
 
-            - ``"assets"``
-            - ``"outstanding_now_now"``
-            - ``"min_outstanding_future"``
-            - ``"max_outstanding_future"``
-            - ``"income_now"``
-            - ``"regcap_now"``
+            - ``"assets"``: The name of the asset.
+            - ``"outstanding_now_now"``: Current outstanding amount per asset.
+            - ``"min_outstanding_future"``: Lower bound outstanding amount in the future per asset.
+            - ``"max_outstanding_future"``: Upper bound outstanding amount in the future per asset.
+            - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+            - ``"regcap_now"``: Current regulatory capital per asset.
 
         Different column names in the dataset can be used but need to be provided as a
         renaming dictionary to the ``columns_rename`` argument.
@@ -74,12 +74,12 @@ class PortfolioData:
 
         The portfolio data is expected to contain at least the following columns names:
 
-            - ``"assets"``
-            - ``"outstanding_now_now"``
-            - ``"min_outstanding_future"``
-            - ``"max_outstanding_future"``
-            - ``"income_now"``
-            - ``"regcap_now"``
+            - ``"assets"``: The name of the asset.
+            - ``"outstanding_now_now"``: Current outstanding amount per asset.
+            - ``"min_outstanding_future"``: Lower bound outstanding amount in the future per asset.
+            - ``"max_outstanding_future"``: Upper bound outstanding amount in the future per asset.
+            - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+            - ``"regcap_now"``: Current regulatory capital per asset.
 
         Different column names in the dataset can be used but need to be provided as a
         renaming dictionary to the ``columns_rename`` argument.

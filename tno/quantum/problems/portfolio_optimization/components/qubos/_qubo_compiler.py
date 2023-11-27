@@ -105,8 +105,8 @@ class QuboCompiler:
 
     def add_emission_constraint(
         self: QuboCompilerT,
-        variable_now: str,
-        variable_future: str | None = None,
+        emission_now: str,
+        emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
         r"""Add the emission constraint to the compile list.
@@ -131,12 +131,12 @@ class QuboCompiler:
         :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
 
         Args:
-            variable_now: Name of the column in the portfolio dataset corresponding to
+            emission_now: Name of the column in the portfolio dataset corresponding to
                 the variables at current time.
-            variable_future: Name of the column in the portfolio dataset corresponding
+            emission_future: Name of the column in the portfolio dataset corresponding
                 to the variables at future time. If no value is provided, it is assumed
                 that the value is constant over time, i.e., the variable
-                ``variable_now`` will be used.
+                ``emission_now`` will be used.
             reduction_percentage_target: target value for reduction percentage amount.
 
         Returns:
@@ -144,8 +144,8 @@ class QuboCompiler:
         """
         method = partial(
             self._qubo_factory.calc_emission_constraint,
-            variable_now=variable_now,
-            variable_future=variable_future,
+            emission_now=emission_now,
+            emission_future=emission_future,
             reduction_percentage_target=reduction_percentage_target,
         )
         self._to_compile.append(method)
