@@ -60,9 +60,9 @@ class QuboFactory:
             QUBO(x)
             =
             \frac{
-                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)^2
+                \sum_{i=1}^N\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)^2
             }{
-                \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
+                \left(\frac{1}{2}\sum_{i=1}^NUB_i+LB_i\right)^2
             },
 
         where:
@@ -116,9 +116,9 @@ class QuboFactory:
             QUBO(x)
             =
             \left(
-            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)}
-            {{\frac{1}{2}\sum_iUB_i+LB_i}}
-            - g_e \frac{\sum_i e_i \cdot y_i}{\sum_i y_i}
+            \frac{\sum_{i=1}^N f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)}
+            {{\frac{1}{2}\sum_{i=1}^NUB_i+LB_i}}
+            - g_e \frac{\sum_{i=1}^N e_i \cdot y_i}{\sum_{i=1}^N y_i}
             \right)^2
 
         where:
@@ -208,7 +208,7 @@ class QuboFactory:
             QUBO(x)
             =
             \left(
-            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^j\cdot x_{i,j}}{\sum_i y_i}
+            \frac{\sum_{i=1}^N LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1} 2^j\cdot x_{i,j}}{\sum_{i=1}^N y_i}
             - g_c
             \right)^2
 
@@ -258,8 +258,8 @@ class QuboFactory:
 
             QUBO(x)
             =
-            -\sum_i\frac{r_i}{c_i\cdot y_i}
-            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right),
+            -\sum_{i=1}^N\frac{r_i}{c_i\cdot y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
         where
 
@@ -294,12 +294,12 @@ class QuboFactory:
             =
             -
             G_{inv}(g) \cdot
-            \sum_i\frac{r_i}{y_i}
+            \sum_{i=1}^N\frac{r_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
             G_{inv}(g) =
             \left(
-            1 + \sum_{j} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
+            1 + \sum_{j=0}^{k-1} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
             \right)
 
         where
@@ -357,12 +357,12 @@ class QuboFactory:
             QUBO(x,g)
             &=
             \left(
-            \sum_i\frac{c_i}{y_i}
-            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
-            - G_C(g)\sum_i c_i
+            \sum_{i=1}^N\frac{c_i}{y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)
+            - G_C(g)\sum_{i=1}^N c_i
             \right)^2,
 
-            G_C &= 1 + \sum_j 2^{-j - 1} \cdot g_j,
+            G_C &= 1 + \sum_{j=0}^{k-1} 2^{-j - 1} \cdot g_j,
 
         where
 
