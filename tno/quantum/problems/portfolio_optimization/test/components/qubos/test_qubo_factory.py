@@ -17,9 +17,8 @@ def qubo_factory_fixture() -> QuboFactory:
 def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
     expected_qubo = (
         np.array([[69, 36, 0, 0], [0, 156, 0, 0], [0, 0, 189, 36], [0, 0, 0, 396]])
-        / 2401
     )
-    expected_offset = 1000 / 2401
+    expected_offset = 1000
     qubo, offset = qubo_factory.calc_minimize_hhi()
 
     np.testing.assert_almost_equal(offset, expected_offset)

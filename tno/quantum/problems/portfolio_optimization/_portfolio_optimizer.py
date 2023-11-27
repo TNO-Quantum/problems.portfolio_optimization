@@ -132,7 +132,7 @@ class PortfolioOptimizer:
         approximations. For the QUBO formulation, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
         :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
-        
+
         Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
@@ -189,7 +189,7 @@ class PortfolioOptimizer:
                 - `$1≤G_C<2$` is a growth factor to be estimated using ancilla variables,
                 - `$C_{21} = \sum_{i=1}^N c_{i}$` is the sum of all assets' regulatory capital.
 
-            This formulation adds 2 qubo terms, one for the ROC term, and one to stabilize the 
+            This formulation adds 2 qubo terms, one for the ROC term, and one to stabilize the
             capital growth. The stabilize qubo requires an extra argument ``ancilla_variables``.
             Use ``weights_roc`` and ``weights_stabilize`` to scale both qubo's accordingly.
 

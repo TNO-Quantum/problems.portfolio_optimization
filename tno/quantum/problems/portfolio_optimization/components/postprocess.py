@@ -135,8 +135,7 @@ def pareto_front(
 
 
 def _get_upper_quadrant(points: NDArray[np.float_]) -> NDArray[np.float_]:
-    """Removes all values that are not in the upper right quadrant of the pareto front.
-    """
+    """Removes all values that are not in the upper right quadrant of the pareto front."""
     x_values = points.T[0]
     y_values = points.T[1]
 
