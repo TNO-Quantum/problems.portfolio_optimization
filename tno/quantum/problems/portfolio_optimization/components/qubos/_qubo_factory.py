@@ -21,12 +21,12 @@ class QuboFactory:
 
     Methods:
 
-    - `calc_minimize_hhi`: Calculate the to minimize HHI QUBO
-    - `calc_maximize_roc1`: Calculate the to maximize return on capital QUBO variant 1
-    - `calc_maximize_roc2`: Calculate the to maximize return on capital QUBO variant 2
-    - `calc_emission_constraint`: Calculate the emission constraint QUBO
-    - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
-    - `calc_stabilize_c`: Calculate the constraint QUBO that stabilizes growth factor.
+    - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO
+    - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1
+    - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2
+    - `calc_emission_constraint`: Calculates the emission constraint QUBO
+    - `calc_growth_factor_constraint`: Calculates the growth factor constraint QUBO
+    - `calc_stabilize_c`: Calculates the constraint QUBO that stabilizes growth factor.
     """
 
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
@@ -51,7 +51,7 @@ class QuboFactory:
         self.k = k
 
     def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to minimize HHI QUBO.
+        r"""Calculates the to minimize HHI QUBO.
 
         The QUBO formulation is given by
 
@@ -107,7 +107,7 @@ class QuboFactory:
         emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the emission constraint QUBO for arbitrary target reduction target
+        r"""Calculates the emission constraint QUBO for arbitrary target reduction target
 
         The QUBO formulation is given by
 
@@ -199,7 +199,7 @@ class QuboFactory:
     def calc_growth_factor_constraint(
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the growth factor constraint QUBO
+        r"""Calculates the growth factor constraint QUBO
 
         The QUBO formulation is given by
 
@@ -250,7 +250,7 @@ class QuboFactory:
         return qubo, float(offset)
 
     def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to maximize ROC QUBO for variant 1.
+        r"""Calculates the to maximize ROC QUBO for variant 1.
 
         The QUBO formulation is given by
 
@@ -284,7 +284,7 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to maximize ROC QUBO for variant 2.
+        r"""Calculates the to maximize ROC QUBO for variant 2.
 
         The QUBO formulation is given by
 
@@ -347,7 +347,7 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the QUBO that stabilizes the growth factor in the second ROC
+        r"""Calculates the QUBO that stabilizes the growth factor in the second ROC
         formulation.
 
         The QUBO formulation is given by

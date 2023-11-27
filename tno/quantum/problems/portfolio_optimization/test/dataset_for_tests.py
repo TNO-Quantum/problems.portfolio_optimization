@@ -5,7 +5,7 @@ from tno.quantum.problems.portfolio_optimization.components.io import PortfolioD
 
 
 def make_test_dataset() -> PortfolioData:
-    """Create a small portfolio datasets for testing."""
+    """Creates a small portfolio datasets for testing."""
     data = [
         ["asset 1", 1.0, 10.0, 19.0, 100.0, 76.0, 1.0, 1.0],
         ["asset 2", 2.0, 30.0, 39.0, 200.0, 152.0, 1.0, 1.0],

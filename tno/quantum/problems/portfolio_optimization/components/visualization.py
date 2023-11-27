@@ -17,7 +17,7 @@ def plot_points(
     label: str | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
-    """Plot the given data-points in a Diversification-ROC plot.
+    """Plots the given data-points in a Diversification-ROC plot.
 
     Args:
         diversification_values: 1-D ``ArrayLike`` containing the x values of the plot.
@@ -55,7 +55,7 @@ def plot_front(
     label: str | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
-    """Plot a pareto front of the given data-points in a Diversification-ROC plot.
+    """Plots a pareto front of the given data-points in a Diversification-ROC plot.
 
     Args:
         diversification_values: 1-D ``ArrayLike`` containing the x values of the plot.

@@ -27,11 +27,11 @@ class QuboCompiler:
 
     Methods:
 
-    - `add_minimize_hhi`: Add the to minimize HHI QUBO to the compile list.
-    - `add_maximize_roc`: Add a ROC and optionally a stabilizing QUBO to the compile
+    - `add_minimize_hhi`: Adds the to minimize HHI QUBO to the compile list.
+    - `add_maximize_roc`: Adds a ROC and optionally a stabilizing QUBO to the compile
       list.
-    - `add_emission_constraint`: Add an emission constraint QUBO to the compile list.
-    - `add_growth_factor_constraint`: Add the growth factor constraint QUBO to the
+    - `add_emission_constraint`: Adds an emission constraint QUBO to the compile list.
+    - `add_growth_factor_constraint`: Adds the growth factor constraint QUBO to the
       compile list.
 
     """
@@ -57,14 +57,15 @@ class QuboCompiler:
     def add_minimize_hhi(
         self: QuboCompilerT,
     ) -> QuboCompilerT:
-        r"""Add the minimize HHI objective to the compile list.
+        r"""Adds the minimize HHI objective to the compile list.
 
         The HHI objective is given by
 
-        $$HHI = \frac{\sum_i x_i^2}{\left(\sum_i x_i\right)^2},$$
+        $$HHI(x) = \sum_{i=1}^N\left(\frac{x_i}{\sum_{j=1}^N x_j}\right)^2,$$
 
         where
 
+            - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
@@ -81,7 +82,7 @@ class QuboCompiler:
         formulation: int,
         ancilla_variables: int = 0,
     ) -> QuboCompilerT:
-        """Add the maximize ROC objective and based on the chosen formulation a
+        """Adds the maximize ROC objective and based on the chosen formulation a
         stabilize c constraint.
 
         Args:
@@ -109,15 +110,15 @@ class QuboCompiler:
         emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> QuboCompilerT:
-        r"""Add the emission constraint to the compile list.
+        r"""Adds the emission constraint to the compile list.
 
         The constraint is given by
 
         .. math::
 
-            \frac{\sum_if_i \cdot x_i}{\sum_i x_i}
+            \frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_{i=1}^N x_i}
             =
-            g \frac{\sum_ie_i \cdot y_i}{\sum_i y_i},
+            g_e \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},
 
         where:
 
@@ -125,7 +126,7 @@ class QuboCompiler:
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction.
+            - `$g_e$` is the target value for the relative emission reduction.
 
         For the QUBO formulation, see the docs of
         :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
@@ -155,17 +156,18 @@ class QuboCompiler:
         self: QuboCompilerT, growth_target: float
     ) -> QuboCompilerT:
         # pylint: disable=line-too-long
-        r"""Add the capital growth factor constraint to the compile list.
+        r"""Adds the capital growth factor constraint to the compile list.
 
         The constraint is given by
 
-        $$\frac{\sum_i x_i}{\sum_i y_i} = g,$$
+        $$\frac{\sum_{i=1}^N x_i}{\sum_{i=1}^N y_i} = g_c,$$
 
-        where:
+        where
 
+            - `$N$` is the total number of assets,
             - `$x_i$` is the future outstanding amount for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$g$` is the target value for the total growth factor.
+            - `$g_c$` is the target value for the total growth factor.
 
         For the QUBO formulation, see the docs of
         :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
@@ -185,7 +187,7 @@ class QuboCompiler:
         return self
 
     def compile(self: QuboCompilerT) -> QuboCompilerT:
-        """Compile all QUBOs in the compile list.
+        """Compiles all QUBOs in the compile list.
 
         Returns:
             Self."""
@@ -196,7 +198,7 @@ class QuboCompiler:
         return self
 
     def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float_], float]:
-        """Make a QUBO of the entire problem with the given lambdas.
+        """Makes a QUBO of the entire problem with the given lambdas.
 
         Args:
             lambdas: Scaling parameters for each QUBO in the formulation.

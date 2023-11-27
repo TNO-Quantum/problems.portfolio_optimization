@@ -302,7 +302,7 @@ class PortfolioOptimizer:
         self, growth_target: float, weights: ArrayLike | None = None
     ) -> None:
         # pylint: disable=line-too-long
-        r"""Add an outstanding amount growth factor constraint to the portfolio
+        r"""Adds an outstanding amount growth factor constraint to the portfolio
         optimization problem.
 
         The constraint is given by
@@ -353,7 +353,7 @@ class PortfolioOptimizer:
     ) -> Results:
         # pylint: disable=line-too-long
         """
-        Optimize a portfolio given the set of provided constraints.
+        Optimizes a portfolio given the set of provided constraints.
 
         Usage example:
 
@@ -435,7 +435,7 @@ class PortfolioOptimizer:
 
     @staticmethod
     def _parse_weight(weights: ArrayLike | None = None) -> NDArray[np.float_]:
-        """Convert weights into NumPy array and if needed set default weights to [1.0]
+        """Converts weights into NumPy array and if needed set default weights to [1.0]
 
         Args:
             weights: penalty coefficients.
