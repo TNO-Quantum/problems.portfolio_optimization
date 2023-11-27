@@ -59,11 +59,7 @@ class QuboFactory:
 
             QUBO(x)
             =
-            \frac{
-                \sum_{i=1}^N\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)^2
-            }{
-                \left(\frac{1}{2}\sum_{i=1}^NUB_i+LB_i\right)^2
-            },
+            \sum_{i=1}^N\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)^2,
 
         where:
 
@@ -75,10 +71,8 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        expected_total_outstanding_future = np.sum(self.u_bound + self.l_bound) / 2
-
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.l_bound**2) / expected_total_outstanding_future**2
+        offset = np.sum(self.l_bound**2)
         multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
         for asset_i, (l_bound_i, multiplier_i) in enumerate(
             zip(self.l_bound, multiplier)
@@ -98,7 +92,7 @@ class QuboFactory:
                         bit_j + bit_j_prime + 1
                     )
 
-        qubo = qubo / expected_total_outstanding_future**2
+        qubo = qubo
         return qubo, offset
 
     def calc_emission_constraint(
