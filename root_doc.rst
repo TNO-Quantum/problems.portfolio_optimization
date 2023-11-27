@@ -15,10 +15,10 @@ The following objectives can be considered
 - `return on capital`, indicated by ROC,
 - `diversification`, indicated by the `Herfindahl-Hirschman Index`_ HHI.
 
-Additionally, we allow for capital growth factor and arbitrary emission reduction constraints to be considered.
+Additionally, we allow for a capital growth factor and arbitrary emission reduction constraints to be considered.
 
 The `Pareto front`_, the set of solutions where one objective can't be improved without worsening the other objective,
-can be computed for return on capital and diversification. 
+can be computed for the objectives return on capital and diversification. 
 
 The codebase is based on the following paper:
 
@@ -42,7 +42,7 @@ Examples
 --------
 
 Here's an example of how the :py:class:`~portfolio_optimization.PortfolioOptimizer` class 
-can be used to define an portfolio optimization problem, and subsequently, how the Pareto front be computed 
+can be used to define an portfolio optimization problem, and subsequently, how the Pareto front can be computed 
 using the simulated annealing sampler from D-Wave. 
 
 
@@ -68,8 +68,8 @@ using the simulated annealing sampler from D-Wave.
     portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
     portfolio_optimizer.add_emission_constraint(
         weights=lambdas3,
-        variable_now="emis_intens_now",
-        variable_future="emis_intens_future",
+        emission_now="emis_intens_now",
+        emission_future="emis_intens_future",
         name="emission"
     )
 
@@ -77,12 +77,14 @@ using the simulated annealing sampler from D-Wave.
     results = portfolio_optimizer.run(sampler, sampler_kwargs)
     print(results.head())
 
-The results can be inspected in more detail by looking at the results DataFrame
+The results can be inspected in more detail by looking at the Pandas results DataFrame
 `results.results_df`.
 
 Alternatively, the results can be plotted in a `(Diversification, ROC)`-graph. The
 following example first slices the results in data points that do and do not satisfy the
 constraints using the method :py:meth:`~portfolio_optimization.components.results.Results.slice_results()`. 
+
+Note that:
 
 - Individual data points can subsequently be plotted using :py:func:`~portfolio_optimization.components.visualization.plot_points()`
 - The Pareto front can be plotted using :py:func:`~portfolio_optimization.components.visualization.plot_front()`
@@ -116,22 +118,20 @@ constraints using the method :py:meth:`~portfolio_optimization.components.result
 Data input
 ----------
 
-The data used for the portfolio optimization can be given with an excel file, csv file,
-json file or as a pandas ``DataFrame``.
+The data used for the portfolio optimization can be imported via an excel file, csv file,
+json file or as a Pandas DataFrame.
 The data needs to contain at least the following columns:
 
-    - asset
-    - outstanding_now
-    - min_outstanding_future
-    - max_outstanding_future
-    - income_now
-    - regcap_now
+    - ``asset``: The name of the asset.
+    - ``outstanding_now``: Current outstanding amount per asset.
+    - ``min_outstanding_future``: Lower bound outstanding amount in the future per asset.
+    - ``max_outstanding_future``: Upper bound outstanding amount in the future per asset.
+    - ``income_now``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+    - ``regcap_now``: Current regulatory capital per asset.
 
 The table below shows an example dataset with the correct structure.
 Note that this is the least amount of columns that need to be present.
 More columns are allowed and required for some functionalities.
-For more information, see
-:py:class:`~portfolio_optimization.components.io.PortfolioData`.
 
 .. list-table:: Example Dataset
    :widths: 25 25 25 25 25 25

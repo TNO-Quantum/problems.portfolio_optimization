@@ -1,6 +1,6 @@
 """This module contains the ``QuboCompiler`` class.
 
-The ``QuboCompiler`` can create a verity of QUBO formulation by combining different
+The ``QuboCompiler`` can create a variety of QUBO formulation by combining different
 objectives and constraints with their corresponding penalty or preference parameters.
 """
 from __future__ import annotations
@@ -39,7 +39,7 @@ class QuboCompiler:
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
         """Init of the ``QuboCompiler`` class.
 
-        The ``QuboCompiler`` can create a verity of QUBO formulation by combining
+        The ``QuboCompiler`` can create a variety of QUBO formulation by combining
         different objectives and constraints with penalty or preference parameters.
 
         Args:
