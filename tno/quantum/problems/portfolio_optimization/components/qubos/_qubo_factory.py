@@ -118,7 +118,7 @@ class QuboFactory:
             \left(
             \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)}
             {{\frac{1}{2}\sum_iUB_i+LB_i}}
-            - g \frac{\sum_i e_i \cdot y_i}{\sum_i y_i}
+            - g_e \frac{\sum_i e_i \cdot y_i}{\sum_i y_i}
             \right)^2
 
         where:
@@ -129,7 +129,7 @@ class QuboFactory:
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction,
+            - `$g_e$` is the target value for the relative emission reduction,
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Args:
@@ -209,7 +209,7 @@ class QuboFactory:
             =
             \left(
             \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^j\cdot x_{i,j}}{\sum_i y_i}
-            - g
+            - g_c
             \right)^2
 
         where:
@@ -217,7 +217,7 @@ class QuboFactory:
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - `$g$` is the target value for the total growth factor,
+            - `$g_c$` is the target value for the total growth factor,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
