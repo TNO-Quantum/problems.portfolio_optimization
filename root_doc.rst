@@ -104,7 +104,7 @@ Note that:
     ax1.set_title("Points")
 
     # Plot Pareto front
-    plot_front(x2, y2, color="green", label="QUBO constraint not met", ax=ax2)
+    plot_front(x2, y2, color="orange", label="QUBO constraint not met", ax=ax2)
     plot_front(x1, y1, color="green", label="QUBO constraint met", ax=ax2)
     ax2.set_title("Pareto Front")
     fig.tight_layout()
