@@ -108,12 +108,16 @@ class QuboFactory:
         .. math::
 
             QUBO(x)
-            =
+            &=
             \left(
-            \frac{\sum_{i=1}^N f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)}
-            {{\frac{1}{2}\sum_{i=1}^NUB_i+LB_i}}
-            - g_e \frac{\sum_{i=1}^N e_i \cdot y_i}{\sum_{i=1}^N y_i}
-            \right)^2
+            \sum_{i=1}^N f_i x_i
+            - g_e E
+            \sum_{i=1}^N x_i
+            \right)^2,
+
+            x_i & = LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j},
+
+            E &= \frac{\sum_{i=1}^N e_i \cdot y_i}{\sum_{i=1}^N y_i},
 
         where:
 
@@ -285,16 +289,14 @@ class QuboFactory:
         .. math::
 
             QUBO(x,g)
-            =
+            &=
             -
             G_{inv}(g) \cdot
             \sum_{i=1}^N\frac{r_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
-            G_{inv}(g) =
-            \left(
-            1 + \sum_{j=0}^{k-1} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
-            \right)
+            G_{inv}(g) &=
+            1 + \sum_{j=0}^{k-1} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j},
 
         where
 
