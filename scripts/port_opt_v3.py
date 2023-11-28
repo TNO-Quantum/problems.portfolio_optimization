@@ -32,8 +32,8 @@ portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
 portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
 portfolio_optimizer.add_emission_constraint(
     weights=lambdas3,
-    variable_now="emis_intens_now",
-    variable_future="emis_intens_future",
+    emission_now="emis_intens_now",
+    emission_future="emis_intens_future",
     name="emission",
 )
 results = portfolio_optimizer.run(sampler, sampler_kwargs)

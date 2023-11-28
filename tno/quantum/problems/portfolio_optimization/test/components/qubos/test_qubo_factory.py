@@ -15,11 +15,10 @@ def qubo_factory_fixture() -> QuboFactory:
 
 
 def test_calc_minimize_hhi(qubo_factory: QuboFactory) -> None:
-    expected_qubo = (
-        np.array([[69, 36, 0, 0], [0, 156, 0, 0], [0, 0, 189, 36], [0, 0, 0, 396]])
-        / 2401
+    expected_qubo = np.array(
+        [[69, 36, 0, 0], [0, 156, 0, 0], [0, 0, 189, 36], [0, 0, 0, 396]]
     )
-    expected_offset = 1000 / 2401
+    expected_offset = 1000
     qubo, offset = qubo_factory.calc_minimize_hhi()
 
     np.testing.assert_almost_equal(offset, expected_offset)
@@ -30,17 +29,17 @@ def test_calc_emission_constraint(qubo_factory: QuboFactory) -> None:
     expected_qubo = (
         np.array(
             [
-                [-325_191, 133_956, -58_194, -116_388],
-                [0, -583_404, -116_388, -232_776],
-                [0, 0, 336_921, 101_124],
-                [0, 0, 0, 724_404],
+                [-433_588, 178_608, -77_592, -155_184],
+                [0, -777_872, -155_184, -310_368],
+                [0, 0, 449_228, 134_832],
+                [0, 0, 0, 965_872],
             ]
         )
-        / 562_500
+        / 3
     )
-    expected_offset = 960_400 / 562_500
+    expected_offset = 3_841_600 / 9
     qubo, offset = qubo_factory.calc_emission_constraint(
-        variable_now="emis_intens_now", variable_future="emis_intens_future"
+        emission_now="emis_intens_now", emission_future="emis_intens_future"
     )
 
     np.testing.assert_almost_equal(offset, expected_offset)

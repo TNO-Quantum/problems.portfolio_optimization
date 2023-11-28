@@ -22,8 +22,8 @@ class Results:
         Args:
             portfolio_data: the portfolio data
             provided_emission_constraints: list of all the emission constraints that are
-                provided. Each list element contains the ``variable_now``,
-                ``variable_future`` and ``reduction_percentage_target`` input.
+                provided. Each list element contains the ``emission_now``,
+                ``emission_future`` and ``reduction_percentage_target`` input.
             provided_growth_target: target outstanding amount growth factor if the
                 growth factor constraint is set, otherwise None.
         """
@@ -59,7 +59,7 @@ class Results:
         return len(self.results_df)
 
     def add_result(self, outstanding_future_samples: NDArray[np.float_]) -> None:
-        """Add a new outstanding_future data point to results container.
+        """Adds a new outstanding_future data point to results container.
 
         Args:
             outstanding_future_samples: outstanding amounts in the future for each
@@ -112,7 +112,7 @@ class Results:
             self.results_df.loc[len(self.results_df)] = new_data
 
     def head(self, n: int = 5) -> pd.DataFrame:
-        """Return first n rows of self.results_df DataFrame
+        """Returns first n rows of self.results_df DataFrame
 
         Args:
             selected_columns: By default all columns
@@ -124,7 +124,7 @@ class Results:
         return self.results_df[selected_columns].head(n)
 
     def drop_duplicates(self) -> None:
-        """Drop duplicates in results DataFrame"""
+        """Drops duplicates in results DataFrame"""
         self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)
 
     def slice_results(

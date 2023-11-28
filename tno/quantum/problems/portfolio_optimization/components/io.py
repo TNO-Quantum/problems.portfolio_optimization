@@ -29,16 +29,16 @@ class PortfolioData:
         portfolio_dataframe: DataFrame,
         columns_rename: dict[str, str] | None = None,
     ):
-        """Create a ``PortfolioData`` object from a pandas ``DataFrame``.
+        """Creates a ``PortfolioData`` object from a pandas ``DataFrame``.
 
         The portfolio data is expected to contain at least the following columns names:
 
-            - ``"assets"``
-            - ``"outstanding_now_now"``
-            - ``"min_outstanding_future"``
-            - ``"max_outstanding_future"``
-            - ``"income_now"``
-            - ``"regcap_now"``
+            - ``"assets"``: The name of the asset.
+            - ``"outstanding_now_now"``: Current outstanding amount per asset.
+            - ``"min_outstanding_future"``: Lower bound outstanding amount in the future per asset.
+            - ``"max_outstanding_future"``: Upper bound outstanding amount in the future per asset.
+            - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+            - ``"regcap_now"``: Current regulatory capital per asset.
 
         Different column names in the dataset can be used but need to be provided as a
         renaming dictionary to the ``columns_rename`` argument.
@@ -70,16 +70,16 @@ class PortfolioData:
         filename: str | Path,
         columns_rename: dict[str, str] | None = None,
     ) -> PortfolioDataT:
-        """Read portfolio data object into ``PortfolioData``.
+        """Reads portfolio data object into ``PortfolioData``.
 
         The portfolio data is expected to contain at least the following columns names:
 
-            - ``"assets"``
-            - ``"outstanding_now_now"``
-            - ``"min_outstanding_future"``
-            - ``"max_outstanding_future"``
-            - ``"income_now"``
-            - ``"regcap_now"``
+            - ``"assets"``: The name of the asset.
+            - ``"outstanding_now_now"``: Current outstanding amount per asset.
+            - ``"min_outstanding_future"``: Lower bound outstanding amount in the future per asset.
+            - ``"max_outstanding_future"``: Upper bound outstanding amount in the future per asset.
+            - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+            - ``"regcap_now"``: Current regulatory capital per asset.
 
         Different column names in the dataset can be used but need to be provided as a
         renaming dictionary to the ``columns_rename`` argument.
@@ -109,7 +109,7 @@ class PortfolioData:
         return cls(portfolio_data, columns_rename)
 
     def get_outstanding_now(self) -> NDArray[np.float_]:
-        """Get the `outstanding_now` data from the dataset.
+        """Gets the `outstanding_now` data from the dataset.
 
         Returns:
             The `outstanding_now` column from the dataset as a numpy array.
@@ -117,7 +117,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], self.portfolio_df["outstanding_now"].to_numpy())
 
     def get_l_bound(self) -> NDArray[np.float_]:
-        """Get the `l_bound` data from the dataset.
+        """Gets the `l_bound` data from the dataset.
 
         Returns:
             The `min_outstanding_future` column from the dataset as a numpy array.
@@ -127,7 +127,7 @@ class PortfolioData:
         )
 
     def get_u_bound(self) -> NDArray[np.float_]:
-        """Get the `u_bound` data from the dataset.
+        """Gets the `u_bound` data from the dataset.
 
         Returns:
             The `max_outstanding_future` column from the dataset as a numpy array.
@@ -137,7 +137,7 @@ class PortfolioData:
         )
 
     def get_income(self) -> NDArray[np.float_]:
-        """Get the `income` data from the dataset.
+        """Gets the `income` data from the dataset.
 
         Returns:
             The `income_now` column from the dataset as a numpy array.
@@ -145,7 +145,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], self.portfolio_df["income_now"].to_numpy())
 
     def get_capital(self) -> NDArray[np.float_]:
-        """Get the `capital` data from the dataset.
+        """Gets the `capital` data from the dataset.
 
         Returns:
             The `regcap_now` column from the dataset as a numpy array.
@@ -153,7 +153,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], self.portfolio_df["regcap_now"].to_numpy())
 
     def get_returns(self) -> NDArray[np.float_]:
-        """Get the `returns` data from the dataset.
+        """Gets the `returns` data from the dataset.
 
         Returns:
             Returns is defined as income / outstanding_now
@@ -163,7 +163,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], income / outstanding_now)
 
     def get_column(self, column_name: str) -> NDArray[np.float_]:
-        """Get the specified column from the dataset.
+        """Gets the specified column from the dataset.
 
         Args:
             column_name: Name of the column to get.
@@ -174,7 +174,7 @@ class PortfolioData:
         return cast(NDArray[np.float_], self.portfolio_df[column_name].to_numpy())
 
     def print_portfolio_info(self) -> None:
-        """Print information about portfolio data to terminal."""
+        """Prints information about portfolio data to terminal."""
         outstanding_now = self.get_outstanding_now()
         l_bound = self.get_l_bound()
         u_bound = self.get_u_bound()

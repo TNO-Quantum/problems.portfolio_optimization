@@ -21,12 +21,12 @@ class QuboFactory:
 
     Methods:
 
-    - `calc_minimize_hhi`: Calculate the to minimize HHI QUBO
-    - `calc_maximize_roc1`: Calculate the to maximize return on capital QUBO variant 1
-    - `calc_maximize_roc2`: Calculate the to maximize return on capital QUBO variant 2
-    - `calc_emission_constraint`: Calculate the emission constraint QUBO
-    - `calc_growth_factor_constraint`: Calculate the growth factor constraint QUBO
-    - `calc_stabilize_c`: Calculate the constraint QUBO that stabilizes growth factor.
+    - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO
+    - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1
+    - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2
+    - `calc_emission_constraint`: Calculates the emission constraint QUBO
+    - `calc_growth_factor_constraint`: Calculates the growth factor constraint QUBO
+    - `calc_stabilize_c`: Calculates the constraint QUBO that stabilizes growth factor.
     """
 
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
@@ -51,7 +51,7 @@ class QuboFactory:
         self.k = k
 
     def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to minimize HHI QUBO.
+        r"""Calculates the to minimize HHI QUBO.
 
         The QUBO formulation is given by
 
@@ -59,11 +59,7 @@ class QuboFactory:
 
             QUBO(x)
             =
-            \frac{
-                \sum_i\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)^2
-            }{
-                \left(\frac{1}{2}\sum_iUB_i+LB_i\right)^2
-            },
+            \sum_{i=1}^N\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)^2,
 
         where:
 
@@ -75,10 +71,8 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        expected_total_outstanding_future = np.sum(self.u_bound + self.l_bound) / 2
-
         qubo = np.zeros((self.n_vars, self.n_vars))
-        offset = np.sum(self.l_bound**2) / expected_total_outstanding_future**2
+        offset = np.sum(self.l_bound**2)
         multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
         for asset_i, (l_bound_i, multiplier_i) in enumerate(
             zip(self.l_bound, multiplier)
@@ -98,28 +92,32 @@ class QuboFactory:
                         bit_j + bit_j_prime + 1
                     )
 
-        qubo = qubo / expected_total_outstanding_future**2
+        qubo = qubo
         return qubo, offset
 
     def calc_emission_constraint(
         self,
-        variable_now: str,
-        variable_future: str | None = None,
+        emission_now: str,
+        emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
     ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the emission constraint QUBO for arbitrary target reduction target
+        r"""Calculates the emission constraint QUBO for arbitrary target reduction target
 
         The QUBO formulation is given by
 
         .. math::
 
             QUBO(x)
-            =
+            &=
             \left(
-            \frac{\sum_i f_i \left(LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)}
-            {{\frac{1}{2}\sum_iUB_i+LB_i}}
-            - g \frac{\sum_i e_i \cdot y_i}{\sum_i y_i}
-            \right)^2
+            \sum_{i=1}^N f_i x_i
+            - g_e E
+            \sum_{i=1}^N x_i
+            \right)^2,
+
+            x_i & = LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j},
+
+            E &= \frac{\sum_{i=1}^N e_i \cdot y_i}{\sum_{i=1}^N y_i},
 
         where:
 
@@ -129,16 +127,16 @@ class QuboFactory:
             - `$e_i$` is the current emission intensity for asset `$i$`,
             - `$f_i$` is the expected emission intensity at the future for asset `$i$`,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
-            - `$g$` is the target value for the relative emission reduction,
+            - `$g_e$` is the target value for the relative emission reduction,
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Args:
-            variable_now: Name of the column in the portfolio dataset corresponding to
+            emission_now: Name of the column in the portfolio dataset corresponding to
                 the variables at current time.
-            variable_future: Name of the column in the portfolio dataset corresponding
+            emission_future: Name of the column in the portfolio dataset corresponding
                 to the variables at future time. If no value is provided, it is assumed
                 that the value is constant over time, i.e., the variable
-                ``variable_now`` will be used.
+                ``emission_now`` will be used.
             reduction_percentage_target: Target value for reduction percentage amount.
 
         Raises:
@@ -147,20 +145,20 @@ class QuboFactory:
         Returns:
             qubo matrix and its offset
         """
-        if variable_future is None:
-            variable_future = variable_now
+        if emission_future is None:
+            emission_future = emission_now
 
-        if variable_now not in self.portfolio_data:
+        if emission_now not in self.portfolio_data:
             raise KeyError(
-                f"Column name {variable_now} not present in portfolio dataset."
+                f"Column name {emission_now} not present in portfolio dataset."
             )
-        if variable_future not in self.portfolio_data:
+        if emission_future not in self.portfolio_data:
             raise KeyError(
-                f"Column name {variable_future} not present in portfolio dataset."
+                f"Column name {emission_future} not present in portfolio dataset."
             )
 
-        emission_intensity_now = self.portfolio_data.get_column(variable_now)
-        emission_intensity_future = self.portfolio_data.get_column(variable_future)
+        emission_intensity_now = self.portfolio_data.get_column(emission_now)
+        emission_intensity_future = self.portfolio_data.get_column(emission_future)
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
         relelative_total_emission_now = total_emission_now / np.sum(
@@ -187,19 +185,19 @@ class QuboFactory:
         beta = np.kron(multiplier, mantisse)
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        offset = alpha**2 / total_emission_now**2
+        offset = alpha**2
         for idx1 in range(self.number_of_assets * self.k):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
             for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo / total_emission_now**2
+        qubo = qubo
         return qubo, offset
 
     def calc_growth_factor_constraint(
         self, growth_target: float
     ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the growth factor constraint QUBO
+        r"""Calculates the growth factor constraint QUBO
 
         The QUBO formulation is given by
 
@@ -208,8 +206,8 @@ class QuboFactory:
             QUBO(x)
             =
             \left(
-            \frac{\sum_i LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j 2^j\cdot x_{i,j}}{\sum_i y_i}
-            - g
+            \frac{\sum_{i=1}^N LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1} 2^j\cdot x_{i,j}}{\sum_{i=1}^N y_i}
+            - g_c
             \right)^2
 
         where:
@@ -217,7 +215,7 @@ class QuboFactory:
             - `$LB_i$` is the lower bound for asset `$i$`,
             - `$UB_i$` is the upper bound for asset `$i$`,
             - `$k$` is the number of bits,
-            - `$g$` is the target value for the total growth factor,
+            - `$g_c$` is the target value for the total growth factor,
             - `$y_i$` is the current outstanding amount for asset `$i$`,
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
@@ -250,7 +248,7 @@ class QuboFactory:
         return qubo, float(offset)
 
     def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to maximize ROC QUBO for variant 1.
+        r"""Calculates the to maximize ROC QUBO for variant 1.
 
         The QUBO formulation is given by
 
@@ -258,8 +256,8 @@ class QuboFactory:
 
             QUBO(x)
             =
-            -\sum_i\frac{r_i}{c_i\cdot y_i}
-            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right),
+            -\sum_{i=1}^N\frac{r_i}{c_i\cdot y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
         where
 
@@ -284,23 +282,21 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the to maximize ROC QUBO for variant 2.
+        r"""Calculates the to maximize ROC QUBO for variant 2.
 
         The QUBO formulation is given by
 
         .. math::
 
             QUBO(x,g)
-            =
+            &=
             -
             G_{inv}(g) \cdot
-            \sum_i\frac{r_i}{y_i}
+            \sum_{i=1}^N\frac{r_i}{y_i}
             \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),
 
-            G_{inv}(g) =
-            \left(
-            1 + \sum_{j} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j}
-            \right)
+            G_{inv}(g) &=
+            1 + \sum_{j=0}^{k-1} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j},
 
         where
 
@@ -347,7 +343,7 @@ class QuboFactory:
         return -qubo, -offset
 
     def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculate the QUBO that stabilizes the growth factor in the second ROC
+        r"""Calculates the QUBO that stabilizes the growth factor in the second ROC
         formulation.
 
         The QUBO formulation is given by
@@ -357,12 +353,12 @@ class QuboFactory:
             QUBO(x,g)
             &=
             \left(
-            \sum_i\frac{c_i}{y_i}
-            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_j2^j\cdot x_{i,j}\right)
-            - G_C(g)\sum_i c_i
+            \sum_{i=1}^N\frac{c_i}{y_i}
+            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)
+            - G_C(g)\sum_{i=1}^N c_i
             \right)^2,
 
-            G_C &= 1 + \sum_j 2^{-j - 1} \cdot g_j,
+            G_C &= 1 + \sum_{j=0}^{k-1} 2^{-j - 1} \cdot g_j,
 
         where
 

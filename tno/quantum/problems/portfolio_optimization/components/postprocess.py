@@ -37,7 +37,7 @@ class Decoder:
         self.multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
 
     def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float_]:
-        """Decode a sample to the `oustanding_future` array.
+        """Decodes a sample to the `oustanding_future` array.
 
         Args:
             sample: Sample as returned by D-Wave.
@@ -59,7 +59,8 @@ class Decoder:
         return np.asarray(outstanding_future, dtype=np.float_)
 
     def decode_sampleset(self, sampleset: SampleSet) -> NDArray[np.float_]:
-        """Efficiently decode a `sampleset` create a matrix of `oustanding_future`values.
+        """Efficiently decodes a `sampleset` create a matrix of `oustanding_future`
+        values.
 
         Each row in the matrix corresponds to a different sample in the `sampleset`.
 
@@ -91,7 +92,7 @@ def pareto_front(
     min_points: int = 50,
     upper_right_quadrant: bool = True,
 ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
-    """Calculate the pareto front with at least min_points data points by repeatedly
+    """Calculates the pareto front with at least min_points data points by repeatedly
     creating a convex hull around data points.
 
     Args:
@@ -134,7 +135,7 @@ def pareto_front(
 
 
 def _get_upper_quadrant(points: NDArray[np.float_]) -> NDArray[np.float_]:
-    """Remove all values that are not in the upper right quadrant of the pareto front."""
+    """Removes all values that are not in the upper right quadrant of the pareto front."""
     x_values = points.T[0]
     y_values = points.T[1]
 
