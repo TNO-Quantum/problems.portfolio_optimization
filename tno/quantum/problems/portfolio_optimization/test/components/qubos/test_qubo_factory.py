@@ -29,15 +29,15 @@ def test_calc_emission_constraint(qubo_factory: QuboFactory) -> None:
     expected_qubo = (
         np.array(
             [
-                [-325_191, 133_956, -58_194, -116_388],
-                [0, -583_404, -116_388, -232_776],
-                [0, 0, 336_921, 101_124],
-                [0, 0, 0, 724_404],
+                [-433_588, 178_608, -77_592, -155_184],
+                [0, -777_872, -155_184, -310_368],
+                [0, 0, 449_228, 134_832],
+                [0, 0, 0, 965_872],
             ]
         )
-        / 562_500
+        / 3
     )
-    expected_offset = 960_400 / 562_500
+    expected_offset = 3_841_600 / 9
     qubo, offset = qubo_factory.calc_emission_constraint(
         emission_now="emis_intens_now", emission_future="emis_intens_future"
     )

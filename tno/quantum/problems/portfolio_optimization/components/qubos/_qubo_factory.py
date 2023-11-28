@@ -185,13 +185,13 @@ class QuboFactory:
         beta = np.kron(multiplier, mantisse)
         qubo = np.zeros((self.n_vars, self.n_vars))
 
-        offset = alpha**2 / total_emission_now**2
+        offset = alpha**2
         for idx1 in range(self.number_of_assets * self.k):
             qubo[idx1, idx1] += 2 * alpha * beta[idx1] + beta[idx1] ** 2
             for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo / total_emission_now**2
+        qubo = qubo
         return qubo, offset
 
     def calc_growth_factor_constraint(
