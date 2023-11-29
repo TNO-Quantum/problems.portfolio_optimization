@@ -97,7 +97,7 @@ class Results:
                 total_relative_emission_now = np.sum(
                     self._outstanding_now
                     * self.portfolio_data.get_column(column_name_now)
-                ) / np.sum(self._outstanding_now)
+                ) / self._total_outstanding_now
                 total_relative_emission_future = np.sum(
                     oustanding_future
                     * self.portfolio_data.get_column(column_name_future)
