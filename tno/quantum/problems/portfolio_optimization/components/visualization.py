@@ -1,9 +1,12 @@
 """This module contains visualization tools."""
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import Colormap
+from matplotlib.typing import ColorType
 from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization.components.postprocess import (
@@ -16,6 +19,8 @@ def plot_points(
     roc_values: ArrayLike,
     color: str | None = None,
     label: str | None = None,
+    c: ArrayLike | Sequence[ColorType] | ColorType | None = None,
+    alpha: float | None = None,
     cmap: str | Colormap | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
@@ -29,6 +34,9 @@ def plot_points(
             will be assigned by ``matplotlib``. Default is ``None``.
         label: Label to use in the legend. If ``None`` is given, no label will be used.
             Default is ``None``.
+        c: The marker colors as to be used by ``matplotlib``.
+        alpha: The alpha blending value as to be used by ``matplotlib``.
+        cmap: The Colormap instance or registered colormap name used by ``matplotlib``.
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 
@@ -36,7 +44,15 @@ def plot_points(
     """
     if ax is None:
         _, ax = plt.subplots()
-    ax.scatter(diversification_values, roc_values, color=color, cmap=cmap, label=label)
+    ax.scatter(
+        diversification_values,
+        roc_values,
+        color=color,
+        c=c,
+        alpha=alpha,
+        cmap=cmap,
+        label=label,
+    )
     ax.set_xlabel("Diversification Change (%)")
     ax.set_ylabel("ROC Change (%)")
     ax.grid()
@@ -55,6 +71,9 @@ def plot_front(
     roc_values: ArrayLike,
     color: str | None = None,
     label: str | None = None,
+    c: ArrayLike | Sequence[ColorType] | ColorType | None = None,
+    alpha: float | None = None,
+    cmap: str | Colormap | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plots a pareto front of the given data-points in a Diversification-ROC plot.
@@ -67,10 +86,15 @@ def plot_front(
             will be assigned by ``matplotlib``. Default is ``None``.
         label: Label to use in the legend. If ``None`` is given, no label will be used.
             Default is ``None``.
+        c: The marker colors as to be used by ``matplotlib``.
+        alpha: The alpha blending value as to be used by ``matplotlib``.
+        cmap: The Colormap instance or registered colormap name used by ``matplotlib``.
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 
     .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
     """
     x_values, y_values = pareto_front(diversification_values, roc_values)
-    plot_points(x_values, y_values, color=color, label=label, ax=ax)
+    plot_points(
+        x_values, y_values, color=color, c=c, alpha=alpha, cmap=cmap, label=label, ax=ax
+    )
