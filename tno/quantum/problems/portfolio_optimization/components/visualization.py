@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import ArrayLike
 
+
 def plot_points(
     diversification_values: ArrayLike,
     roc_values: ArrayLike,
