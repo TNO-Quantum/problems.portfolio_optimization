@@ -71,7 +71,8 @@ def plot_points(
     ax.set_xlabel("Diversification Change (%)")
     ax.set_ylabel("ROC Change (%)")
     ax.grid()
-    ax.legend()
+    if label is not None:
+        ax.legend()
 
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
