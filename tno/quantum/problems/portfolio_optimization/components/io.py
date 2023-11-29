@@ -187,7 +187,7 @@ class PortfolioData:
 
         # Calculate the ROC for now
         roc_now = np.sum(income) / np.sum(capital)
-        print(f"ROC now: {roc_now:.6f}")
+        print(f"ROC now: {roc_now:.4f}")
 
         # Calculate the HHI diversification for now
         hhi_now = (
@@ -204,7 +204,7 @@ class PortfolioData:
 
             # Calculate the average emission intensity now
             relative_total_emission = total_emission_now / total_outstanding_now
-            print(f"Relative emission intensity now: {relative_total_emission:.4f}")
+            print(f"Relative emission intensity now: {relative_total_emission:.2f}")
 
         # Estimate the total outstanding amount and its standard deviation for future. This
         # follows from the assumption of a symmetric probability distribution on the
