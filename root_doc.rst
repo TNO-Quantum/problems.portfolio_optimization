@@ -65,7 +65,7 @@ using the simulated annealing sampler from D-Wave.
     # Create portfolio optimization problem
     portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
     portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
-    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
+    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas2)
     portfolio_optimizer.add_emission_constraint(
         weights=lambdas3,
         emission_now="emis_intens_now",
