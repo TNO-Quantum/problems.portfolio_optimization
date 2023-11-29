@@ -1,18 +1,21 @@
 """This module contains visualization tools."""
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from matplotlib.colors import Colormap
-from matplotlib.typing import ColorType
-from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization.components.postprocess import (
     pareto_front,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from matplotlib.axes import Axes
+    from matplotlib.colors import Colormap
+    from matplotlib.typing import ColorType
+    from numpy.typing import ArrayLike
 
 def plot_points(
     diversification_values: ArrayLike,
