@@ -76,8 +76,8 @@ def plot_points(
 
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    ax.hlines(0, float("-inf"), float("inf"), colors=["black"], lw=1)
-    ax.vlines(0, float("-inf"), float("inf"), colors=["black"], lw=1)
+    ax.axhline(0, color="black", linewidth=1)
+    ax.axvline(0, color="black", linewidth=1)
     ax.set_xlim(*xlim, auto=True)
     ax.set_ylim(*ylim, auto=True)
     return collection
