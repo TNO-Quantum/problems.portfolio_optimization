@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.colors import Colormap
 from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization.components.postprocess import (
@@ -15,6 +16,7 @@ def plot_points(
     roc_values: ArrayLike,
     color: str | None = None,
     label: str | None = None,
+    cmap: str | Colormap | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
 ) -> None:
     """Plots the given data-points in a Diversification-ROC plot.
@@ -34,7 +36,7 @@ def plot_points(
     """
     if ax is None:
         _, ax = plt.subplots()
-    ax.scatter(diversification_values, roc_values, color=color, label=label)
+    ax.scatter(diversification_values, roc_values, color=color, cmap=cmap, label=label)
     ax.set_xlabel("Diversification Change (%)")
     ax.set_ylabel("ROC Change (%)")
     ax.grid()
