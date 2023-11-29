@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from matplotlib.axes import Axes
+    from matplotlib.collections import PatchCollection
     from matplotlib.colors import Colormap
     from matplotlib.typing import ColorType
     from numpy.typing import ArrayLike
@@ -27,7 +28,7 @@ def plot_points(
     alpha: float | None = None,
     cmap: str | Colormap | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
-) -> None:
+) -> PatchCollection:
     """Plots the given data-points in a Diversification-ROC plot.
 
     Args:
@@ -44,11 +45,14 @@ def plot_points(
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 
+    Returns:
+        The ``matplotlib`` PathCollection object created by scatter.
+
     .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
     """
     if ax is None:
         _, ax = plt.subplots()
-    ax.scatter(
+    collection = ax.scatter(
         diversification_values,
         roc_values,
         color=color,
@@ -68,6 +72,7 @@ def plot_points(
     ax.vlines(0, ylim[0], ylim[1], colors=["black"], lw=1)
     ax.set_xlim(*xlim, auto=True)
     ax.set_ylim(*ylim, auto=True)
+    return collection
 
 
 def plot_front(
@@ -79,7 +84,7 @@ def plot_front(
     alpha: float | None = None,
     cmap: str | Colormap | None = None,
     ax: Axes | None = None,  # pylint: disable=invalid-name
-) -> None:
+) -> PatchCollection:
     """Plots a pareto front of the given data-points in a Diversification-ROC plot.
 
     Args:
@@ -96,9 +101,12 @@ def plot_front(
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 
+    Returns:
+        The ``matplotlib`` PathCollection object created by scatter.
+
     .. _Matplotlib Documentation: https://matplotlib.org/stable/gallery/color/named_colors.html
     """
     x_values, y_values = pareto_front(diversification_values, roc_values)
-    plot_points(
+    return plot_points(
         x_values, y_values, color=color, c=c, alpha=alpha, cmap=cmap, label=label, ax=ax
     )
