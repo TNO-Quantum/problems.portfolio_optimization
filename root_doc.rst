@@ -115,6 +115,10 @@ Note that:
     :align: center
     :alt: (Diversification, ROC)-Graph
 
+More elaborate examples can be found in our `examples repository`_.
+
+.. _examples repository: https://github.com/TNO-Quantum/examples 
+
 Data input
 ----------
 
@@ -205,11 +209,11 @@ The example assumes a proper `configuration setup`_ to the D-Wave's Solver API.
 
 .. code-block:: python
 
-    from dwave.system import DWaveSampler, EmbeddingComposite
+    from dwave.system import DWaveSampler, LazyFixedEmbeddingComposite
 
     # Define QPU D-Wave Sampler
     qpu = DWaveSampler()
-    sampler = EmbeddingComposite(qpu)
+    sampler = LazyFixedEmbeddingComposite(qpu)
     sampler_kwargs = {"annealing_time": 100}
 
 
