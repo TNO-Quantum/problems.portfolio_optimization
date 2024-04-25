@@ -1,8 +1,10 @@
-# Comming soon!
+# Coming soon!
 
 This repository will be released in the near future.
 
 For more details you can contact the developers of this repository at tnoquantum@tno.nl.
+
+Dataset can already be found in the `tno/quantum/problems/portfolio_optimization/datasets/` folder.
 
 # Portfolio optimization
 
@@ -27,4 +29,4 @@ can be computed for the objectives return on capital and diversification.
 
 The codebase is based on the following paper:
 
-- Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024)
+- [Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024)](https://www.mdpi.com/2227-7390/12/9/1291)
