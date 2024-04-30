@@ -22,8 +22,9 @@ can be computed for the objectives return on capital and diversification.
 
 The codebase is based on the following paper:
 
-- Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2023)
+- `Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024)`_
 
+.. _Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024): https://www.mdpi.com/2227-7390/12/9/1291
 .. _Herfindahl-Hirschman Index: https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_index
 .. _Pareto front: https://en.wikipedia.org/wiki/Pareto_front
 .. _QUBO: https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization
