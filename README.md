@@ -2,7 +2,6 @@
 
 This building block is included in the [TNO Quantum Python Toolbox](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/quantum-toolbox).
 
-
 See also the related [examples repository](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/toolbox-examples).
 
 ## Install using access token
