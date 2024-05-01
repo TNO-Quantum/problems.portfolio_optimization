@@ -1,6 +1,6 @@
 variables:
   PYTHON_PACKAGE: "tno.quantum.problems.portfolio_optimization"
-  PYTEST_COVERAGE_THRESHOLD: "20"
+  PYTEST_COVERAGE_THRESHOLD: "80"
 
 include:
   - project: quantum/cicd/templates/python
@@ -9,20 +9,3 @@ include:
   - project: quantum/cicd/templates/python
     file: quantum-toolbox-template-microlib.yml
     ref: "v1.2.1"
-
-
-python:twine:
-  rules:
-    - when: never
-
-semantic-release:
-  rules:
-    - when: never
-
-find-next-release:
-  rules:
-    - when: never
-
-tbump:
-  rules:
-    - when: never
