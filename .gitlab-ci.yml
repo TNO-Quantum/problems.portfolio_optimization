@@ -1,7 +1,14 @@
+variables:
+  PYTHON_PACKAGE: "tno.quantum.problems.portfolio_optimization"
+  PYTEST_COVERAGE_THRESHOLD: "20"
+
 include:
   - project: quantum/cicd/templates/python
+    file: components/quality.yml
+    ref: "v1.2.1"
+  - project: quantum/cicd/templates/python
     file: quantum-toolbox-template-microlib.yml
-    ref: "v1.2.0"
+    ref: "v1.2.1"
 
 
 python:twine:
