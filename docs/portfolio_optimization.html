@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>portfolio_optimization package &mdash; tno.quantum.problems.portfolio_optimization</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/TNO_blue.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="portfolio_optimization.components package" href="portfolio_optimization.components.html" />
+    <link rel="prev" title="TNO Quantum" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            tno.quantum.problems.portfolio_optimization
+              <img src="_static/TNO_wit.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">portfolio_optimization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html">portfolio_optimization.components package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.qubos.html">portfolio_optimization.components.qubos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.io.html">portfolio_optimization.components.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.postprocess.html">portfolio_optimization.components.postprocess module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.results.html">portfolio_optimization.components.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.visualization.html">portfolio_optimization.components.visualization module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tno.quantum.problems.portfolio_optimization</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">portfolio_optimization package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/portfolio_optimization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-portfolio_optimization">
+<span id="portfolio-optimization-package"></span><h1>portfolio_optimization package<a class="headerlink" href="#module-portfolio_optimization" title="Permalink to this heading"></a></h1>
+<p>This package provides Python code that converts the multi-objective portfolio
+optimization problem into a <a class="reference external" href="https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization">QUBO</a> problem. The transformed problem can then be solved
+using quantum annealing techniques.</p>
+<p>The following objectives can be considered</p>
+<ul class="simple">
+<li><p><cite>return on capital</cite>, indicated by ROC,</p></li>
+<li><p><cite>diversification</cite>, indicated by the <a class="reference external" href="https://nl.wikipedia.org/wiki/Herfindahl-index">Herfindahl-Hirschman Index</a> HHI.</p></li>
+</ul>
+<p>Additionally, we allow for capital growth factor and arbitrary emission reduction
+constraints to be considered.</p>
+<p>The <a class="reference external" href="https://en.wikipedia.org/wiki/Pareto_front">Pareto front</a>, the set of solutions where one objective can’t be improved without
+worsening the other objective, can be computed for return on capital and diversification.</p>
+<p>The codebase is based on the following paper:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.mdpi.com/2227-7390/12/9/1291">Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024)</a></p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">portfolio_optimization.</span></span><span class="sig-name descname"><span class="pre">PortfolioOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">portfolio_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">PortfolioOptimizer</span></code> class is used to convert multi-objective portfolio
+optimization problems into QUBO problems which can then be solved using QUBO solving
+techniques such as simulated or quantum annealing.</p>
+<p>The following objectives can be considered</p>
+<ul class="simple">
+<li><p><cite>return on capital</cite>, indicated by ROC,</p></li>
+<li><p><cite>diversification</cite>, indicated by the <a class="reference external" href="https://nl.wikipedia.org/wiki/Herfindahl-index">Herfindahl-Hirschman Index</a> HHI.</p></li>
+</ul>
+<p>The following constraints can be added</p>
+<ul class="simple">
+<li><p><cite>capital growth</cite>, demand a minimum increase in outstanding assets.</p></li>
+<li><p><cite>emission reduction</cite>, demand a minimum reduction for an arbitrary emission type.</p></li>
+</ul>
+<p>Usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dwave.samplers</span> <span class="kn">import</span> <span class="n">SimulatedAnnealingSampler</span>
+
+<span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+
+<span class="c1"># Choose sampler for solving qubo</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">SimulatedAnnealingSampler</span><span class="p">()</span>
+<span class="n">sampler_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;num_reads&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;num_sweeps&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">}</span>
+
+<span class="c1"># Set up penalty coefficients for the constraints</span>
+<span class="n">lambdas1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">lambdas2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">lambdas3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Create portfolio optimization problem</span>
+<span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_minimize_hhi</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="n">lambdas1</span><span class="p">)</span>
+<span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_maximize_roc</span><span class="p">(</span><span class="n">formulation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">weights_roc</span><span class="o">=</span><span class="n">lambdas1</span><span class="p">)</span>
+<span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_emission_constraint</span><span class="p">(</span>
+    <span class="n">weights</span><span class="o">=</span><span class="n">lambdas3</span><span class="p">,</span>
+    <span class="n">emission_now</span><span class="o">=</span><span class="s2">&quot;emis_intens_now&quot;</span><span class="p">,</span>
+    <span class="n">emission_future</span><span class="o">=</span><span class="s2">&quot;emis_intens_future&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;emission&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Solve the portfolio optimization problem</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">portfolio_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Init <code class="docutils literal notranslate"><span class="pre">PortfolioOptimizer</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>portfolio_data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">PortfolioData</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>) – Portfolio data represented by a <code class="docutils literal notranslate"><span class="pre">PortfolioData</span></code> object,
+a pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> or a path to where portfolio data is stored. See
+the docstring of
+<a class="reference internal" href="portfolio_optimization.components.io.html#portfolio_optimization.components.io.PortfolioData" title="portfolio_optimization.components.io.PortfolioData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PortfolioData</span></code></a> for data
+input conventions.</p></li>
+<li><p><strong>k</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of bits that are used to represent the outstanding amount for
+each asset. A fixed point representation is used to represent <cite><span class="math notranslate nohighlight">\(2^k\)</span></cite>
+different equidistant values in the range <cite><span class="math notranslate nohighlight">\([LB_i, UB_i]\)</span></cite> for asset i.</p></li>
+<li><p><strong>column_rename</strong> – can be used to rename data columns. See the docstring of
+<a class="reference internal" href="portfolio_optimization.components.io.html#portfolio_optimization.components.io.PortfolioData" title="portfolio_optimization.components.io.PortfolioData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PortfolioData</span></code></a> for
+example.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the provided <code class="docutils literal notranslate"><span class="pre">portfolio_data</span></code> input has the wrong type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.add_emission_constraint">
+<span class="sig-name descname"><span class="pre">add_emission_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emission_now</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_future</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction_percentage_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.add_emission_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.add_emission_constraint" title="Permalink to this definition"></a></dt>
+<dd><p>Adds emission constraint to the portfolio optimization problem.</p>
+<p>The constraint is given by</p>
+<div class="math notranslate nohighlight">
+\[\frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_{i=1}^N x_i}
+=
+g_e \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},\]</div>
+<p>where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite><span class="math notranslate nohighlight">\(N\)</span></cite> is the total number of assets,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(x_i\)</span></cite> is the future outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(y_i\)</span></cite> is the current outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(e_i\)</span></cite> is the current emission intensity for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(f_i\)</span></cite> is the expected emission intensity at the future for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(g_e\)</span></cite> is the target value for the relative emission reduction.</p></li>
+</ul>
+</div></blockquote>
+<p>Usage example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_emission_constraint</span><span class="p">(</span>
+<span class="gp">... </span>  <span class="n">emission_now</span><span class="o">=</span><span class="s2">&quot;emis_intens_now&quot;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">lambdas</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the QUBO formulation, see the docs of
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory" title="portfolio_optimization.components.qubos.QuboFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuboFactory</span></code></a>.
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint" title="portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_emission_constraint()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>emission_now</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Name of the column in the portfolio dataset corresponding to
+the variables emission intensity at current time.</p></li>
+<li><p><strong>emission_future</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Name of the column in the portfolio dataset corresponding
+to the variables emission intensity at future time. If no value is
+provided, it is assumed that the emission intensity is constant over
+time, i.e., the variable <code class="docutils literal notranslate"><span class="pre">emission_now</span></code> will be used.</p></li>
+<li><p><strong>reduction_percentage_target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – target value for reduction percentage amount.</p></li>
+<li><p><strong>name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Name that will be used for emission constraint in the results df.</p></li>
+<li><p><strong>weights</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">Optional[ArrayLike]</span></code>) – The coefficients that are considered as penalty parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.add_growth_factor_constraint">
+<span class="sig-name descname"><span class="pre">add_growth_factor_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">growth_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.add_growth_factor_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.add_growth_factor_constraint" title="Permalink to this definition"></a></dt>
+<dd><p>Adds an outstanding amount growth factor constraint to the portfolio
+optimization problem.</p>
+<p>The constraint is given by</p>
+<p><div class="math notranslate nohighlight">
+\[\frac{\sum_{i=1}^N x_i}{\sum_{i=1}^N y_i} = g_c,\]</div>
+</p>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite><span class="math notranslate nohighlight">\(N\)</span></cite> is the total number of assets,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(x_i\)</span></cite> is the future outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(y_i\)</span></cite> is the current outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(g_c\)</span></cite> is the target value for the total growth factor.</p></li>
+</ul>
+</div></blockquote>
+<p>This constraint can only be added once.</p>
+<p>Usage example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_emission_constraint</span><span class="p">(</span><span class="n">growth_target</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">lambdas</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the QUBO formulation, see the docs of
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory" title="portfolio_optimization.components.qubos.QuboFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuboFactory</span></code></a>.
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint" title="portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_growth_factor_constraint()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>growth_target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – target value for growth factor total outstanding amount.</p></li>
+<li><p><strong>weights</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">Optional[ArrayLike]</span></code>) – The coefficients that are considered as penalty parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If constraint has been added before.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.add_maximize_roc">
+<span class="sig-name descname"><span class="pre">add_maximize_roc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_roc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ancilla_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_stabilize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.add_maximize_roc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.add_maximize_roc" title="Permalink to this definition"></a></dt>
+<dd><p>Adds the maximize ROC objective to the portfolio optimization problem.</p>
+<p>The ROC objective is given by</p>
+<div class="math notranslate nohighlight">
+\[ROC(x) =
+\frac{\sum_{i=1}^N \frac{x_i \cdot r_i}{y_i}}
+{\sum_{i=1}^N \frac{x_i \cdot c_i}{y_i}},\]</div>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite><span class="math notranslate nohighlight">\(N\)</span></cite> is the total number of assets,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(x_i\)</span></cite> is the future outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(y_i\)</span></cite> is the current outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(r_i\)</span></cite> is the return for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(c_i\)</span></cite> is the regulatory capital for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>As the ROC is not a quadratic function, it is approximated using two different
+formulations:</p>
+<dl>
+<dt>formulation 1:</dt><dd><p><div class="math notranslate nohighlight">
+\[ROC_1(x)=\sum_{i=1}^N\frac{x_i\cdot r_i}{c_i\cdot y_i}\]</div>
+</p>
+<p>Adds 1 qubo term, use <code class="docutils literal notranslate"><span class="pre">weights_roc</span></code> to scale.</p>
+</dd>
+<dt>formulation 2:</dt><dd><p><div class="math notranslate nohighlight">
+\[ROC_2(x)=\frac{1}{G_C \cdot C_{21}}\sum_{i=1}^N x_i\frac{r_i}{y_i}\]</div>
+</p>
+<p>In this formulation, <span class="math notranslate nohighlight">\(G_C \cdot C_{21}\)</span> approximates a fixed regulatory
+capital growth which is equal for all assets, where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite><span class="math notranslate nohighlight">\(1≤G_C&lt;2\)</span></cite> is a growth factor to be estimated using ancilla variables,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(C_{21} = \sum_{i=1}^N c_{i}\)</span></cite> is the sum of all assets’ regulatory capital.</p></li>
+</ul>
+</div></blockquote>
+<p>This formulation adds 2 qubo terms, one for the ROC term, and one to stabilize the
+capital growth. The stabilize qubo requires an extra argument <code class="docutils literal notranslate"><span class="pre">ancilla_variables</span></code>.
+Use <code class="docutils literal notranslate"><span class="pre">weights_roc</span></code> and <code class="docutils literal notranslate"><span class="pre">weights_stabilize</span></code> to scale both qubo’s accordingly.</p>
+</dd>
+</dl>
+<p>For the different QUBO formulations, see the docs of
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory" title="portfolio_optimization.components.qubos.QuboFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuboFactory</span></code></a>.</p>
+<p>Usage example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_maximize_roc</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>formulation</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – the ROC QUBO formulation that is being used.
+Possible options are: [1, 2].</p></li>
+<li><p><strong>weights_roc</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">Optional[ArrayLike]</span></code>) – The coefficients that are considered as penalty parameter for
+maximizing the roc objective.</p></li>
+<li><p><strong>ancilla_variables</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of ancillary variables that are used to
+represent <code class="docutils literal notranslate"><span class="pre">G_C</span></code> using fixed point representation. Only relevant for
+roc formulation <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></li>
+<li><p><strong>weights_stabilize</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">Optional[ArrayLike]</span></code>) – The coefficients that are considered as penalty parameter
+for the stabilizing constraint. Only relevant for roc formulation <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If invalid formulation is provided.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.add_minimize_hhi">
+<span class="sig-name descname"><span class="pre">add_minimize_hhi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.add_minimize_hhi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.add_minimize_hhi" title="Permalink to this definition"></a></dt>
+<dd><p>Adds the minimize HHI objective to the portfolio optimization problem.</p>
+<p>The HHI objective is given by</p>
+<p><div class="math notranslate nohighlight">
+\[HHI(x) = \sum_{i=1}^N\left(\frac{x_i}{\sum_{j=1}^N x_j}\right)^2,\]</div>
+</p>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite><span class="math notranslate nohighlight">\(N\)</span></cite> is the total number of assets,</p></li>
+<li><p><cite><span class="math notranslate nohighlight">\(x_i\)</span></cite> is the future outstanding amount for asset <cite><span class="math notranslate nohighlight">\(i\)</span></cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>As the objective contains non-quadratic terms, a QUBO formulation requires
+approximations. For the QUBO formulation, see the docs of
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory" title="portfolio_optimization.components.qubos.QuboFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuboFactory</span></code></a>.
+<a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi" title="portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_minimize_hhi()</span></code></a>.</p>
+<p>Usage example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_minimize_hhi</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="n">lambdas</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>weights</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">Optional[ArrayLike]</span></code>) – The coefficients that are considered as penalty parameter.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="portfolio_optimization.PortfolioOptimizer.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/_portfolio_optimizer.html#PortfolioOptimizer.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.PortfolioOptimizer.run" title="Permalink to this definition"></a></dt>
+<dd><p>Optimizes a portfolio given the set of provided constraints.</p>
+<p>Usage example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization</span> <span class="kn">import</span> <span class="n">PortfolioOptimizer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dwave.samplers</span> <span class="kn">import</span> <span class="n">SimulatedAnnealingSampler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span> <span class="o">=</span> <span class="n">PortfolioOptimizer</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;benchmark_dataset&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">add_minimize_HHI</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">portfolio_optimizer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">sampler</span><span class="o">=</span><span class="n">SimulatedAnnealingSampler</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sampler</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code>]) – Instance of a D-Wave Sampler that can be used to solve the QUBO.
+More information can be found in the <a class="reference external" href="https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html">D-Wave Ocean Documentation</a>.
+By default the <code class="docutils literal notranslate"><span class="pre">SimulatedAnnealingSampler</span></code> is being used.</p></li>
+<li><p><strong>sampler_kwargs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) – The sampler specific key-word arguments.</p></li>
+<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – If True, print detailed information during execution</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Results</span></code></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>results</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if constraints are not set</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="portfolio_optimization.plot_front">
+<span class="sig-prename descclassname"><span class="pre">portfolio_optimization.</span></span><span class="sig-name descname"><span class="pre">plot_front</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diversification_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roc_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/components/visualization.html#plot_front"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.plot_front" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a pareto front of the given data-points in a Diversification-ROC plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diversification_values</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">ArrayLike</span></code>) – 1-D <code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code> containing the x values of the plot.</p></li>
+<li><p><strong>roc_values</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">ArrayLike</span></code>) – 1-D <code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code> containing the y values of the plot.</p></li>
+<li><p><strong>color</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Optional color to use for the points. For an overview of allowed colors
+see the <a class="reference external" href="https://matplotlib.org/stable/gallery/color/named_colors.html">Matplotlib Documentation</a>. If <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, a default color
+will be assigned by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>label</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Label to use in the legend. If <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, no label will be used.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>c</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – The marker colors as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>vmin</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – min value of data range that colormap covers as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>vmax</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – max value of data range that colormap covers as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – The alpha blending value as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>cmap</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UnionType</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Colormap</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – The Colormap instance or registered colormap name as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>ax</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Axes</span></code>]) – <code class="docutils literal notranslate"><span class="pre">Axes</span></code> to plot on. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, a new figure with one <code class="docutils literal notranslate"><span class="pre">Axes</span></code> will be
+created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">PatchCollection</span></code></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> PathCollection object created by scatter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="portfolio_optimization.plot_points">
+<span class="sig-prename descclassname"><span class="pre">portfolio_optimization.</span></span><span class="sig-name descname"><span class="pre">plot_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diversification_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roc_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tno/quantum/problems/portfolio_optimization/components/visualization.html#plot_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#portfolio_optimization.plot_points" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the given data-points in a Diversification-ROC plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diversification_values</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">ArrayLike</span></code>) – 1-D <code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code> containing the x values of the plot.</p></li>
+<li><p><strong>roc_values</strong> (<code class="xref py py-const docutils literal notranslate"><span class="pre">ArrayLike</span></code>) – 1-D <code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code> containing the y values of the plot.</p></li>
+<li><p><strong>color</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Optional color to use for the points. For an overview of allowed colors
+see the <a class="reference external" href="https://matplotlib.org/stable/gallery/color/named_colors.html">Matplotlib Documentation</a>. If <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, a default color
+will be assigned by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>label</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Label to use in the legend. If <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, no label will be used.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>c</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – The marker colors as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>vmin</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – min value of data range that colormap covers as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>vmax</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – max value of data range that colormap covers as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – The alpha blending value as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>cmap</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UnionType</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Colormap</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – The Colormap instance or registered colormap name as used by <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p></li>
+<li><p><strong>ax</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Axes</span></code>]) – <code class="docutils literal notranslate"><span class="pre">Axes</span></code> to plot on. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, a new figure with one <code class="docutils literal notranslate"><span class="pre">Axes</span></code> will be
+created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">PatchCollection</span></code> | <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> PathCollection object created by scatter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="portfolio_optimization.components.html">portfolio_optimization.components package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Decoder.__init__"><code class="docutils literal notranslate"><span class="pre">Decoder.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Decoder.decode_sample"><code class="docutils literal notranslate"><span class="pre">Decoder.decode_sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Decoder.decode_sampleset"><code class="docutils literal notranslate"><span class="pre">Decoder.decode_sampleset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData"><code class="docutils literal notranslate"><span class="pre">PortfolioData</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.__contains__"><code class="docutils literal notranslate"><span class="pre">PortfolioData.__contains__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.__init__"><code class="docutils literal notranslate"><span class="pre">PortfolioData.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.__len__"><code class="docutils literal notranslate"><span class="pre">PortfolioData.__len__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.__repr__"><code class="docutils literal notranslate"><span class="pre">PortfolioData.__repr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.__str__"><code class="docutils literal notranslate"><span class="pre">PortfolioData.__str__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.from_file"><code class="docutils literal notranslate"><span class="pre">PortfolioData.from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_capital"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_capital()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_column"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_column()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_income"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_income()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_l_bound"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_l_bound()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_outstanding_now"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_outstanding_now()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_returns"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_returns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.get_u_bound"><code class="docutils literal notranslate"><span class="pre">PortfolioData.get_u_bound()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.PortfolioData.print_portfolio_info"><code class="docutils literal notranslate"><span class="pre">PortfolioData.print_portfolio_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler"><code class="docutils literal notranslate"><span class="pre">QuboCompiler</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.__init__"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.add_emission_constraint"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.add_emission_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.add_growth_factor_constraint"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.add_growth_factor_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.add_maximize_roc"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.add_maximize_roc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.add_minimize_hhi"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.add_minimize_hhi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.compile"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.compile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboCompiler.make_qubo"><code class="docutils literal notranslate"><span class="pre">QuboCompiler.make_qubo()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory"><code class="docutils literal notranslate"><span class="pre">QuboFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.__init__"><code class="docutils literal notranslate"><span class="pre">QuboFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_emission_constraint"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_emission_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_growth_factor_constraint"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_growth_factor_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_maximize_roc1"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_maximize_roc1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_maximize_roc2"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_maximize_roc2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_minimize_hhi"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_minimize_hhi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.QuboFactory.calc_stabilize_c"><code class="docutils literal notranslate"><span class="pre">QuboFactory.calc_stabilize_c()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results"><code class="docutils literal notranslate"><span class="pre">Results</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.__init__"><code class="docutils literal notranslate"><span class="pre">Results.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.__len__"><code class="docutils literal notranslate"><span class="pre">Results.__len__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.add_result"><code class="docutils literal notranslate"><span class="pre">Results.add_result()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.drop_duplicates"><code class="docutils literal notranslate"><span class="pre">Results.drop_duplicates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.head"><code class="docutils literal notranslate"><span class="pre">Results.head()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.Results.slice_results"><code class="docutils literal notranslate"><span class="pre">Results.slice_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.pareto_front"><code class="docutils literal notranslate"><span class="pre">pareto_front()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.plot_front"><code class="docutils literal notranslate"><span class="pre">plot_front()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#portfolio_optimization.components.plot_points"><code class="docutils literal notranslate"><span class="pre">plot_points()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="portfolio_optimization.components.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.qubos.html">portfolio_optimization.components.qubos package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboCompiler"><code class="docutils literal notranslate"><span class="pre">QuboCompiler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.qubos.html#portfolio_optimization.components.qubos.QuboFactory"><code class="docutils literal notranslate"><span class="pre">QuboFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.io.html">portfolio_optimization.components.io module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.io.html#portfolio_optimization.components.io.PortfolioData"><code class="docutils literal notranslate"><span class="pre">PortfolioData</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.postprocess.html">portfolio_optimization.components.postprocess module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.postprocess.html#portfolio_optimization.components.postprocess.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.postprocess.html#portfolio_optimization.components.postprocess.pareto_front"><code class="docutils literal notranslate"><span class="pre">pareto_front()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.results.html">portfolio_optimization.components.results module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.results.html#portfolio_optimization.components.results.Results"><code class="docutils literal notranslate"><span class="pre">Results</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="portfolio_optimization.components.visualization.html">portfolio_optimization.components.visualization module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.visualization.html#portfolio_optimization.components.visualization.plot_front"><code class="docutils literal notranslate"><span class="pre">plot_front()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="portfolio_optimization.components.visualization.html#portfolio_optimization.components.visualization.plot_points"><code class="docutils literal notranslate"><span class="pre">plot_points()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="TNO Quantum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="portfolio_optimization.components.html" class="btn btn-neutral float-right" title="portfolio_optimization.components package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023-2024, TNO Quantum Code Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

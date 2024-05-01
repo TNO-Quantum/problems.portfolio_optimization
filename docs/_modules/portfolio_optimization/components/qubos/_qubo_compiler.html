@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>portfolio_optimization.components.qubos._qubo_compiler &mdash; tno.quantum.problems.portfolio_optimization</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../../_static/TNO_blue.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            tno.quantum.problems.portfolio_optimization
+              <img src="../../../../_static/TNO_wit.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../portfolio_optimization.html">portfolio_optimization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../portfolio_optimization.components.html">portfolio_optimization.components package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.qubos.html">portfolio_optimization.components.qubos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.io.html">portfolio_optimization.components.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.postprocess.html">portfolio_optimization.components.postprocess module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.results.html">portfolio_optimization.components.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.visualization.html">portfolio_optimization.components.visualization module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">tno.quantum.problems.portfolio_optimization</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">portfolio_optimization.components.qubos._qubo_compiler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for portfolio_optimization.components.qubos._qubo_compiler</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains the ``QuboCompiler`` class.</span>
+
+<span class="sd">The ``QuboCompiler`` can create a variety of QUBO formulation by combining different</span>
+<span class="sd">objectives and constraints with their corresponding penalty or preference parameters.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization.components.io</span> <span class="kn">import</span> <span class="n">PortfolioData</span>
+
+<span class="kn">from</span> <span class="nn">._qubo_factory</span> <span class="kn">import</span> <span class="n">QuboFactory</span>
+
+<span class="n">QuboCompilerT</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;QuboCompilerT&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;QuboCompiler&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="QuboCompiler"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler">[docs]</a><span class="k">class</span> <span class="nc">QuboCompiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;QuboCompiler - A compiler class for creating QUBO instances.</span>
+
+<span class="sd">    This class provides a convenient interface for combining different QUBO formulations</span>
+<span class="sd">    without needing to worry about the qubo size.</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">    - `add_minimize_hhi`: Adds the to minimize HHI QUBO to the compile list.</span>
+<span class="sd">    - `add_maximize_roc`: Adds a ROC and optionally a stabilizing QUBO to the compile</span>
+<span class="sd">      list.</span>
+<span class="sd">    - `add_emission_constraint`: Adds an emission constraint QUBO to the compile list.</span>
+<span class="sd">    - `add_growth_factor_constraint`: Adds the growth factor constraint QUBO to the</span>
+<span class="sd">      compile list.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QuboCompiler.__init__"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">portfolio_data</span><span class="p">:</span> <span class="n">PortfolioData</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Init of the ``QuboCompiler`` class.</span>
+
+<span class="sd">        The ``QuboCompiler`` can create a variety of QUBO formulation by combining</span>
+<span class="sd">        different objectives and constraints with penalty or preference parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            portfolio_data: A ``PortfolioData`` object containing the portfolio to</span>
+<span class="sd">                optimize.</span>
+<span class="sd">            k: The number of bits that are used to represent the outstanding amount for</span>
+<span class="sd">                each asset. A fixed point representation is used to represent `$2^k$`</span>
+<span class="sd">                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span> <span class="o">=</span> <span class="n">QuboFactory</span><span class="p">(</span><span class="n">portfolio_data</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.add_minimize_hhi"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.add_minimize_hhi">[docs]</a>    <span class="k">def</span> <span class="nf">add_minimize_hhi</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">QuboCompilerT</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuboCompilerT</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Adds the minimize HHI objective to the compile list.</span>
+
+<span class="sd">        The HHI objective is given by</span>
+
+<span class="sd">        $$HHI(x) = \sum_{i=1}^N\left(\frac{x_i}{\sum_{j=1}^N x_j}\right)^2,$$</span>
+
+<span class="sd">        where</span>
+
+<span class="sd">            - `$N$` is the total number of assets,</span>
+<span class="sd">            - `$x_i$` is the future outstanding amount for asset `$i$`.</span>
+
+<span class="sd">        For the QUBO formulation, see the docs of</span>
+<span class="sd">        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_minimize_hhi</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.add_maximize_roc"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.add_maximize_roc">[docs]</a>    <span class="k">def</span> <span class="nf">add_maximize_roc</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">QuboCompilerT</span><span class="p">,</span>
+        <span class="n">formulation</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">ancilla_variables</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuboCompilerT</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds the maximize ROC objective and based on the chosen formulation a</span>
+<span class="sd">        stabilize c constraint.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            formulation: Integer representing which formulation to pick. If formulation</span>
+<span class="sd">                is ``1``, then one QUBO term will be added. If formulation is ``2``,</span>
+<span class="sd">                then 2 QUBO terms will be added as well, but the argument</span>
+<span class="sd">                `ancilla_variables` must be provided.</span>
+<span class="sd">            ancilla_variables: Number of ancilla variables to use for formulation ``2``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">formulation</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_maximize_roc1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">formulation</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">+=</span> <span class="n">ancilla_variables</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_maximize_roc2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_stabilize_c</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.add_emission_constraint"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.add_emission_constraint">[docs]</a>    <span class="k">def</span> <span class="nf">add_emission_constraint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">QuboCompilerT</span><span class="p">,</span>
+        <span class="n">emission_now</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">emission_future</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduction_percentage_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuboCompilerT</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Adds the emission constraint to the compile list.</span>
+
+<span class="sd">        The constraint is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            \frac{\sum_{i=1}^Nf_i \cdot x_i}{\sum_{i=1}^N x_i}</span>
+<span class="sd">            =</span>
+<span class="sd">            g_e \frac{\sum_{i=1}^Ne_i \cdot y_i}{\sum_{i=1}^N y_i},</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">            - `$x_i$` is the future outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$e_i$` is the current emission intensity for asset `$i$`,</span>
+<span class="sd">            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,</span>
+<span class="sd">            - `$g_e$` is the target value for the relative emission reduction.</span>
+
+<span class="sd">        For the QUBO formulation, see the docs of</span>
+<span class="sd">        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emission_now: Name of the column in the portfolio dataset corresponding to</span>
+<span class="sd">                the variables at current time.</span>
+<span class="sd">            emission_future: Name of the column in the portfolio dataset corresponding</span>
+<span class="sd">                to the variables at future time. If no value is provided, it is assumed</span>
+<span class="sd">                that the value is constant over time, i.e., the variable</span>
+<span class="sd">                ``emission_now`` will be used.</span>
+<span class="sd">            reduction_percentage_target: target value for reduction percentage amount.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_emission_constraint</span><span class="p">,</span>
+            <span class="n">emission_now</span><span class="o">=</span><span class="n">emission_now</span><span class="p">,</span>
+            <span class="n">emission_future</span><span class="o">=</span><span class="n">emission_future</span><span class="p">,</span>
+            <span class="n">reduction_percentage_target</span><span class="o">=</span><span class="n">reduction_percentage_target</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.add_growth_factor_constraint"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.add_growth_factor_constraint">[docs]</a>    <span class="k">def</span> <span class="nf">add_growth_factor_constraint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">QuboCompilerT</span><span class="p">,</span> <span class="n">growth_target</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuboCompilerT</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=line-too-long</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Adds the capital growth factor constraint to the compile list.</span>
+
+<span class="sd">        The constraint is given by</span>
+
+<span class="sd">        $$\frac{\sum_{i=1}^N x_i}{\sum_{i=1}^N y_i} = g_c,$$</span>
+
+<span class="sd">        where</span>
+
+<span class="sd">            - `$N$` is the total number of assets,</span>
+<span class="sd">            - `$x_i$` is the future outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$g_c$` is the target value for the total growth factor.</span>
+
+<span class="sd">        For the QUBO formulation, see the docs of</span>
+<span class="sd">        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            growth_target: target value for growth factor total outstanding amount.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: enable=line-too-long</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_factory</span><span class="o">.</span><span class="n">calc_growth_factor_constraint</span><span class="p">,</span>
+            <span class="n">growth_target</span><span class="o">=</span><span class="n">growth_target</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.compile"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">QuboCompilerT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuboCompilerT</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compiles all QUBOs in the compile list.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Self.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">constructor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_compile</span><span class="p">:</span>
+            <span class="n">qubo</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">constructor</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qubo</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="QuboCompiler.make_qubo"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboCompiler.make_qubo">[docs]</a>    <span class="k">def</span> <span class="nf">make_qubo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">lambdas</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Makes a QUBO of the entire problem with the given lambdas.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lambdas: Scaling parameters for each QUBO in the formulation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing the QUBO matrix and offset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lambdas</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Number of lambdas does not correspond with the number of Hamiltonians.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">qubo</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">lambda_i</span> <span class="o">*</span> <span class="n">qubo_i</span>
+                <span class="k">for</span> <span class="n">lambda_i</span><span class="p">,</span> <span class="n">qubo_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lambdas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">start</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compiled_qubos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">qubo</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023-2024, TNO Quantum Code Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

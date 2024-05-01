@@ -1,0 +1,21 @@
+[build-system]
+requires = [ "setuptools >= 67.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.tbump]
+
+[tool.tbump.version]
+current = "1.0.0"
+regex = '''
+\d+\.\d+\.\d+(-(.*))?
+'''
+
+[tool.tbump.git]
+message_template = "Bump to {new_version}"
+tag_template = "v{new_version}"
+
+[[tool.tbump.file]]
+src = "pyproject.toml"
+
+[[tool.tbump.file]]
+src = "tno/quantum/problems/portfolio_optimization/__init__.py"

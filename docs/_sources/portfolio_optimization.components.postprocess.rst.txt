@@ -1,0 +1,7 @@
+portfolio\_optimization.components.postprocess module
+=====================================================
+
+.. automodule:: portfolio_optimization.components.postprocess
+   :members:
+   :undoc-members:
+   :show-inheritance:

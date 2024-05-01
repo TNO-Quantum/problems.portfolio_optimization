@@ -1,0 +1,7 @@
+portfolio\_optimization.components.visualization module
+=======================================================
+
+.. automodule:: portfolio_optimization.components.visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>portfolio_optimization.components.qubos._qubo_factory &mdash; tno.quantum.problems.portfolio_optimization</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../../_static/TNO_blue.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            tno.quantum.problems.portfolio_optimization
+              <img src="../../../../_static/TNO_wit.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../portfolio_optimization.html">portfolio_optimization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../portfolio_optimization.components.html">portfolio_optimization.components package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.qubos.html">portfolio_optimization.components.qubos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.io.html">portfolio_optimization.components.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.postprocess.html">portfolio_optimization.components.postprocess module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.results.html">portfolio_optimization.components.results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../portfolio_optimization.components.visualization.html">portfolio_optimization.components.visualization module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">tno.quantum.problems.portfolio_optimization</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">portfolio_optimization.components.qubos._qubo_factory</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for portfolio_optimization.components.qubos._qubo_factory</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains the ``QuboFactory`` class.</span>
+
+<span class="sd">The ``QuboFactory`` class provides a convenient interface for constructing intermediate</span>
+<span class="sd">QUBO matrices for different objectives and constraints.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span> <span class="nn">tno.quantum.problems.portfolio_optimization.components.io</span> <span class="kn">import</span> <span class="n">PortfolioData</span>
+
+<span class="c1"># pylint: disable=too-many-instance-attributes</span>
+
+
+<div class="viewcode-block" id="QuboFactory"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory">[docs]</a><span class="k">class</span> <span class="nc">QuboFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;QuboFactory - A factory class for creating QUBO instances.</span>
+
+<span class="sd">    This class provides a convenient interface for constructing intermediate QUBO</span>
+<span class="sd">    matrices for different objectives and constraints.</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">    - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO</span>
+<span class="sd">    - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1</span>
+<span class="sd">    - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2</span>
+<span class="sd">    - `calc_emission_constraint`: Calculates the emission constraint QUBO</span>
+<span class="sd">    - `calc_growth_factor_constraint`: Calculates the growth factor constraint QUBO</span>
+<span class="sd">    - `calc_stabilize_c`: Calculates the constraint QUBO that stabilizes growth factor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QuboFactory.__init__"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">portfolio_data</span><span class="p">:</span> <span class="n">PortfolioData</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Init of the ``QuboFactory``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            portfolio_data: A ``PortfolioData`` object containing the portfolio to</span>
+<span class="sd">                optimize.</span>
+<span class="sd">            k: The number of bits that are used to represent the outstanding amount for</span>
+<span class="sd">                each asset. A fixed point representation is used to represent `$2^k$`</span>
+<span class="sd">                different equidistant values in the range `$[LB_i, UB_i]$` for asset i.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">portfolio_data</span> <span class="o">=</span> <span class="n">portfolio_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">portfolio_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_outstanding_now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_l_bound</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_u_bound</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">income</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_income</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">returns</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_returns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capital</span> <span class="o">=</span> <span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_capital</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_minimize_hhi"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_minimize_hhi">[docs]</a>    <span class="k">def</span> <span class="nf">calc_minimize_hhi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the to minimize HHI QUBO.</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x)</span>
+<span class="sd">            =</span>
+<span class="sd">            \sum_{i=1}^N\left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)^2,</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">))</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">asset_i</span><span class="p">,</span> <span class="p">(</span><span class="n">l_bound_i</span><span class="p">,</span> <span class="n">multiplier_i</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="c1"># For asset i: (LB + multiplier * sum_j 2**j x_j) ** 2</span>
+            <span class="k">for</span> <span class="n">bit_j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                <span class="n">idx_1</span> <span class="o">=</span> <span class="n">asset_i</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="n">bit_j</span>
+
+                <span class="c1"># Diagonal elements: 2 * LB * multiplier * sum_j 2**j x_j</span>
+                <span class="n">qubo</span><span class="p">[</span><span class="n">idx_1</span><span class="p">,</span> <span class="n">idx_1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">l_bound_i</span> <span class="o">*</span> <span class="n">multiplier_i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">bit_j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">qubo</span><span class="p">[</span><span class="n">idx_1</span><span class="p">,</span> <span class="n">idx_1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">multiplier_i</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">bit_j</span><span class="p">)</span>
+
+                <span class="c1"># Elements: multiplier**2 * (sum_j 2**j x_j) * (sum_j&#39; 2**j&#39; x_j&#39;)</span>
+                <span class="k">for</span> <span class="n">bit_j_prime</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bit_j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                    <span class="n">idx_2</span> <span class="o">=</span> <span class="n">asset_i</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="n">bit_j_prime</span>
+                    <span class="n">qubo</span><span class="p">[</span><span class="n">idx_1</span><span class="p">,</span> <span class="n">idx_2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">multiplier_i</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span>
+                        <span class="n">bit_j</span> <span class="o">+</span> <span class="n">bit_j_prime</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="p">)</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">qubo</span>
+        <span class="k">return</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">offset</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_emission_constraint"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_emission_constraint">[docs]</a>    <span class="k">def</span> <span class="nf">calc_emission_constraint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">emission_now</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">emission_future</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduction_percentage_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the emission constraint QUBO for arbitrary target reduction target</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x)</span>
+<span class="sd">            &amp;=</span>
+<span class="sd">            \left(</span>
+<span class="sd">            \sum_{i=1}^N f_i x_i</span>
+<span class="sd">            - g_e E</span>
+<span class="sd">            \sum_{i=1}^N x_i</span>
+<span class="sd">            \right)^2,</span>
+
+<span class="sd">            x_i &amp; = LB_i+\frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j},</span>
+
+<span class="sd">            E &amp;= \frac{\sum_{i=1}^N e_i \cdot y_i}{\sum_{i=1}^N y_i},</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - `$e_i$` is the current emission intensity for asset `$i$`,</span>
+<span class="sd">            - `$f_i$` is the expected emission intensity at the future for asset `$i$`,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$g_e$` is the target value for the relative emission reduction,</span>
+<span class="sd">            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emission_now: Name of the column in the portfolio dataset corresponding to</span>
+<span class="sd">                the variables at current time.</span>
+<span class="sd">            emission_future: Name of the column in the portfolio dataset corresponding</span>
+<span class="sd">                to the variables at future time. If no value is provided, it is assumed</span>
+<span class="sd">                that the value is constant over time, i.e., the variable</span>
+<span class="sd">                ``emission_now`` will be used.</span>
+<span class="sd">            reduction_percentage_target: Target value for reduction percentage amount.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: if the provided column names are not in the portfolio_data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">emission_future</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">emission_future</span> <span class="o">=</span> <span class="n">emission_now</span>
+
+        <span class="k">if</span> <span class="n">emission_now</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">portfolio_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Column name </span><span class="si">{</span><span class="n">emission_now</span><span class="si">}</span><span class="s2"> not present in portfolio dataset.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">emission_future</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">portfolio_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Column name </span><span class="si">{</span><span class="n">emission_future</span><span class="si">}</span><span class="s2"> not present in portfolio dataset.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">emission_intensity_now</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="n">emission_now</span><span class="p">)</span>
+        <span class="n">emission_intensity_future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">portfolio_data</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="n">emission_future</span><span class="p">)</span>
+
+        <span class="n">total_emission_now</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">emission_intensity_now</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span><span class="p">)</span>
+        <span class="n">relelative_total_emission_now</span> <span class="o">=</span> <span class="n">total_emission_now</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span>
+        <span class="p">)</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">emission_intensity_future</span>
+                <span class="o">-</span> <span class="n">reduction_percentage_target</span> <span class="o">*</span> <span class="n">relelative_total_emission_now</span>
+            <span class="p">)</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span>
+        <span class="p">)</span>
+
+        <span class="n">mantisse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">emission_intensity_future</span>
+                <span class="o">-</span> <span class="n">reduction_percentage_target</span> <span class="o">*</span> <span class="n">relelative_total_emission_now</span>
+            <span class="p">)</span>
+            <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">mantisse</span><span class="p">)</span>
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">))</span>
+
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">for</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+            <span class="n">qubo</span><span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">beta</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span> <span class="o">+</span> <span class="n">beta</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">for</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">idx1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">):</span>
+                <span class="n">qubo</span><span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">beta</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span> <span class="o">*</span> <span class="n">beta</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">qubo</span>
+        <span class="k">return</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">offset</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_growth_factor_constraint"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_growth_factor_constraint">[docs]</a>    <span class="k">def</span> <span class="nf">calc_growth_factor_constraint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">growth_target</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the growth factor constraint QUBO</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x)</span>
+<span class="sd">            =</span>
+<span class="sd">            \left(</span>
+<span class="sd">            \frac{\sum_{i=1}^N LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1} 2^j\cdot x_{i,j}}{\sum_{i=1}^N y_i}</span>
+<span class="sd">            - g_c</span>
+<span class="sd">            \right)^2</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - `$g_c$` is the target value for the total growth factor,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            growth_target: target value for growth factor total outstanding amount.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_outstanding_now</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span><span class="p">)</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_outstanding_now</span> <span class="o">-</span> <span class="n">growth_target</span>
+
+        <span class="n">mantisse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_outstanding_now</span>
+        <span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">mantisse</span><span class="p">)</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">))</span>
+        <span class="c1"># We only fill the upper left part of the matrix, since we don&#39;t use ancilla</span>
+        <span class="c1"># variables</span>
+        <span class="n">qubo_slice</span> <span class="o">=</span> <span class="n">qubo</span><span class="p">[</span>
+            <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span>
+        <span class="p">]</span>
+        <span class="c1"># Add the off diagonal elements</span>
+        <span class="n">qubo_slice</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Add the diagonal elements</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">qubo_slice</span><span class="p">,</span> <span class="n">beta</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">beta</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="n">qubo</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_maximize_roc1"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_maximize_roc1">[docs]</a>    <span class="k">def</span> <span class="nf">calc_maximize_roc1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the to maximize ROC QUBO for variant 1.</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x)</span>
+<span class="sd">            =</span>
+<span class="sd">            -\sum_{i=1}^N\frac{r_i}{c_i\cdot y_i}</span>
+<span class="sd">            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),</span>
+
+<span class="sd">        where</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$r_i$` is the current return for asset `$i$`,</span>
+<span class="sd">            - `$c_i$` is the regulatory capital for asset `$i$`,</span>
+<span class="sd">            - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">capital</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span>
+        <span class="n">mantisse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">qubo_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">mantisse</span><span class="p">)</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">qubo_diag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">qubo</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_maximize_roc2"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_maximize_roc2">[docs]</a>    <span class="k">def</span> <span class="nf">calc_maximize_roc2</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the to maximize ROC QUBO for variant 2.</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x,g)</span>
+<span class="sd">            &amp;=</span>
+<span class="sd">            -</span>
+<span class="sd">            G_{inv}(g) \cdot</span>
+<span class="sd">            \sum_{i=1}^N\frac{r_i}{y_i}</span>
+<span class="sd">            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right),</span>
+
+<span class="sd">            G_{inv}(g) &amp;=</span>
+<span class="sd">            1 + \sum_{j=0}^{k-1} 2^{-j-1}(2^{-j-1} - 1)\cdot g_{j},</span>
+
+<span class="sd">        where</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - `$a$` is the number of ancilla variables,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$r_i$` is the return for asset `$i$`,</span>
+<span class="sd">            - `$c_i$` is the regulatory capital for asset `$i$`,</span>
+<span class="sd">            - `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$.</span>
+<span class="sd">            - `$g_{j}$` are the $a$ binary ancilla variables with $j&lt;a$.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ancilla_variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span><span class="p">)</span>
+        <span class="n">mantisse</span> <span class="o">=</span> <span class="n">mantisse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">returns</span>
+            <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">mantisse</span><span class="p">)</span>
+
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">ancilla_variables</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">gamma</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">))</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span>
+            <span class="n">qubo</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">],</span>
+            <span class="n">beta</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">qubo</span><span class="p">[</span>
+            <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:</span>
+        <span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span>
+            <span class="n">qubo</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:],</span>
+            <span class="n">alpha</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">qubo</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span></div>
+
+<div class="viewcode-block" id="QuboFactory.calc_stabilize_c"><a class="viewcode-back" href="../../../../portfolio_optimization.components.qubos.html#portfolio_optimization.components.QuboFactory.calc_stabilize_c">[docs]</a>    <span class="k">def</span> <span class="nf">calc_stabilize_c</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the QUBO that stabilizes the growth factor in the second ROC</span>
+<span class="sd">        formulation.</span>
+
+<span class="sd">        The QUBO formulation is given by</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            QUBO(x,g)</span>
+<span class="sd">            &amp;=</span>
+<span class="sd">            \left(</span>
+<span class="sd">            \sum_{i=1}^N\frac{c_i}{y_i}</span>
+<span class="sd">            \left(LB_i + \frac{UB_i-LB_i}{2^k-1}\sum_{j=0}^{k-1}2^j\cdot x_{i,j}\right)</span>
+<span class="sd">            - G_C(g)\sum_{i=1}^N c_i</span>
+<span class="sd">            \right)^2,</span>
+
+<span class="sd">            G_C &amp;= 1 + \sum_{j=0}^{k-1} 2^{-j - 1} \cdot g_j,</span>
+
+<span class="sd">        where</span>
+
+<span class="sd">            - `$LB_i$` is the lower bound for asset `$i$`,</span>
+<span class="sd">            - `$UB_i$` is the upper bound for asset `$i$`,</span>
+<span class="sd">            - `$k$` is the number of bits,</span>
+<span class="sd">            - `$a$` is the number of ancilla variables,</span>
+<span class="sd">            - `$y_i$` is the current outstanding amount for asset `$i$`,</span>
+<span class="sd">            - `$c_i$` is the regulatory capital for asset `$i$`,</span>
+<span class="sd">            - `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j&lt;k$,</span>
+<span class="sd">            - `$g_j$` are the $a$ ancillary binary variables with $j&lt;a$.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubo matrix and its offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ancilla_variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capital</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capital</span>
+        <span class="p">)</span>
+
+        <span class="n">mantisse</span> <span class="o">=</span> <span class="n">mantisse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capital</span>
+            <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_bound</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outstanding_now</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">mantisse</span><span class="p">)</span>
+
+        <span class="n">gamma</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">ancilla_variables</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capital</span>
+        <span class="p">)</span>
+
+        <span class="n">qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">))</span>
+        <span class="n">qubo_upper_left</span> <span class="o">=</span> <span class="n">qubo</span><span class="p">[</span>
+            <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span>
+        <span class="p">]</span>
+        <span class="n">qubo_upper_left</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">qubo_upper_left</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">beta</span> <span class="o">+</span> <span class="n">beta</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">qubo_upper_right</span> <span class="o">=</span> <span class="n">qubo</span><span class="p">[</span>
+            <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:</span>
+        <span class="p">]</span>
+        <span class="n">qubo_upper_right</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+
+        <span class="n">qubo_lower_right</span> <span class="o">=</span> <span class="n">qubo</span><span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_assets</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:</span>
+        <span class="p">]</span>
+        <span class="n">qubo_lower_right</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">qubo_lower_right</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">offset</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023-2024, TNO Quantum Code Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

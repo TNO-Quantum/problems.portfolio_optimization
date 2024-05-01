@@ -15,12 +15,20 @@ worsening the other objective, can be computed for return on capital and diversi
 
 The codebase is based on the following paper:
 
-- Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2023)
+- `Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024)`_
 
+.. _Aguilera et al., - Multi-objective Portfolio Optimisation Using the Quantum Annealer (2024): https://www.mdpi.com/2227-7390/12/9/1291
 .. _Pareto front: https://en.wikipedia.org/wiki/Pareto_front
 .. _QUBO: https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization"""
 
+from tno.quantum.problems.portfolio_optimization._portfolio_optimizer import (
+    PortfolioOptimizer,
+)
+from tno.quantum.problems.portfolio_optimization.components import (
+    plot_front,
+    plot_points,
+)
 
-__all__ = []
+__all__ = ["PortfolioOptimizer", "plot_front", "plot_points"]
 
-__version__ = "dev"
+__version__ = "1.0.0"

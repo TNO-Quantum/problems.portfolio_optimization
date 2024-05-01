@@ -1,0 +1,7 @@
+portfolio\_optimization.components.qubos package
+================================================
+
+.. automodule:: portfolio_optimization.components.qubos
+   :members:
+   :undoc-members:
+   :show-inheritance:

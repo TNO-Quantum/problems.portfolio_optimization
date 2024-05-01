@@ -1,0 +1,15 @@
+portfolio\_optimization package
+===============================
+
+.. automodule:: portfolio_optimization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+.. toctree::
+   :maxdepth: 4
+
+
+   portfolio_optimization.components
