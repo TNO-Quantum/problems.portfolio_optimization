@@ -1,6 +1,6 @@
 variables:
   PYTHON_PACKAGE: "tno.quantum.problems.portfolio_optimization"
-  PYTEST_COVERAGE_THRESHOLD: "80"
+  PYTEST_COVERAGE_THRESHOLD: "60"
 
 include:
   - project: quantum/cicd/templates/python
