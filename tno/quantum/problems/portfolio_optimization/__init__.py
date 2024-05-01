@@ -31,4 +31,4 @@ from tno.quantum.problems.portfolio_optimization.components import (
 
 __all__ = ["PortfolioOptimizer", "plot_front", "plot_points"]
 
-__version__ = "0.0.1"
+__version__ = "1.0.0"
