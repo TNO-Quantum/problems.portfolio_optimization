@@ -1,4 +1,5 @@
 """This module contains test for the ``QuboCompiler`` class."""
+
 from __future__ import annotations
 
 from collections.abc import MutableSequence
@@ -12,8 +13,6 @@ from tno.quantum.problems.portfolio_optimization.components import (
     QuboFactory,
 )
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
-
-# pylint: disable=missing-function-docstring
 
 
 @pytest.fixture(name="qubo_compiler")
@@ -32,7 +31,7 @@ def test_init(qubo_compiler: QuboCompiler) -> None:
 
 
 @pytest.mark.parametrize(
-    "method_name,method_args",
+    ("method_name", "method_args"),
     [
         ("add_minimize_hhi", []),
         ("add_emission_constraint", ["emis_intens_now", "emis_intens_future", 0.7]),
@@ -63,7 +62,7 @@ def test_add_single_qubo(
 
 
 @pytest.mark.parametrize(
-    "method_name,method_args,len_qubo",
+    ("method_name", "method_args", "len_qubo"),
     [
         ("add_maximize_roc", [2, 5], 9),
     ],
@@ -143,5 +142,6 @@ def test_ordering() -> None:
 def test_incorrect_lambdas(qubo_compiler: QuboCompiler) -> None:
     qubo_compiler.add_emission_constraint(emission_now="emis_intens_now")
     qubo_compiler.compile()
-    with pytest.raises(ValueError):
+    expect_msg = "Number of lambdas does not correspond with the number of Hamiltonians"
+    with pytest.raises(ValueError, match=expect_msg):
         qubo_compiler.make_qubo(1, 2, 3)

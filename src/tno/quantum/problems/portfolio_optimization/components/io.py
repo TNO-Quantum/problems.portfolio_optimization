@@ -1,6 +1,8 @@
-"""This module implements I/O"""
+"""This module implements I/O."""
+
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import TypeVar, cast
 
@@ -28,7 +30,7 @@ class PortfolioData:
         self,
         portfolio_dataframe: DataFrame,
         columns_rename: dict[str, str] | None = None,
-    ):
+    ) -> None:
         """Creates a ``PortfolioData`` object from a pandas ``DataFrame``.
 
         The portfolio data is expected to contain at least the following columns names:
@@ -45,24 +47,32 @@ class PortfolioData:
 
         Args:
             portfolio_dataframe: Pandas ``DataFrame`` containing the portfolio data.
-            column_rename: to rename columns provided as dict with new column names as keys
+            columns_rename: to rename columns provided as dict with new column names as keys
                 and to replace column name as value. Example
                 ``{"outstanding_2021": "outstanding_now"}``.
 
         Raises:
             ValueError if required columns are not present in dataset.
-        """
+        """  # noqa: E501
         if columns_rename is not None:
-            portfolio_dataframe.rename(columns=columns_rename, inplace=True)
+            portfolio_dataframe.rename(columns=columns_rename, inplace=True)  # noqa: PD002
 
         # Validate dataset to contain required column names
         for required_column_name in DEFAULT_REQUIRED_COLUMN_NAMES:
             if required_column_name not in portfolio_dataframe.columns:
-                raise ValueError(
+                error_msg = (
                     f"Required column name {required_column_name} is not in dataset."
                 )
+                raise ValueError(error_msg)
 
         self.portfolio_df = portfolio_dataframe
+
+        # Create logger
+        self._logger = logging.getLogger("PortfolioData")
+        self._logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+        self._logger.addHandler(handler)
 
     @classmethod
     def from_file(
@@ -87,13 +97,13 @@ class PortfolioData:
         Args:
             filename: path to portfolio data. If instead ``benchmark_dataset`` is
                 provided, a default benchmark dataset containing 52 assets will be used.
-            column_rename: to rename columns provided as dict with new column names as keys
+            columns_rename: to rename columns provided as dict with new column names as keys
                 and to replace column name as value. Example
                 ``{"outstanding_2021": "outstanding_now"}``.
 
         Raises:
             ValueError if required columns are not present in dataset.
-        """
+        """  # noqa: E501
         if str(filename) == "benchmark_dataset":
             filename = Path(__file__).parents[1] / "datasets" / "benchmark_dataset.xlsx"
 
@@ -105,54 +115,59 @@ class PortfolioData:
         elif filename.endswith(".json"):
             portfolio_data = pd.read_json(filename)
         else:
-            raise ValueError("Datatype not supported.")
+            error_msg = "Datatype not supported."
+            raise ValueError(error_msg)
         return cls(portfolio_data, columns_rename)
 
-    def get_outstanding_now(self) -> NDArray[np.float_]:
+    def get_outstanding_now(self) -> NDArray[np.float64]:
         """Gets the `outstanding_now` data from the dataset.
 
         Returns:
             The `outstanding_now` column from the dataset as a numpy array.
         """
-        return cast(NDArray[np.float_], self.portfolio_df["outstanding_now"].to_numpy())
+        return cast(
+            "NDArray[np.float64]", self.portfolio_df["outstanding_now"].to_numpy()
+        )
 
-    def get_l_bound(self) -> NDArray[np.float_]:
+    def get_l_bound(self) -> NDArray[np.float64]:
         """Gets the `l_bound` data from the dataset.
 
         Returns:
             The `min_outstanding_future` column from the dataset as a numpy array.
         """
         return cast(
-            NDArray[np.float_], self.portfolio_df["min_outstanding_future"].to_numpy()
+            "NDArray[np.float64]",
+            self.portfolio_df["min_outstanding_future"].to_numpy(),
         )
 
-    def get_u_bound(self) -> NDArray[np.float_]:
+    def get_u_bound(self) -> NDArray[np.float64]:
         """Gets the `u_bound` data from the dataset.
 
         Returns:
             The `max_outstanding_future` column from the dataset as a numpy array.
         """
         return cast(
-            NDArray[np.float_], self.portfolio_df["max_outstanding_future"].to_numpy()
+            "NDArray[np.float64]",
+            self.portfolio_df["max_outstanding_future"].to_numpy(),
         )
 
-    def get_income(self) -> NDArray[np.float_]:
+    def get_income(self) -> NDArray[np.float64]:
         """Gets the `income` data from the dataset.
 
         Returns:
             The `income_now` column from the dataset as a numpy array.
         """
-        return cast(NDArray[np.float_], self.portfolio_df["income_now"].to_numpy())
+        return cast("NDArray[np.float64]", self.portfolio_df["income_now"].to_numpy())
 
-    def get_capital(self) -> NDArray[np.float_]:
+    def get_capital(self) -> NDArray[np.float64]:
         """Gets the `capital` data from the dataset.
 
         Returns:
             The `regcap_now` column from the dataset as a numpy array.
         """
-        return cast(NDArray[np.float_], self.portfolio_df["regcap_now"].to_numpy())
+        return cast("NDArray[np.float64]", self.portfolio_df["regcap_now"].to_numpy())
 
-    def get_returns(self) -> NDArray[np.float_]:
+    def get_returns(self) -> NDArray[np.float64]:
         """Gets the `returns` data from the dataset.
 
         Returns:
@@ -160,9 +175,9 @@ class PortfolioData:
         """
         income = self.get_income()
         outstanding_now = self.get_outstanding_now()
-        return cast(NDArray[np.float_], income / outstanding_now)
+        return cast("NDArray[np.float64]", income / outstanding_now)
 
-    def get_column(self, column_name: str) -> NDArray[np.float_]:
+    def get_column(self, column_name: str) -> NDArray[np.float64]:
         """Gets the specified column from the dataset.
 
         Args:
@@ -171,7 +186,7 @@ class PortfolioData:
         Returns:
             The `regcap_now` columns from the dataset as a numpy array.
         """
-        return cast(NDArray[np.float_], self.portfolio_df[column_name].to_numpy())
+        return cast("NDArray[np.float64]", self.portfolio_df[column_name].to_numpy())
 
     def print_portfolio_info(self) -> None:
         """Prints information about portfolio data to terminal."""
@@ -183,54 +198,57 @@ class PortfolioData:
 
         # Calculate the total outstanding amount in now
         total_outstanding_now = np.sum(outstanding_now)
-        print(f"Total outstanding now: {total_outstanding_now:.2f}")
+        self._logger.info("--------- Portfolio information -----------")
+        self._logger.info("Total outstanding now: %.2f", total_outstanding_now)
 
         # Calculate the ROC for now
         roc_now = np.sum(income) / np.sum(capital)
-        print(f"ROC now: {roc_now:.4f}")
+        self._logger.info("ROC now: %.4f", roc_now)
 
         # Calculate the HHI diversification for now
-        hhi_now = (
-            np.sum(total_outstanding_now**2) / np.sum(total_outstanding_now) ** 2
-        )
-        print(f"HHI now: {hhi_now:.4f}")
+        hhi_now = np.sum(total_outstanding_now**2) / np.sum(total_outstanding_now) ** 2
+        self._logger.info("HHI now: %.4f", hhi_now)
 
         if "emis_intens_now" in self.portfolio_df:
             # Calculate the total emissions for now
             total_emission_now = np.sum(
                 self.get_column("emis_intens_now") * total_outstanding_now
             )
-            print(f"Total Emission now: {total_emission_now:.2f}")
+            self._logger.info("Total Emission now: %.2f", total_emission_now)
 
             # Calculate the average emission intensity now
             relative_total_emission = total_emission_now / total_outstanding_now
-            print(f"Relative emission intensity now: {relative_total_emission:.2f}")
+            self._logger.info(
+                "Relative emission intensity now: %.2f", relative_total_emission
+            )
 
-        # Estimate the total outstanding amount and its standard deviation for future. This
-        # follows from the assumption of a symmetric probability distribution on the
-        # interval [l_bound, u_bound] and the central limit theorem.
+        # Estimate the total outstanding amount and its standard deviation for future.
+        # This follows from the assumption of a symmetric probability distribution on
+        # the interval [l_bound, u_bound] and the central limit theorem.
         expected_total_outstanding_future = np.sum(u_bound + l_bound) / 2
         expected_stddev_total_outstanding_future = np.linalg.norm(
             (u_bound - l_bound) / 2
         )
-        print(
-            f"Expected total outstanding future: {expected_total_outstanding_future:.2f}",
-            f"Std dev: {expected_stddev_total_outstanding_future:.2f}",
-        )
 
-        # Estimate a average growth factor and its standard deviation for now-future. This
-        # consists of the (averaged) amount per asset in future, which is the outcome of the
-        # optimization, divided by the amount for now.
+        self._logger.info(
+            "Expected total outstanding future: %.2f", expected_total_outstanding_future
+        )
+        self._logger.info("Std dev: %.2f", expected_stddev_total_outstanding_future)
+
+        # Estimate average growth factor and its standard deviation for now-future. This
+        # consists of the (averaged) amount per asset in future, which is the outcome of
+        # the optimization, divided by the amount for now.
         expected_average_growth_fac = np.sum(
             (u_bound + l_bound) / (2 * total_outstanding_now)
         )
         expected_stddev_average_growth_fac = np.linalg.norm(
             (u_bound - l_bound) / (2 * total_outstanding_now)
         )
-        print(
-            f"Expected average growth factor: {expected_average_growth_fac:.4f}",
-            f"Std dev: {expected_stddev_average_growth_fac:.4f}",
+        self._logger.info(
+            "Expected average growth factor: %.4f", expected_average_growth_fac
         )
+        self._logger.info("Std dev: %.4f", expected_stddev_average_growth_fac)
+        self._logger.info("--------- --------------------- -----------")
 
     def __len__(self) -> int:
         """Length of the dataset."""

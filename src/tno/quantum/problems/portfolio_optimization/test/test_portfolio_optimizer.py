@@ -1,4 +1,5 @@
 """This module contains tests for the ``PortfolioOptimizer`` class."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -7,12 +8,9 @@ from numpy.typing import ArrayLike
 
 from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
 
-# pylint: disable=missing-function-docstring
-# pylint: disable=protected-access
-
 
 @pytest.mark.parametrize(
-    "weight,expected_outcome", [(None, [1.0]), ([1, 2, 3], [1, 2, 3])]
+    ("weight", "expected_outcome"), [(None, [1.0]), ([1, 2, 3], [1, 2, 3])]
 )
 def test_parse_weight(weight: ArrayLike | None, expected_outcome: ArrayLike) -> None:
     parsed_weights = PortfolioOptimizer._parse_weight(weight)

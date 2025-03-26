@@ -3,18 +3,22 @@
 The ``QuboCompiler`` can create a variety of QUBO formulation by combining different
 objectives and constraints with their corresponding penalty or preference parameters.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 
-from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+from tno.quantum.problems.portfolio_optimization.components.qubos._qubo_factory import (
+    QuboFactory,
+)
 
-from ._qubo_factory import QuboFactory
+if TYPE_CHECKING:
+    from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
@@ -26,7 +30,6 @@ class QuboCompiler:
     without needing to worry about the qubo size.
 
     Methods:
-
     - `add_minimize_hhi`: Adds the to minimize HHI QUBO to the compile list.
     - `add_maximize_roc`: Adds a ROC and optionally a stabilizing QUBO to the compile
       list.
@@ -51,8 +54,8 @@ class QuboCompiler:
         """
         self._qubo_factory = QuboFactory(portfolio_data, k)
 
-        self._to_compile: list[Callable[[], tuple[NDArray[np.float_], float]]] = []
-        self._compiled_qubos: list[NDArray[np.float_]] = []
+        self._to_compile: list[Callable[[], tuple[NDArray[np.float64], float]]] = []
+        self._compiled_qubos: list[NDArray[np.float64]] = []
 
     def add_minimize_hhi(
         self: QuboCompilerT,
@@ -82,8 +85,7 @@ class QuboCompiler:
         formulation: int,
         ancilla_variables: int = 0,
     ) -> QuboCompilerT:
-        """Adds the maximize ROC objective and based on the chosen formulation a
-        stabilize c constraint.
+        """Adds the maximize ROC objective and a stabilize c constraint.
 
         Args:
             formulation: Integer representing which formulation to pick. If formulation
@@ -155,7 +157,6 @@ class QuboCompiler:
     def add_growth_factor_constraint(
         self: QuboCompilerT, growth_target: float
     ) -> QuboCompilerT:
-        # pylint: disable=line-too-long
         r"""Adds the capital growth factor constraint to the compile list.
 
         The constraint is given by
@@ -178,7 +179,6 @@ class QuboCompiler:
         Returns:
             Self.
         """
-        # pylint: enable=line-too-long
         method = partial(
             self._qubo_factory.calc_growth_factor_constraint,
             growth_target=growth_target,
@@ -190,14 +190,15 @@ class QuboCompiler:
         """Compiles all QUBOs in the compile list.
 
         Returns:
-            Self."""
+            Self.
+        """
         self._compiled_qubos = []
         for constructor in self._to_compile:
             qubo, _ = constructor()
             self._compiled_qubos.append(qubo)
         return self
 
-    def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float_], float]:
+    def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float64], float]:
         """Makes a QUBO of the entire problem with the given lambdas.
 
         Args:
@@ -207,9 +208,10 @@ class QuboCompiler:
             Tuple containing the QUBO matrix and offset.
         """
         if len(lambdas) != len(self._compiled_qubos):
-            raise ValueError(
+            error_msg = (
                 "Number of lambdas does not correspond with the number of Hamiltonians."
             )
+            raise ValueError(error_msg)
         qubo = sum(
             (
                 lambda_i * qubo_i
