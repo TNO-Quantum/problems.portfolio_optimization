@@ -44,39 +44,43 @@ Examples
 
 Here's an example of how the :py:class:`~portfolio_optimization.PortfolioOptimizer` class 
 can be used to define an portfolio optimization problem, and subsequently, how the Pareto front can be computed 
-using the simulated annealing sampler from D-Wave. 
+using a simulated annealing QUBO solver. 
 
 
 .. code-block:: python
 
-    import numpy as np
-    from dwave.samplers import SimulatedAnnealingSampler
+  import numpy as np
 
-    from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+  from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
+  from tno.quantum.optimization.qubo import SolverConfig
 
-    # Choose sampler for solving qubo
-    sampler = SimulatedAnnealingSampler()
-    sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
+  # Choose sampler for solving qubo
+  solver_config = SolverConfig(
+      name="simulated_annealing_solver", options={"num_reads": 20, "num_sweeps": 200}
+  )
+  solver = solver_config.get_instance()
 
-    # Set up penalty coefficients for the constraints
-    lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-    lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-    lambdas3 = np.array([1])
+  # Set up penalty coefficients for the constraints
+  lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+  lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
+  lambdas3 = np.array([1])
 
-    # Create portfolio optimization problem
-    portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
-    portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
-    portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas2)
-    portfolio_optimizer.add_emission_constraint(
-        weights=lambdas3,
-        emission_now="emis_intens_now",
-        emission_future="emis_intens_future",
-        name="emission"
-    )
+  # Create portfolio optimization problem
+  portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
+  portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
+  portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas2)
+  portfolio_optimizer.add_emission_constraint(
+      weights=lambdas3,
+      emission_now="emis_intens_now",
+      emission_future="emis_intens_future",
+      name="emission",
+  )
 
-    # Solve the portfolio optimization problem
-    results = portfolio_optimizer.run(sampler, sampler_kwargs)
-    print(results.head())
+  # Solve the portfolio optimization problem
+  results = portfolio_optimizer.run(solver, verbose=True)
+
+  print(results.head())
+
 
 The results can be inspected in more detail by looking at the Pandas results DataFrame
 `results.results_df`.
@@ -201,7 +205,7 @@ Using Quantum Annealing Solvers
 -------------------------------
 
 By default, the portfolio optimization QUBO is solved using simulated annealing.
-Any D-Wave ``Sampler`` is however supported and can be provided to the
+Any TNO QUBO ``Solver`` is however supported and can be provided to the
 :py:meth:`~portfolio_optimization.PortfolioOptimizer.run` method.
  
 
@@ -210,15 +214,16 @@ The example assumes a proper `configuration setup`_ to the D-Wave's Solver API.
 
 .. code-block:: python
 
-    from dwave.system import DWaveSampler, LazyFixedEmbeddingComposite
+    from tno.quantum.optimization.qubo import SolverConfig
 
-    # Define QPU D-Wave Sampler
-    qpu = DWaveSampler()
-    sampler = LazyFixedEmbeddingComposite(qpu)
-    sampler_kwargs = {"annealing_time": 100}
+    # Instantiate QPU D-Wave Solver
+    solver_config = SolverConfig(
+        name="dwave_sampler_solver", options={"annealing_time": 100}
+    )
+    solver = solver_config.get_instance()
 
 
-We refer to the `D-Wave Sampler documentation`_ for information on usage of different samplers and their sampler arguments.
+We refer to the `tno.quantum.optimization.qubo.solvers documentation`_ for information on usage of different samplers and their sampler arguments.
 
 .. _configuration setup: https://docs.ocean.dwavesys.com/en/stable/overview/sapi.html
-.. _D-Wave Sampler documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
+.. _tno.quantum.optimization.qubo.solvers documentation: https://github.com/TNO-Quantum

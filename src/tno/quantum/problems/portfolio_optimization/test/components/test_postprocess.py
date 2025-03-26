@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import numpy as np
 import pytest
-from dimod import SampleSet
 from numpy.typing import NDArray
 
+from tno.quantum.optimization.qubo.components import BasicResult, Freq
 from tno.quantum.problems.portfolio_optimization.components import Decoder, pareto_front
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
+from tno.quantum.utils import BitVector
+
+# region Decoder
 
 
 @pytest.fixture(name="decoder")
@@ -20,52 +21,60 @@ def decoder_fixture() -> Decoder:
 
 
 @pytest.mark.parametrize(
-    ("sample", "expected_results"),
+    ("bit_vector", "expected_results"),
     [
-        ({0: 0, 1: 0, 2: 0, 3: 0}, np.array([10, 30])),
-        ({0: 0, 1: 0, 2: 0, 3: 1}, np.array([10, 36])),
-        ({0: 0, 1: 0, 2: 1, 3: 0}, np.array([10, 33])),
-        ({0: 0, 1: 0, 2: 1, 3: 1}, np.array([10, 39])),
-        ({0: 0, 1: 1, 2: 0, 3: 0}, np.array([16, 30])),
-        ({0: 0, 1: 1, 2: 0, 3: 1}, np.array([16, 36])),
-        ({0: 0, 1: 1, 2: 1, 3: 0}, np.array([16, 33])),
-        ({0: 0, 1: 1, 2: 1, 3: 1}, np.array([16, 39])),
-        ({0: 1, 1: 0, 2: 0, 3: 0}, np.array([13, 30])),
-        ({0: 1, 1: 0, 2: 0, 3: 1}, np.array([13, 36])),
-        ({0: 1, 1: 0, 2: 1, 3: 0}, np.array([13, 33])),
-        ({0: 1, 1: 0, 2: 1, 3: 1}, np.array([13, 39])),
-        ({0: 1, 1: 1, 2: 0, 3: 0}, np.array([19, 30])),
-        ({0: 1, 1: 1, 2: 0, 3: 1}, np.array([19, 36])),
-        ({0: 1, 1: 1, 2: 1, 3: 0}, np.array([19, 33])),
-        ({0: 1, 1: 1, 2: 1, 3: 1}, np.array([19, 39])),
+        ("0000", np.array([10, 30])),
+        ("0001", np.array([10, 36])),
+        ("0010", np.array([10, 33])),
+        ("0011", np.array([10, 39])),
+        ("0100", np.array([16, 30])),
+        ("0101", np.array([16, 36])),
+        ("0110", np.array([16, 33])),
+        ("0111", np.array([16, 39])),
+        ("1000", np.array([13, 30])),
+        ("1001", np.array([13, 36])),
+        ("1010", np.array([13, 33])),
+        ("1011", np.array([13, 39])),
+        ("1100", np.array([19, 30])),
+        ("1101", np.array([19, 36])),
+        ("1110", np.array([19, 33])),
+        ("1111", np.array([19, 39])),
     ],
 )
-def test_decode_sample(
-    decoder: Decoder, sample: Mapping[int, int], expected_results: NDArray[np.float64]
+def test_decode_bit_vector(
+    decoder: Decoder, bit_vector: str, expected_results: NDArray[np.float64]
 ) -> None:
-    np.testing.assert_array_equal(decoder.decode_sample(sample), expected_results)
+    bit_vector = BitVector(bit_vector)
+    np.testing.assert_array_equal(
+        decoder.decode_bit_vector(bit_vector), expected_results
+    )
 
 
 def test_decode_sampleset(decoder: Decoder) -> None:
-    samples = [
-        {0: 0, 1: 0, 2: 0, 3: 0},
-        {0: 0, 1: 0, 2: 0, 3: 1},
-        {0: 0, 1: 0, 2: 1, 3: 0},
-        {0: 0, 1: 0, 2: 1, 3: 1},
-        {0: 0, 1: 1, 2: 0, 3: 0},
-        {0: 0, 1: 1, 2: 0, 3: 1},
-        {0: 0, 1: 1, 2: 1, 3: 0},
-        {0: 0, 1: 1, 2: 1, 3: 1},
-        {0: 1, 1: 0, 2: 0, 3: 0},
-        {0: 1, 1: 0, 2: 0, 3: 1},
-        {0: 1, 1: 0, 2: 1, 3: 0},
-        {0: 1, 1: 0, 2: 1, 3: 1},
-        {0: 1, 1: 1, 2: 0, 3: 0},
-        {0: 1, 1: 1, 2: 0, 3: 1},
-        {0: 1, 1: 1, 2: 1, 3: 0},
-        {0: 1, 1: 1, 2: 1, 3: 1},
-    ]
-    sampleset = SampleSet.from_samples(samples, "BINARY", [0] * 16)  # type: ignore[no-untyped-call]
+    freq = Freq(
+        bitvectors=[
+            "0000",
+            "0001",
+            "0010",
+            "0011",
+            "0100",
+            "0101",
+            "0110",
+            "0111",
+            "1000",
+            "1001",
+            "1010",
+            "1011",
+            "1100",
+            "1101",
+            "1110",
+            "1111",
+        ],
+        energies=[int(_) for _ in range(16)],
+        num_occurrences=[1 for _ in range(16)],
+    )
+    result = BasicResult(best_bitvector="0000", best_value=0.0, freq=freq)
+
     expected_result = np.array(
         [
             [10, 30],
@@ -87,10 +96,10 @@ def test_decode_sampleset(decoder: Decoder) -> None:
         ]
     )
 
-    np.testing.assert_array_equal(decoder.decode_sampleset(sampleset), expected_result)
+    np.testing.assert_array_equal(decoder.decode_result(result), expected_result)
 
 
-# ---- TESTS FOR THE PARETO FRONT ------
+# region Pareto Front
 @pytest.fixture(name="x_y_points")
 def x_y_points_fixture() -> tuple[list[int], list[int]]:
     # Create point with a square in a square inside another square

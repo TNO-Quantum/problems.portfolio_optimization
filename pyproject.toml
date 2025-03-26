@@ -33,7 +33,7 @@ dependencies = [
     "matplotlib",
     "scipy",
     "pandas",
-    "tno.quantum.optimization.qubo~=1.0b1",
+    "tno.quantum.optimization.qubo[dwave]~=1.0b",
     "tqdm",
 ]
 

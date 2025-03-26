@@ -7,14 +7,14 @@ import logging
 import math
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
 from pandas import DataFrame
 from tqdm import tqdm
 
+from tno.quantum.optimization.qubo.solvers import SimulatedAnnealingSolver
 from tno.quantum.problems.portfolio_optimization.components import (
     Decoder,
     PortfolioData,
@@ -23,7 +23,7 @@ from tno.quantum.problems.portfolio_optimization.components import (
 )
 
 if TYPE_CHECKING:
-    from dimod.core.sampler import Sampler
+    from tno.quantum.optimization.qubo.components import Solver
 
 
 class PortfolioOptimizer:
@@ -360,8 +360,7 @@ class PortfolioOptimizer:
 
     def run(
         self,
-        sampler: Sampler | None = None,
-        sampler_kwargs: dict[str, Any] | None = None,
+        solver: Solver | None = None,
         *,
         verbose: bool = True,
     ) -> Results:
@@ -370,34 +369,26 @@ class PortfolioOptimizer:
         Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-        >>> from dwave.samplers import SimulatedAnnealingSampler
         >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> portfolio_optimizer.add_minimize_hhi()
-        >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False) # doctest: +SKIP
+        >>> portfolio_optimizer.run() # doctest: +SKIP
 
         Args:
-            sampler: Instance of a D-Wave Sampler that can be used to solve the QUBO.
-                More information can be found in the `D-Wave Ocean Documentation`_.
-                By default the ``SimulatedAnnealingSampler`` is being used.
+            solver: Instance of a QUBO solver that can be used to solve the QUBO.
+                By default the ``SimulatedAnnealingSolver`` is being used.
             sampler_kwargs: The sampler specific key-word arguments.
             verbose: If True, print detailed information during execution
 
         Returns:
-            results
+            Results.
 
         Raises:
             ValueError: if constraints are not set
+        """
+        solver = solver if solver is not None else SimulatedAnnealingSolver()
 
-        .. _D-Wave Ocean Documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
-
-        """  # noqa: E501
         if verbose:
             self.portfolio_data.print_portfolio_info()
-
-        sampler = SimulatedAnnealingSampler() if sampler is None else sampler
-        sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
-
-        if verbose:
             self._logger.info("Status: Creating model.")
 
             if self._provided_growth_target is not None:
@@ -432,10 +423,12 @@ class PortfolioOptimizer:
         for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
             qubo = self._qubo_compiler.make_qubo(*lambdas)
+
             # Solve the QUBO
-            response = sampler.sample_qubo(qubo.matrix, **sampler_kwargs)
+            result = solver.solve(qubo)
+
             # Postprocess solution. Iterate over all found solutions.
-            outstanding_future_samples = self.decoder.decode_sampleset(response)
+            outstanding_future_samples = self.decoder.decode_result(result)
             results.add_result(outstanding_future_samples)
 
         if verbose:

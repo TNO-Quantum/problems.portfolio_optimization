@@ -162,28 +162,26 @@ class QuboFactory:
         emission_intensity_future = self.portfolio_data.get_column(emission_future)
 
         total_emission_now = np.sum(emission_intensity_now * self.outstanding_now)
-        relelative_total_emission_now = total_emission_now / np.sum(
-            self.outstanding_now
-        )
+        relative_total_emission_now = total_emission_now / np.sum(self.outstanding_now)
 
         alpha = np.sum(
             (
                 emission_intensity_future
-                - reduction_percentage_target * relelative_total_emission_now
+                - reduction_percentage_target * relative_total_emission_now
             )
             * self.l_bound
         )
 
-        mantisse = np.power(2, np.arange(self.k))
+        mantissa = np.power(2, np.arange(self.k))
         multiplier = (
             (
                 emission_intensity_future
-                - reduction_percentage_target * relelative_total_emission_now
+                - reduction_percentage_target * relative_total_emission_now
             )
             * (self.u_bound - self.l_bound)
             / (2**self.k - 1)
         )
-        beta = np.kron(multiplier, mantisse)
+        beta = np.kron(multiplier, mantissa)
         qubo = np.zeros((self.n_vars, self.n_vars))
 
         offset = alpha**2
@@ -226,11 +224,11 @@ class QuboFactory:
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.l_bound) / total_outstanding_now - growth_target
 
-        mantisse = np.power(2, np.arange(self.k))
+        mantissa = np.power(2, np.arange(self.k))
         multiplier = (self.u_bound - self.l_bound) / (
             (2**self.k - 1) * total_outstanding_now
         )
-        beta = np.kron(multiplier, mantisse)
+        beta = np.kron(multiplier, mantissa)
 
         qubo = np.zeros((self.n_vars, self.n_vars))
         # We only fill the upper left part of the matrix, since we don't use ancilla
@@ -272,9 +270,9 @@ class QuboFactory:
         """
         theta = self.returns / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
-        mantisse = np.power(2, np.arange(self.k))
+        mantissa = np.power(2, np.arange(self.k))
         multiplier = theta * (self.u_bound - self.l_bound) / (2**self.k - 1)
-        qubo_diag = np.kron(multiplier, mantisse)
+        qubo_diag = np.kron(multiplier, mantissa)
 
         qubo = np.diag(qubo_diag)
         return QUBO(-qubo, -offset)
@@ -314,13 +312,13 @@ class QuboFactory:
         ancilla_variables = self.n_vars - self.k * self.number_of_assets
 
         alpha = np.sum(self.l_bound * self.returns / self.outstanding_now)
-        mantisse = np.power(2, np.arange(self.k))
+        mantissa = np.power(2, np.arange(self.k))
         multiplier = (
             self.returns
             * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )
-        beta = np.kron(multiplier, mantisse)
+        beta = np.kron(multiplier, mantissa)
 
         gamma = np.power(2.0, np.arange(-1, -ancilla_variables - 1, -1))
         gamma = gamma**2 - gamma
@@ -376,13 +374,13 @@ class QuboFactory:
             self.capital
         )
 
-        mantisse = np.power(2, np.arange(self.k))
+        mantissa = np.power(2, np.arange(self.k))
         multiplier = (
             self.capital
             * (self.u_bound - self.l_bound)
             / (self.outstanding_now * (2**self.k - 1))
         )
-        beta = np.kron(multiplier, mantisse)
+        beta = np.kron(multiplier, mantissa)
 
         gamma = -np.power(2.0, np.arange(-1, -ancilla_variables - 1, -1)) * np.sum(
             self.capital
