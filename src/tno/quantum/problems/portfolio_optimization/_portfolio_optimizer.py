@@ -25,12 +25,6 @@ from tno.quantum.problems.portfolio_optimization.components import (
 if TYPE_CHECKING:
     from dimod.core.sampler import Sampler
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(levelname)s: %(asctime)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
 
 class PortfolioOptimizer:
     """The ``PortfolioOptimizer`` class.
@@ -130,7 +124,11 @@ class PortfolioOptimizer:
         self._provided_growth_target: float | None = None
 
         # Create logger
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger("PortfolioOptimizer")
+        self._logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+        self._logger.addHandler(handler)
 
     def add_minimize_hhi(self, weights: ArrayLike | None = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
@@ -400,15 +398,15 @@ class PortfolioOptimizer:
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
 
         if verbose:
-            self._logger.debug("Status: Creating model.")
+            self._logger.info("Status: Creating model.")
 
             if self._provided_growth_target is not None:
-                self._logger.debug(
+                self._logger.info(
                     "  Setup: Growth target: %.1f", self._provided_growth_target - 1
                 )
 
             for _, _, target_value, name in self._provided_emission_constraints:
-                self._logger.debug(
+                self._logger.info(
                     "Setup: Emission constraint: %s, target reduction percentage=%.1f.",
                     name,
                     target_value - 1,
@@ -423,7 +421,7 @@ class PortfolioOptimizer:
         )
 
         if verbose:
-            self._logger.debug("Status: Calculating")
+            self._logger.info("Status: Calculating")
             starttime = time.time()
 
         total_steps = math.prod(map(len, self._all_lambdas))
@@ -441,15 +439,15 @@ class PortfolioOptimizer:
             results.add_result(outstanding_future_samples)
 
         if verbose:
-            self._logger.debug("Status: Dropping duplicate samples in results.")
+            self._logger.info("Status: Dropping duplicate samples in results.")
         results.drop_duplicates()
 
         if verbose:
-            self._logger.debug(
+            self._logger.info(
                 "Status: Computation finished in %.1f seconds.",
                 time.time() - starttime,
             )
-            self._logger.debug("Number of unique samples: %d", len(results))
+            self._logger.info("Number of unique samples: %d", len(results))
         return results
 
     @staticmethod

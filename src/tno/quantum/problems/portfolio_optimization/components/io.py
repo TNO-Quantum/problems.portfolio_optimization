@@ -66,7 +66,13 @@ class PortfolioData:
                 raise ValueError(error_msg)
 
         self.portfolio_df = portfolio_dataframe
-        self._logger = logging.getLogger(__name__)
+
+        # Create logger
+        self._logger = logging.getLogger("PortfolioData")
+        self._logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+        self._logger.addHandler(handler)
 
     @classmethod
     def from_file(
@@ -192,27 +198,27 @@ class PortfolioData:
 
         # Calculate the total outstanding amount in now
         total_outstanding_now = np.sum(outstanding_now)
-        self._logger.debug("--------- Portfolio information -----------")
-        self._logger.debug("Total outstanding now: %.2f", total_outstanding_now)
+        self._logger.info("--------- Portfolio information -----------")
+        self._logger.info("Total outstanding now: %.2f", total_outstanding_now)
 
         # Calculate the ROC for now
         roc_now = np.sum(income) / np.sum(capital)
-        self._logger.debug("ROC now: %.4f", roc_now)
+        self._logger.info("ROC now: %.4f", roc_now)
 
         # Calculate the HHI diversification for now
         hhi_now = np.sum(total_outstanding_now**2) / np.sum(total_outstanding_now) ** 2
-        self._logger.debug("HHI now: %.4f", hhi_now)
+        self._logger.info("HHI now: %.4f", hhi_now)
 
         if "emis_intens_now" in self.portfolio_df:
             # Calculate the total emissions for now
             total_emission_now = np.sum(
                 self.get_column("emis_intens_now") * total_outstanding_now
             )
-            self._logger.debug("Total Emission now: %.2f", total_emission_now)
+            self._logger.info("Total Emission now: %.2f", total_emission_now)
 
             # Calculate the average emission intensity now
             relative_total_emission = total_emission_now / total_outstanding_now
-            self._logger.debug(
+            self._logger.info(
                 "Relative emission intensity now: %.2f", relative_total_emission
             )
 
@@ -224,10 +230,10 @@ class PortfolioData:
             (u_bound - l_bound) / 2
         )
 
-        self._logger.debug(
+        self._logger.info(
             "Expected total outstanding future: %.2f", expected_total_outstanding_future
         )
-        self._logger.debug("Std dev: %.2f", expected_stddev_total_outstanding_future)
+        self._logger.info("Std dev: %.2f", expected_stddev_total_outstanding_future)
 
         # Estimate average growth factor and its standard deviation for now-future. This
         # consists of the (averaged) amount per asset in future, which is the outcome of
@@ -238,11 +244,11 @@ class PortfolioData:
         expected_stddev_average_growth_fac = np.linalg.norm(
             (u_bound - l_bound) / (2 * total_outstanding_now)
         )
-        self._logger.debug(
+        self._logger.info(
             "Expected average growth factor: %.4f", expected_average_growth_fac
         )
-        self._logger.debug("Std dev: %.4f", expected_stddev_average_growth_fac)
-        self._logger.debug("--------- --------------------- -----------")
+        self._logger.info("Std dev: %.4f", expected_stddev_average_growth_fac)
+        self._logger.info("--------- --------------------- -----------")
 
     def __len__(self) -> int:
         """Length of the dataset."""
