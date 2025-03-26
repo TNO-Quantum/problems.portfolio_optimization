@@ -1,4 +1,5 @@
 """This module contains visualization tools."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 
-def plot_points(
+def plot_points(  # noqa: PLR0913
     diversification_values: ArrayLike,
     roc_values: ArrayLike,
     color: str | None = None,
@@ -30,7 +31,7 @@ def plot_points(
     vmax: float | None = None,
     alpha: float | None = None,
     cmap: str | Colormap | None = None,
-    ax: Axes | None = None,  # pylint: disable=invalid-name
+    ax: Axes | None = None,
 ) -> PatchCollection | Any:
     """Plots the given data-points in a Diversification-ROC plot.
 
@@ -46,7 +47,7 @@ def plot_points(
         vmin: min value of data range that colormap covers as used by ``matplotlib``.
         vmax: max value of data range that colormap covers as used by ``matplotlib``.
         alpha: The alpha blending value as used by ``matplotlib``.
-        cmap: The Colormap instance or registered colormap name as used by ``matplotlib``.
+        cmap: Colormap instance or registered colormap name as used by ``matplotlib``.
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 
@@ -83,7 +84,7 @@ def plot_points(
     return collection
 
 
-def plot_front(
+def plot_front(  # noqa: PLR0913
     diversification_values: ArrayLike,
     roc_values: ArrayLike,
     color: str | None = None,
@@ -93,7 +94,7 @@ def plot_front(
     vmax: float | None = None,
     alpha: float | None = None,
     cmap: str | Colormap | None = None,
-    ax: Axes | None = None,  # pylint: disable=invalid-name
+    ax: Axes | None = None,
 ) -> PatchCollection:
     """Plots a pareto front of the given data-points in a Diversification-ROC plot.
 
@@ -109,7 +110,7 @@ def plot_front(
         vmin: min value of data range that colormap covers as used by ``matplotlib``.
         vmax: max value of data range that colormap covers as used by ``matplotlib``.
         alpha: The alpha blending value as used by ``matplotlib``.
-        cmap: The Colormap instance or registered colormap name as used by ``matplotlib``.
+        cmap: Colormap instance or registered colormap name as used by ``matplotlib``.
         ax:  ``Axes`` to plot on. If ``None``, a new figure with one ``Axes`` will be
             created.
 

@@ -1,14 +1,15 @@
 """This module contains the ``PortfolioOptimizer`` class."""
+
 from __future__ import annotations
 
 import itertools
+import logging
 import math
-from datetime import datetime
+import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from dimod.core.sampler import Sampler
 from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
 from pandas import DataFrame
@@ -21,9 +22,20 @@ from tno.quantum.problems.portfolio_optimization.components import (
     Results,
 )
 
+if TYPE_CHECKING:
+    from dimod.core.sampler import Sampler
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(levelname)s: %(asctime)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 
 class PortfolioOptimizer:
-    """The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
+    """The ``PortfolioOptimizer`` class.
+
+    The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
     optimization problems into QUBO problems which can then be solved using QUBO solving
     techniques such as simulated or quantum annealing.
 
@@ -90,7 +102,7 @@ class PortfolioOptimizer:
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
-            column_rename: can be used to rename data columns. See the docstring of
+            columns_rename: can be used to rename data columns. See the docstring of
                 :py:class:`~portfolio_optimization.components.io.PortfolioData` for
                 example.
 
@@ -106,15 +118,19 @@ class PortfolioOptimizer:
                 portfolio_data, columns_rename
             )
         else:
-            raise TypeError(
+            error_msg = (
                 "`portfolio_data` must be of type `PortfolioData`, `DataFrame`, `Path` "
                 f"or `str`, but was of type {type(portfolio_data)}"
             )
+            raise TypeError(error_msg)
         self._qubo_compiler = QuboCompiler(self.portfolio_data, k)
         self.decoder = Decoder(self.portfolio_data, k)
-        self._all_lambdas: list[NDArray[np.float_]] = []
+        self._all_lambdas: list[NDArray[np.float64]] = []
         self._provided_emission_constraints: list[tuple[str, str, float, str]] = []
         self._provided_growth_target: float | None = None
+
+        # Create logger
+        self._logger = logging.getLogger()
 
     def add_minimize_hhi(self, weights: ArrayLike | None = None) -> None:
         r"""Adds the minimize HHI objective to the portfolio optimization problem.
@@ -137,7 +153,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
+        >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_minimize_hhi(weights=lambdas)
 
@@ -200,9 +216,9 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
+        >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        >>> portfolio_optimizer.add_maximize_roc(...)
+        >>> portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas)
 
         Args:
             formulation: the ROC QUBO formulation that is being used.
@@ -217,13 +233,14 @@ class PortfolioOptimizer:
 
         Raises:
             ValueError: If invalid formulation is provided.
-        """
+        """  # noqa: E501
         allowed_formulation_options = [1, 2]
         if formulation not in allowed_formulation_options:
-            raise ValueError(
+            error_msg = (
                 "Invalid formulation input provided, "
                 f"choose from {allowed_formulation_options}."
             )
+            raise ValueError(error_msg)
 
         self._all_lambdas.append(self._parse_weight(weights_roc))
         if formulation == 2:
@@ -261,7 +278,7 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
+        >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
         >>> portfolio_optimizer.add_emission_constraint(
         ...   emission_now="emis_intens_now", weights=lambdas
@@ -301,9 +318,7 @@ class PortfolioOptimizer:
     def add_growth_factor_constraint(
         self, growth_target: float, weights: ArrayLike | None = None
     ) -> None:
-        # pylint: disable=line-too-long
-        r"""Adds an outstanding amount growth factor constraint to the portfolio
-        optimization problem.
+        r"""Adds outstanding amount growth factor constraint to optimization problem.
 
         The constraint is given by
 
@@ -322,9 +337,9 @@ class PortfolioOptimizer:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> import numpy as np
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
+        >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> lambdas = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        >>> portfolio_optimizer.add_emission_constraint(growth_target=1.2, weights=lambdas)
+        >>> portfolio_optimizer.add_growth_factor_constraint(growth_target=1.2, weights=lambdas)
 
         For the QUBO formulation, see the docs of
         :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
@@ -336,10 +351,10 @@ class PortfolioOptimizer:
 
         Raises:
             ValueError: If constraint has been added before.
-        """
-        # pylint: enable=line-too-long
+        """  # noqa: E501
         if self._provided_growth_target is not None:
-            raise ValueError("Growth factor constraint has been set before.")
+            error_msg = "Growth factor constraint has been set before."
+            raise ValueError(error_msg)
 
         self._all_lambdas.append(self._parse_weight(weights))
         self._provided_growth_target = growth_target
@@ -349,19 +364,18 @@ class PortfolioOptimizer:
         self,
         sampler: Sampler | None = None,
         sampler_kwargs: dict[str, Any] | None = None,
+        *,
         verbose: bool = True,
     ) -> Results:
-        # pylint: disable=line-too-long
-        """
-        Optimizes a portfolio given the set of provided constraints.
+        """Optimizes a portfolio given the set of provided constraints.
 
         Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
         >>> from dwave.samplers import SimulatedAnnealingSampler
-        >>> portfolio_optimizer = PortfolioOptimizer(filename="benchmark_dataset")
-        >>> portfolio_optimizer.add_minimize_HHI()
-        >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False)
+        >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
+        >>> portfolio_optimizer.add_minimize_hhi()
+        >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False) # doctest: +SKIP
 
         Args:
             sampler: Instance of a D-Wave Sampler that can be used to solve the QUBO.
@@ -378,8 +392,7 @@ class PortfolioOptimizer:
 
         .. _D-Wave Ocean Documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
 
-        """
-        # pylint: enable=line-too-long
+        """  # noqa: E501
         if verbose:
             self.portfolio_data.print_portfolio_info()
 
@@ -387,14 +400,18 @@ class PortfolioOptimizer:
         sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
 
         if verbose:
-            print("Status: creating model")
+            self._logger.debug("Status: Creating model.")
+
             if self._provided_growth_target is not None:
-                print(f"Growth target: {self._provided_growth_target - 1:.1%}")
+                self._logger.debug(
+                    "  Setup: Growth target: %.1f", self._provided_growth_target - 1
+                )
 
             for _, _, target_value, name in self._provided_emission_constraints:
-                print(
-                    f"Emission constraint: {name}, "
-                    f"target reduction percentage: {target_value - 1:.1%}"
+                self._logger.debug(
+                    "Setup: Emission constraint: %s, target reduction percentage=%.1f.",
+                    name,
+                    target_value - 1,
                 )
 
         self._qubo_compiler.compile()
@@ -406,8 +423,8 @@ class PortfolioOptimizer:
         )
 
         if verbose:
-            print("Status: calculating")
-            starttime = datetime.now()
+            self._logger.debug("Status: Calculating")
+            starttime = time.time()
 
         total_steps = math.prod(map(len, self._all_lambdas))
         lambdas_iterator = tqdm(
@@ -419,23 +436,25 @@ class PortfolioOptimizer:
             qubo, _ = self._qubo_compiler.make_qubo(*lambdas)
             # Solve the QUBO
             response = sampler.sample_qubo(qubo, **sampler_kwargs)
-            # Postprocess solution. Iterate over all found solutions. (Compute future portfolios)
+            # Postprocess solution. Iterate over all found solutions.
             outstanding_future_samples = self.decoder.decode_sampleset(response)
             results.add_result(outstanding_future_samples)
 
         if verbose:
-            print("Drop duplicate samples in results.")
+            self._logger.debug("Status: Dropping duplicate samples in results.")
         results.drop_duplicates()
 
         if verbose:
-            print("Number of unique samples: ", len(results))
-            print("Time consumed:", datetime.now() - starttime)
-
+            self._logger.debug(
+                "Status: Computation finished in %.1f seconds.",
+                time.time() - starttime,
+            )
+            self._logger.debug("Number of unique samples: %d", len(results))
         return results
 
     @staticmethod
-    def _parse_weight(weights: ArrayLike | None = None) -> NDArray[np.float_]:
-        """Converts weights into NumPy array and if needed set default weights to [1.0]
+    def _parse_weight(weights: ArrayLike | None = None) -> NDArray[np.float64]:
+        """Converts weights into NumPy array and if needed set default weights to [1.0].
 
         Args:
             weights: penalty coefficients.
@@ -445,4 +464,4 @@ class PortfolioOptimizer:
         """
         if weights is None:
             return np.array([1.0])
-        return np.asarray(weights, dtype=np.float_)
+        return np.asarray(weights, dtype=np.float64)

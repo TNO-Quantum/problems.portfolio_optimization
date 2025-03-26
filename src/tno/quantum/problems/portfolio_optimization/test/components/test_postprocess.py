@@ -1,4 +1,5 @@
 """This module contains tests for post-processing of results."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -11,8 +12,6 @@ from numpy.typing import NDArray
 from tno.quantum.problems.portfolio_optimization.components import Decoder, pareto_front
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 
-# pylint: disable=missing-function-docstring
-
 
 @pytest.fixture(name="decoder")
 def decoder_fixture() -> Decoder:
@@ -21,7 +20,7 @@ def decoder_fixture() -> Decoder:
 
 
 @pytest.mark.parametrize(
-    "sample,expected_results",
+    ("sample", "expected_results"),
     [
         ({0: 0, 1: 0, 2: 0, 3: 0}, np.array([10, 30])),
         ({0: 0, 1: 0, 2: 0, 3: 1}, np.array([10, 36])),
@@ -42,7 +41,7 @@ def decoder_fixture() -> Decoder:
     ],
 )
 def test_decode_sample(
-    decoder: Decoder, sample: Mapping[int, int], expected_results: NDArray[np.float_]
+    decoder: Decoder, sample: Mapping[int, int], expected_results: NDArray[np.float64]
 ) -> None:
     np.testing.assert_array_equal(decoder.decode_sample(sample), expected_results)
 
@@ -101,7 +100,7 @@ def x_y_points_fixture() -> tuple[list[int], list[int]]:
 
 
 @pytest.mark.parametrize(
-    "min_points,expected_points",
+    ("min_points", "expected_points"),
     [
         (4, {(0, 0), (0, 5), (5, 0), (5, 5)}),
         (8, {(0, 0), (0, 5), (5, 0), (5, 5), (1, 1), (1, 4), (4, 1), (4, 4)}),
@@ -113,7 +112,7 @@ def test_pareto_front(
     expected_points: set[tuple[int, int]],
 ) -> None:
     x_vals, y_vals = x_y_points
-    x_par, y_par = pareto_front(x_vals, y_vals, min_points, False)
+    x_par, y_par = pareto_front(x_vals, y_vals, min_points, upper_right_quadrant=False)
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):

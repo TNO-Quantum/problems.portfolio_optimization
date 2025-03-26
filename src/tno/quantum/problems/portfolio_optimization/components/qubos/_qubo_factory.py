@@ -3,14 +3,16 @@
 The ``QuboFactory`` class provides a convenient interface for constructing intermediate
 QUBO matrices for different objectives and constraints.
 """
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
 
-from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
-
-# pylint: disable=too-many-instance-attributes
+if TYPE_CHECKING:
+    from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 
 class QuboFactory:
@@ -20,7 +22,6 @@ class QuboFactory:
     matrices for different objectives and constraints.
 
     Methods:
-
     - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO
     - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1
     - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2
@@ -50,7 +51,7 @@ class QuboFactory:
         self.capital = portfolio_data.get_capital()
         self.k = k
 
-    def calc_minimize_hhi(self) -> tuple[NDArray[np.float_], float]:
+    def calc_minimize_hhi(self) -> tuple[NDArray[np.float64], float]:
         r"""Calculates the to minimize HHI QUBO.
 
         The QUBO formulation is given by
@@ -70,7 +71,7 @@ class QuboFactory:
 
         Returns:
             qubo matrix and its offset
-        """
+        """  # noqa: E501
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.l_bound**2)
         multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
@@ -92,7 +93,6 @@ class QuboFactory:
                         bit_j + bit_j_prime + 1
                     )
 
-        qubo = qubo
         return qubo, offset
 
     def calc_emission_constraint(
@@ -100,8 +100,8 @@ class QuboFactory:
         emission_now: str,
         emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
-    ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculates the emission constraint QUBO for arbitrary target reduction target
+    ) -> tuple[NDArray[np.float64], float]:
+        r"""Calculate emission constraint QUBO for arbitrary reduction target.
 
         The QUBO formulation is given by
 
@@ -149,13 +149,13 @@ class QuboFactory:
             emission_future = emission_now
 
         if emission_now not in self.portfolio_data:
-            raise KeyError(
-                f"Column name {emission_now} not present in portfolio dataset."
-            )
+            error_msg = f"Column name {emission_now} not present in portfolio dataset."
+            raise KeyError(error_msg)
         if emission_future not in self.portfolio_data:
-            raise KeyError(
+            error_msg = (
                 f"Column name {emission_future} not present in portfolio dataset."
             )
+            raise KeyError(error_msg)
 
         emission_intensity_now = self.portfolio_data.get_column(emission_now)
         emission_intensity_future = self.portfolio_data.get_column(emission_future)
@@ -191,13 +191,12 @@ class QuboFactory:
             for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        qubo = qubo
         return qubo, offset
 
     def calc_growth_factor_constraint(
         self, growth_target: float
-    ) -> tuple[NDArray[np.float_], float]:
-        r"""Calculates the growth factor constraint QUBO
+    ) -> tuple[NDArray[np.float64], float]:
+        r"""Calculates the growth factor constraint QUBO.
 
         The QUBO formulation is given by
 
@@ -224,7 +223,7 @@ class QuboFactory:
 
         Returns:
             qubo matrix and its offset
-        """
+        """  # noqa: E501
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.l_bound) / total_outstanding_now - growth_target
 
@@ -247,7 +246,7 @@ class QuboFactory:
         offset = alpha**2
         return qubo, float(offset)
 
-    def calc_maximize_roc1(self) -> tuple[NDArray[np.float_], float]:
+    def calc_maximize_roc1(self) -> tuple[NDArray[np.float64], float]:
         r"""Calculates the to maximize ROC QUBO for variant 1.
 
         The QUBO formulation is given by
@@ -281,7 +280,7 @@ class QuboFactory:
         qubo = np.diag(qubo_diag)
         return -qubo, -offset
 
-    def calc_maximize_roc2(self) -> tuple[NDArray[np.float_], float]:
+    def calc_maximize_roc2(self) -> tuple[NDArray[np.float64], float]:
         r"""Calculates the to maximize ROC QUBO for variant 2.
 
         The QUBO formulation is given by
@@ -316,7 +315,7 @@ class QuboFactory:
         ancilla_variables = self.n_vars - self.k * self.number_of_assets
 
         alpha = np.sum(self.l_bound * self.returns / self.outstanding_now)
-        mantisse = mantisse = np.power(2, np.arange(self.k))
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             self.returns
             * (self.u_bound - self.l_bound)
@@ -332,9 +331,9 @@ class QuboFactory:
             qubo[: self.number_of_assets * self.k, : self.number_of_assets * self.k],
             beta,
         )
-        qubo[
-            : self.number_of_assets * self.k, self.number_of_assets * self.k :
-        ] += np.outer(beta, gamma)
+        qubo[: self.number_of_assets * self.k, self.number_of_assets * self.k :] += (
+            np.outer(beta, gamma)
+        )
         np.fill_diagonal(
             qubo[self.number_of_assets * self.k :, self.number_of_assets * self.k :],
             alpha * gamma,
@@ -342,9 +341,8 @@ class QuboFactory:
         offset = alpha
         return -qubo, -offset
 
-    def calc_stabilize_c(self) -> tuple[NDArray[np.float_], float]:
-        r"""Calculates the QUBO that stabilizes the growth factor in the second ROC
-        formulation.
+    def calc_stabilize_c(self) -> tuple[NDArray[np.float64], float]:
+        r"""Calculate QUBO that stabilizes the growth factor in second ROC formulation.
 
         The QUBO formulation is given by
 
@@ -379,7 +377,7 @@ class QuboFactory:
             self.capital
         )
 
-        mantisse = mantisse = np.power(2, np.arange(self.k))
+        mantisse = np.power(2, np.arange(self.k))
         multiplier = (
             self.capital
             * (self.u_bound - self.l_bound)

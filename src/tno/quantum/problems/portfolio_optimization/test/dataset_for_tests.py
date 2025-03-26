@@ -1,4 +1,5 @@
 """Dataset creation for testing."""
+
 from pandas import DataFrame
 
 from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData

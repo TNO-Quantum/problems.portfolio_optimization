@@ -1,11 +1,10 @@
 """This module contains tests for the ``QuboFactory`` class."""
+
 import numpy as np
 import pytest
 
 from tno.quantum.problems.portfolio_optimization.components import QuboFactory
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
-
-# pylint: disable=missing-function-docstring
 
 
 @pytest.fixture(name="qubo_factory")

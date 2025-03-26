@@ -1,4 +1,5 @@
 """This module contains tests for the Results module."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -6,9 +7,6 @@ import pytest
 
 from tno.quantum.problems.portfolio_optimization.components import Results
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
-
-# pylint: disable=missing-function-docstring
-# pylint: disable=protected-access
 
 
 @pytest.fixture(name="results")
