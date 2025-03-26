@@ -74,4 +74,4 @@ src = "pyproject.toml"
 search = 'current = "{current_version}"'
 
 [[tool.tbump.file]]
-src = "tno/quantum/problems/portfolio_optimization/__init__.py"
+src = "src/tno/quantum/problems/portfolio_optimization/__init__.py"
