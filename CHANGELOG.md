@@ -1,3 +1,10 @@
+## [1.0.1-beta.1](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v1.0.0...v1.0.1-beta.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* Move to new pytoml structure, fix docstring, apply ruff linting ([14778d3](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/commit/14778d35a7d32613427a41e74374546bd4c6a6b7))
+
 # 1.0.0 (2024-05-01)
 
 
