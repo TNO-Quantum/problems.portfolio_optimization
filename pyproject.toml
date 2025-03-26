@@ -56,7 +56,7 @@ version = { attr = "tno.quantum.problems.portfolio_optimization.__version__" }
 "*" = ["py.typed"]
 
 [tool.tbump.version]
-current = "1.0.0-beta.2"
+current = "1.0.0"
 regex = '''
 \d+\.\d+\.\d+(-(.*))?
 '''
