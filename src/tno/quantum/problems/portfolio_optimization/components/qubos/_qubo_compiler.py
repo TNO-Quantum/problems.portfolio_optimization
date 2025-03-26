@@ -10,14 +10,12 @@ from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING, TypeVar
 
-import numpy as np
-from numpy.typing import NDArray
-
 from tno.quantum.problems.portfolio_optimization.components.qubos._qubo_factory import (
     QuboFactory,
 )
 
 if TYPE_CHECKING:
+    from tno.quantum.optimization.qubo.components import QUBO
     from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
@@ -54,8 +52,8 @@ class QuboCompiler:
         """
         self._qubo_factory = QuboFactory(portfolio_data, k)
 
-        self._to_compile: list[Callable[[], tuple[NDArray[np.float64], float]]] = []
-        self._compiled_qubos: list[NDArray[np.float64]] = []
+        self._to_compile: list[Callable[[], QUBO]] = []
+        self._compiled_qubos: list[QUBO] = []
 
     def add_minimize_hhi(
         self: QuboCompilerT,
@@ -194,30 +192,26 @@ class QuboCompiler:
         """
         self._compiled_qubos = []
         for constructor in self._to_compile:
-            qubo, _ = constructor()
-            self._compiled_qubos.append(qubo)
+            self._compiled_qubos.append(constructor())
         return self
 
-    def make_qubo(self, *lambdas: float) -> tuple[NDArray[np.float64], float]:
+    def make_qubo(self, *lambdas: float) -> QUBO:
         """Makes a QUBO of the entire problem with the given lambdas.
 
         Args:
             lambdas: Scaling parameters for each QUBO in the formulation.
 
         Returns:
-            Tuple containing the QUBO matrix and offset.
+            The combined QUBO matrix.
         """
         if len(lambdas) != len(self._compiled_qubos):
             error_msg = (
                 "Number of lambdas does not correspond with the number of Hamiltonians."
             )
             raise ValueError(error_msg)
-        qubo = sum(
-            (
-                lambda_i * qubo_i
-                for lambda_i, qubo_i in zip(lambdas, self._compiled_qubos)
-            ),
-            start=np.zeros_like(self._compiled_qubos[0]),
-        )
 
-        return qubo, float("nan")
+        combined_qubo = lambdas[0] * self._compiled_qubos[0]
+        for lambda_i, qubo_i in zip(lambdas[1:], self._compiled_qubos[1:]):
+            combined_qubo += lambda_i * qubo_i
+
+        return combined_qubo

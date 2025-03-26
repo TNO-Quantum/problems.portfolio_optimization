@@ -431,9 +431,9 @@ class PortfolioOptimizer:
 
         for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
-            qubo, _ = self._qubo_compiler.make_qubo(*lambdas)
+            qubo = self._qubo_compiler.make_qubo(*lambdas)
             # Solve the QUBO
-            response = sampler.sample_qubo(qubo, **sampler_kwargs)
+            response = sampler.sample_qubo(qubo.matrix, **sampler_kwargs)
             # Postprocess solution. Iterate over all found solutions.
             outstanding_future_samples = self.decoder.decode_sampleset(response)
             results.add_result(outstanding_future_samples)

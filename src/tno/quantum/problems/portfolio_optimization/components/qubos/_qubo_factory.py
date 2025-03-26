@@ -9,7 +9,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
+
+from tno.quantum.optimization.qubo.components import QUBO
 
 if TYPE_CHECKING:
     from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
@@ -51,7 +52,7 @@ class QuboFactory:
         self.capital = portfolio_data.get_capital()
         self.k = k
 
-    def calc_minimize_hhi(self) -> tuple[NDArray[np.float64], float]:
+    def calc_minimize_hhi(self) -> QUBO:
         r"""Calculates the to minimize HHI QUBO.
 
         The QUBO formulation is given by
@@ -70,7 +71,7 @@ class QuboFactory:
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """  # noqa: E501
         qubo = np.zeros((self.n_vars, self.n_vars))
         offset = np.sum(self.l_bound**2)
@@ -93,14 +94,14 @@ class QuboFactory:
                         bit_j + bit_j_prime + 1
                     )
 
-        return qubo, offset
+        return QUBO(qubo, offset)
 
     def calc_emission_constraint(
         self,
         emission_now: str,
         emission_future: str | None = None,
         reduction_percentage_target: float = 0.7,
-    ) -> tuple[NDArray[np.float64], float]:
+    ) -> QUBO:
         r"""Calculate emission constraint QUBO for arbitrary reduction target.
 
         The QUBO formulation is given by
@@ -143,7 +144,7 @@ class QuboFactory:
             KeyError: if the provided column names are not in the portfolio_data.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """
         if emission_future is None:
             emission_future = emission_now
@@ -191,11 +192,9 @@ class QuboFactory:
             for idx2 in range(idx1 + 1, self.number_of_assets * self.k):
                 qubo[idx1, idx2] += 2 * beta[idx1] * beta[idx2]
 
-        return qubo, offset
+        return QUBO(qubo, offset)
 
-    def calc_growth_factor_constraint(
-        self, growth_target: float
-    ) -> tuple[NDArray[np.float64], float]:
+    def calc_growth_factor_constraint(self, growth_target: float) -> QUBO:
         r"""Calculates the growth factor constraint QUBO.
 
         The QUBO formulation is given by
@@ -222,7 +221,7 @@ class QuboFactory:
             growth_target: target value for growth factor total outstanding amount.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """  # noqa: E501
         total_outstanding_now = np.sum(self.outstanding_now)
         alpha = np.sum(self.l_bound) / total_outstanding_now - growth_target
@@ -244,9 +243,9 @@ class QuboFactory:
         # Add the diagonal elements
         np.fill_diagonal(qubo_slice, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        return qubo, float(offset)
+        return QUBO(qubo, offset)
 
-    def calc_maximize_roc1(self) -> tuple[NDArray[np.float64], float]:
+    def calc_maximize_roc1(self) -> QUBO:
         r"""Calculates the to maximize ROC QUBO for variant 1.
 
         The QUBO formulation is given by
@@ -269,7 +268,7 @@ class QuboFactory:
             - and `$x_{i,j}$` are the $k$ binary variables for asset `$i$` with $j<k$.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """
         theta = self.returns / (self.outstanding_now * self.capital)
         offset = np.sum(theta * self.l_bound)
@@ -278,9 +277,9 @@ class QuboFactory:
         qubo_diag = np.kron(multiplier, mantisse)
 
         qubo = np.diag(qubo_diag)
-        return -qubo, -offset
+        return QUBO(-qubo, -offset)
 
-    def calc_maximize_roc2(self) -> tuple[NDArray[np.float64], float]:
+    def calc_maximize_roc2(self) -> QUBO:
         r"""Calculates the to maximize ROC QUBO for variant 2.
 
         The QUBO formulation is given by
@@ -310,7 +309,7 @@ class QuboFactory:
             - `$g_{j}$` are the $a$ binary ancilla variables with $j<a$.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """
         ancilla_variables = self.n_vars - self.k * self.number_of_assets
 
@@ -339,9 +338,9 @@ class QuboFactory:
             alpha * gamma,
         )
         offset = alpha
-        return -qubo, -offset
+        return QUBO(-qubo, -offset)
 
-    def calc_stabilize_c(self) -> tuple[NDArray[np.float64], float]:
+    def calc_stabilize_c(self) -> QUBO:
         r"""Calculate QUBO that stabilizes the growth factor in second ROC formulation.
 
         The QUBO formulation is given by
@@ -370,7 +369,7 @@ class QuboFactory:
             - `$g_j$` are the $a$ ancillary binary variables with $j<a$.
 
         Returns:
-            qubo matrix and its offset
+            The QUBO.
         """
         ancilla_variables = self.n_vars - self.k * self.number_of_assets
         alpha = np.sum(self.capital * self.l_bound / self.outstanding_now) - np.sum(
@@ -408,4 +407,4 @@ class QuboFactory:
         np.fill_diagonal(qubo_lower_right, 2 * alpha * gamma + gamma**2)
         offset = alpha**2
 
-        return qubo, offset
+        return QUBO(qubo, offset)
