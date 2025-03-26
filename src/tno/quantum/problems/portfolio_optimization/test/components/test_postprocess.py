@@ -44,9 +44,8 @@ def decoder_fixture() -> Decoder:
 def test_decode_bit_vector(
     decoder: Decoder, bit_vector: str, expected_results: NDArray[np.float64]
 ) -> None:
-    bit_vector = BitVector(bit_vector)
     np.testing.assert_array_equal(
-        decoder.decode_bit_vector(bit_vector), expected_results
+        decoder.decode_bit_vector(BitVector(bit_vector)), expected_results
     )
 
 

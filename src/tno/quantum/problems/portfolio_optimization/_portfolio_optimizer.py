@@ -7,7 +7,7 @@ import logging
 import math
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -360,7 +360,7 @@ class PortfolioOptimizer:
 
     def run(
         self,
-        solver: Solver | None = None,
+        solver: Solver[Any] | None = None,
         *,
         verbose: bool = True,
     ) -> Results:

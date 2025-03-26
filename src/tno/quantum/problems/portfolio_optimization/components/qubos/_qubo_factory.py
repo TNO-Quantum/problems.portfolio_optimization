@@ -241,7 +241,7 @@ class QuboFactory:
         # Add the diagonal elements
         np.fill_diagonal(qubo_slice, beta**2 + 2 * alpha * beta)
         offset = alpha**2
-        return QUBO(qubo, offset)
+        return QUBO(qubo, float(offset))
 
     def calc_maximize_roc1(self) -> QUBO:
         r"""Calculates the to maximize ROC QUBO for variant 1.
