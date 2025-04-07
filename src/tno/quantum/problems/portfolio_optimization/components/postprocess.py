@@ -11,7 +11,6 @@ from scipy.spatial import ConvexHull
 if TYPE_CHECKING:
     from tno.quantum.optimization.qubo.components import ResultInterface
     from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
-    from tno.quantum.utils import BitVector
 
 
 class Decoder:
@@ -38,27 +37,6 @@ class Decoder:
         self.u_bound = portfolio_data.get_u_bound()
         self.multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
 
-    def decode_bit_vector(self, bit_vector: BitVector) -> NDArray[np.float64]:
-        """Decodes a bit_vector to the `outstanding_future` array.
-
-        Args:
-            bit_vector: BitVector.
-
-        Returns:
-            Array containing all `outstanding future` values.
-        """
-        sample_array = np.array(bit_vector)[: self.number_of_assets * self.k]
-        sample_reshaped = sample_array.reshape((self.number_of_assets, self.k))
-        ints = np.sum(sample_reshaped * self.mantissa, axis=1)
-        outstanding_future = self.l_bound + self.multiplier * ints
-        if (self.l_bound > outstanding_future).any() or (
-            self.u_bound < outstanding_future
-        ).any():
-            error_msg = "Bounds are not obeyed."
-            raise ValueError(error_msg)
-
-        return np.asarray(outstanding_future, dtype=np.float64)
-
     def decode_result(self, result: ResultInterface) -> NDArray[np.float64]:
         """Decodes `ResultInterface` to a matrix of `outstanding_future` values.
 
@@ -70,8 +48,24 @@ class Decoder:
         Returns:
             Matrix containing all `outstanding future` values.
         """
-        processed_arrays = [self.decode_bit_vector(bv) for bv, _, _ in result.freq]
-        return np.array(processed_arrays, dtype=np.float64)
+        bv_matrix = np.array(
+            [np.array(bv)[: self.number_of_assets * self.k] for bv, _, _ in result.freq]
+        )
+
+        bv_reshaped = bv_matrix.reshape(
+            (bv_matrix.shape[0], self.number_of_assets, self.k)
+        )
+
+        ints = np.sum(bv_reshaped * self.mantissa, axis=2)
+        outstanding_future = self.l_bound + self.multiplier * ints
+
+        if (self.l_bound > outstanding_future).any() or (
+            self.u_bound < outstanding_future
+        ).any():
+            error_msg = "Bounds are not obeyed."
+            raise ValueError(error_msg)
+
+        return np.asarray(outstanding_future, dtype=np.float64)
 
 
 def pareto_front(
