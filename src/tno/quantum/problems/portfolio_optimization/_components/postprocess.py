@@ -10,7 +10,7 @@ from scipy.spatial import ConvexHull
 
 if TYPE_CHECKING:
     from tno.quantum.optimization.qubo.components import ResultInterface
-    from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+    from tno.quantum.problems.portfolio_optimization._components.io import PortfolioData
 
 
 class Decoder:

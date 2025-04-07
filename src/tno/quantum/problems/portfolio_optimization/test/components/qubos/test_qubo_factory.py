@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from tno.quantum.problems.portfolio_optimization.components import QuboFactory
+from tno.quantum.problems.portfolio_optimization._components import QuboFactory
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 
 

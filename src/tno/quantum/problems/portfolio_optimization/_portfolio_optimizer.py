@@ -15,7 +15,7 @@ from pandas import DataFrame
 from tqdm import tqdm
 
 from tno.quantum.optimization.qubo.solvers import SimulatedAnnealingSolver
-from tno.quantum.problems.portfolio_optimization.components import (
+from tno.quantum.problems.portfolio_optimization._components import (
     Decoder,
     PortfolioData,
     QuboCompiler,

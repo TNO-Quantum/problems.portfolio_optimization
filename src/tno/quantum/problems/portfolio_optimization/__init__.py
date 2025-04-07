@@ -27,7 +27,7 @@ The codebase is based on the following paper:
 from tno.quantum.problems.portfolio_optimization._portfolio_optimizer import (
     PortfolioOptimizer,
 )
-from tno.quantum.problems.portfolio_optimization.components import (
+from tno.quantum.problems.portfolio_optimization._components import (
     PortfolioData,
     plot_front,
     plot_points,

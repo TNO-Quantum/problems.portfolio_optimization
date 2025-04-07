@@ -10,13 +10,13 @@ from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING, TypeVar
 
-from tno.quantum.problems.portfolio_optimization.components.qubos._qubo_factory import (
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory import (
     QuboFactory,
 )
 
 if TYPE_CHECKING:
     from tno.quantum.optimization.qubo.components import QUBO
-    from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+    from tno.quantum.problems.portfolio_optimization._components.io import PortfolioData
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 

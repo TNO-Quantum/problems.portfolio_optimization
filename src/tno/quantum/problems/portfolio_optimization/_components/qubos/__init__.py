@@ -7,10 +7,10 @@ The ``QuboFactory`` class provides a convenient interface for constructing inter
 QUBO matrices for different objectives and constraints.
 """
 
-from tno.quantum.problems.portfolio_optimization.components.qubos._qubo_compiler import (  # noqa: E501
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_compiler import (  # noqa: E501
     QuboCompiler,
 )
-from tno.quantum.problems.portfolio_optimization.components.qubos._qubo_factory import (
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory import (
     QuboFactory,
 )
 
