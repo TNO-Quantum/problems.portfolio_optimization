@@ -47,7 +47,7 @@ class Decoder:
         Returns:
             Array containing all `outstanding future` values.
         """
-        sample_array = np.array(bit_vector)[:self.number_of_assets * self.k]
+        sample_array = np.array(bit_vector)[: self.number_of_assets * self.k]
         sample_reshaped = sample_array.reshape((self.number_of_assets, self.k))
         ints = np.sum(sample_reshaped * self.mantissa, axis=1)
         outstanding_future = self.l_bound + self.multiplier * ints

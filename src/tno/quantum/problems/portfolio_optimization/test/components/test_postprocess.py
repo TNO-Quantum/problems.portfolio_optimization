@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from numpy.typing import NDArray
 
 from tno.quantum.optimization.qubo.components import BasicResult, Freq
 from tno.quantum.problems.portfolio_optimization.components import Decoder, pareto_front
@@ -42,7 +41,7 @@ def decoder_fixture() -> Decoder:
     ],
 )
 def test_decode_bit_vector(
-    decoder: Decoder, bit_vector: str, expected_results: ArrayLike
+    decoder: Decoder, bit_vector: str, expected_results: list[int]
 ) -> None:
     np.testing.assert_array_equal(
         decoder.decode_bit_vector(BitVector(bit_vector)), expected_results
