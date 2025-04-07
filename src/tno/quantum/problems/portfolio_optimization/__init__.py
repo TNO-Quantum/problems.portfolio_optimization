@@ -28,10 +28,11 @@ from tno.quantum.problems.portfolio_optimization._portfolio_optimizer import (
     PortfolioOptimizer,
 )
 from tno.quantum.problems.portfolio_optimization.components import (
+    PortfolioData,
     plot_front,
     plot_points,
 )
 
-__all__ = ["PortfolioOptimizer", "plot_front", "plot_points"]
+__all__ = ["PortfolioData", "PortfolioOptimizer", "plot_front", "plot_points"]
 
 __version__ = "1.0.1-beta.1"
