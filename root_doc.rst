@@ -52,13 +52,12 @@ using a simulated annealing QUBO solver.
   import numpy as np
 
   from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-  from tno.quantum.optimization.qubo import SolverConfig
+  from tno.quantum.optimization.qubo import QUBO, solvers
 
-  # Choose sampler for solving qubo
-  solver_config = SolverConfig(
-      name="simulated_annealing_solver", options={"num_reads": 20, "num_sweeps": 200}
+  # Choose solver for solving qubo
+  solver = solvers.SimulatedAnnealingSolver(
+      num_reads=20, num_sweeps=200
   )
-  solver = solver_config.get_instance()
 
   # Set up penalty coefficients for the constraints
   lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)

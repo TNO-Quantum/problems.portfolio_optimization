@@ -23,26 +23,26 @@ def decoder_fixture() -> Decoder:
 @pytest.mark.parametrize(
     ("bit_vector", "expected_results"),
     [
-        ("0000", np.array([10, 30])),
-        ("0001", np.array([10, 36])),
-        ("0010", np.array([10, 33])),
-        ("0011", np.array([10, 39])),
-        ("0100", np.array([16, 30])),
-        ("0101", np.array([16, 36])),
-        ("0110", np.array([16, 33])),
-        ("0111", np.array([16, 39])),
-        ("1000", np.array([13, 30])),
-        ("1001", np.array([13, 36])),
-        ("1010", np.array([13, 33])),
-        ("1011", np.array([13, 39])),
-        ("1100", np.array([19, 30])),
-        ("1101", np.array([19, 36])),
-        ("1110", np.array([19, 33])),
-        ("1111", np.array([19, 39])),
+        ("0000", [10, 30]),
+        ("0001", [10, 36]),
+        ("0010", [10, 33]),
+        ("0011", [10, 39]),
+        ("0100", [16, 30]),
+        ("0101", [16, 36]),
+        ("0110", [16, 33]),
+        ("0111", [16, 39]),
+        ("1000", [13, 30]),
+        ("1001", [13, 36]),
+        ("1010", [13, 33]),
+        ("1011", [13, 39]),
+        ("1100", [19, 30]),
+        ("1101", [19, 36]),
+        ("1110", [19, 33]),
+        ("1111", [19, 39]),
     ],
 )
 def test_decode_bit_vector(
-    decoder: Decoder, bit_vector: str, expected_results: NDArray[np.float64]
+    decoder: Decoder, bit_vector: str, expected_results: ArrayLike
 ) -> None:
     np.testing.assert_array_equal(
         decoder.decode_bit_vector(BitVector(bit_vector)), expected_results
@@ -69,7 +69,7 @@ def test_decode_sampleset(decoder: Decoder) -> None:
             "1110",
             "1111",
         ],
-        energies=[int(_) for _ in range(16)],
+        energies=[int(i) for i in range(16)],
         num_occurrences=[1 for _ in range(16)],
     )
     result = BasicResult(best_bitvector="0000", best_value=0.0, freq=freq)
