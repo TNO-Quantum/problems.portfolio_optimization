@@ -17,26 +17,24 @@ if TYPE_CHECKING:
 
 
 class QuboFactory:
-    """QuboFactory - A factory class for creating QUBO instances.
+    """QuboFactory - A factory class for creating :py:class:`~tno.quantum.optimization.qubo.QUBO` instances.
 
     This class provides a convenient interface for constructing intermediate QUBO
     matrices for different objectives and constraints.
 
-    Methods:
-    - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO
-    - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1
-    - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2
-    - `calc_emission_constraint`: Calculates the emission constraint QUBO
-    - `calc_growth_factor_constraint`: Calculates the growth factor constraint QUBO
+    - `calc_minimize_hhi`: Calculates the to minimize HHI QUBO.
+    - `calc_maximize_roc1`: Calculates the to maximize return on capital QUBO variant 1.
+    - `calc_maximize_roc2`: Calculates the to maximize return on capital QUBO variant 2.
+    - `calc_emission_constraint`: Calculates the emission constraint QUBO.
+    - `calc_growth_factor_constraint`: Calculates the growth factor constraint QUBO.
     - `calc_stabilize_c`: Calculates the constraint QUBO that stabilizes growth factor.
-    """
+    """  # noqa: E501
 
     def __init__(self, portfolio_data: PortfolioData, k: int) -> None:
         """Init of the ``QuboFactory``.
 
         Args:
-            portfolio_data: A ``PortfolioData`` object containing the portfolio to
-                optimize.
+            portfolio_data: Data of the portfolio to optimize.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.

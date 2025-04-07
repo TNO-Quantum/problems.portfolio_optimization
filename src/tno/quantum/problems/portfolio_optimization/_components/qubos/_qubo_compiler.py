@@ -10,7 +10,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING, TypeVar
 
-from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory import (
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory import (  # noqa: E501
     QuboFactory,
 )
 

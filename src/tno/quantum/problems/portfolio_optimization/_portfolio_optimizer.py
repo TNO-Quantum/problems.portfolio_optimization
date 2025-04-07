@@ -27,11 +27,11 @@ if TYPE_CHECKING:
 
 
 class PortfolioOptimizer:
-    """The ``PortfolioOptimizer`` class.
+    """Class to perform portfolio optimization.
 
-    The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
-    optimization problems into QUBO problems which can then be solved using QUBO solving
-    techniques such as simulated or quantum annealing.
+    The :py:class:`~PortfolioOptimizer` class is used to convert
+    multi-objective portfolio optimization problems into QUBO problems which can then be
+    solved using QUBO solving techniques such as simulated or quantum annealing.
 
     The following objectives can be considered
 
@@ -85,24 +85,23 @@ class PortfolioOptimizer:
         k: int = 2,
         columns_rename: dict[str, str] | None = None,
     ) -> None:
-        """Init ``PortfolioOptimizer``.
+        """Init :py:class:`~PortfolioOptimizer`.
 
         Args:
-            portfolio_data: Portfolio data represented by a ``PortfolioData`` object,
-                a pandas ``DataFrame`` or a path to where portfolio data is stored. See
-                the docstring of
-                :py:class:`~portfolio_optimization.components.io.PortfolioData` for data
-                input conventions.
+            portfolio_data: Portfolio data represented by either the portfolio data
+                object, pandas dataframe or path to where portfolio data is stored. See
+                the docstring of :py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`
+                for data input conventions.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
             columns_rename: can be used to rename data columns. See the docstring of
-                :py:class:`~portfolio_optimization.components.io.PortfolioData` for
-                example.
+                :py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`
+                for an example.
 
         Raises:
-            TypeError: If the provided ``portfolio_data`` input has the wrong type.
-        """
+            TypeError: If the provided portfolio data input has the wrong type.
+        """  # noqa: E501
         if isinstance(portfolio_data, PortfolioData):
             self.portfolio_data = portfolio_data
         elif isinstance(portfolio_data, DataFrame):
@@ -144,8 +143,7 @@ class PortfolioOptimizer:
 
         As the objective contains non-quadratic terms, a QUBO formulation requires
         approximations. For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_minimize_hhi`.
 
         Usage example:
 
@@ -207,8 +205,9 @@ class PortfolioOptimizer:
             capital growth. The stabilize qubo requires an extra argument ``ancilla_variables``.
             Use ``weights_roc`` and ``weights_stabilize`` to scale both qubo's accordingly.
 
-        For the different QUBO formulations, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        For the QUBO formulation, see the docs of
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_maximize_roc1` and
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_maximize_roc2`.
 
         Usage example:
 
@@ -283,8 +282,7 @@ class PortfolioOptimizer:
         ... )
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_emission_constraint`.
 
         Args:
             emission_now: Name of the column in the portfolio dataset corresponding to
@@ -340,8 +338,7 @@ class PortfolioOptimizer:
         >>> portfolio_optimizer.add_growth_factor_constraint(growth_target=1.2, weights=lambdas)
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
@@ -374,8 +371,8 @@ class PortfolioOptimizer:
         >>> portfolio_optimizer.run() # doctest: +SKIP
 
         Args:
-            solver: Instance of a QUBO solver that can be used to solve the QUBO.
-                By default the ``SimulatedAnnealingSolver`` is being used.
+            solver: Instance of a QUBO solver that can be used to solve the QUBO. By
+                default the :py:class:`~tno.quantum.optimization.qubo.solvers.SimulatedAnnealingSolver` is being used.
             sampler_kwargs: The sampler specific key-word arguments.
             verbose: If True, print detailed information during execution
 
@@ -384,7 +381,7 @@ class PortfolioOptimizer:
 
         Raises:
             ValueError: if constraints are not set
-        """
+        """  # noqa: E501
         solver = solver if solver is not None else SimulatedAnnealingSolver()
 
         if verbose:

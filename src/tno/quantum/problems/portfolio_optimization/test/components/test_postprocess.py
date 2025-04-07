@@ -6,7 +6,10 @@ import numpy as np
 import pytest
 
 from tno.quantum.optimization.qubo.components import BasicResult, Freq
-from tno.quantum.problems.portfolio_optimization._components import Decoder, pareto_front
+from tno.quantum.problems.portfolio_optimization._components import (
+    Decoder,
+    pareto_front,
+)
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 
 # region Decoder
