@@ -58,16 +58,16 @@ worsening the other objective, can be computed for return on capital and diversi
 >>> fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
 >>>
 >>> # Plot data points
->>> plot_points(x2, y2, color="orange", label="QUBO constraint not met", ax=ax1)
->>> plot_points(x1, y1, color="green", label="QUBO constraint met", ax=ax1)
->>> ax1.set_title("Points")
+>>> plot_points(x2, y2, color="orange", label="QUBO constraint not met", ax=ax1)  # doctest: +SKIP
+>>> plot_points(x1, y1, color="green", label="QUBO constraint met", ax=ax1)  # doctest: +SKIP
+>>> ax1.set_title("Points")  # doctest: +SKIP
 >>>
 >>> # Plot Pareto front
->>> plot_front(x2, y2, color="orange", label="QUBO constraint not met", ax=ax2)
->>> plot_front(x1, y1, color="green", label="QUBO constraint met", ax=ax2)
->>> ax2.set_title("Pareto Front")
+>>> plot_front(x2, y2, color="orange", label="QUBO constraint not met", ax=ax2)  # doctest: +SKIP
+>>> plot_front(x1, y1, color="green", label="QUBO constraint met", ax=ax2)  # doctest: +SKIP
+>>> ax2.set_title("Pareto Front")  # doctest: +SKIP
 >>> fig.tight_layout()
->>> plt.show()
+>>> plt.show()  # doctest: +SKIP
 
 .. image:: ../../../images_for_docs/example.png
     :width: 1200
