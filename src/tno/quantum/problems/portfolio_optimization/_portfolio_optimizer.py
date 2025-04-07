@@ -43,39 +43,6 @@ class PortfolioOptimizer:
     - `capital growth`, demand a minimum increase in outstanding assets.
     - `emission reduction`, demand a minimum reduction for an arbitrary emission type.
 
-    Usage example:
-
-    .. code-block::
-
-        import numpy as np
-        from dwave.samplers import SimulatedAnnealingSampler
-
-        from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-
-        # Choose sampler for solving qubo
-        sampler = SimulatedAnnealingSampler()
-        sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
-
-        # Set up penalty coefficients for the constraints
-        lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        lambdas3 = np.array([1])
-
-        # Create portfolio optimization problem
-        portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
-        portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
-        portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
-        portfolio_optimizer.add_emission_constraint(
-            weights=lambdas3,
-            emission_now="emis_intens_now",
-            emission_future="emis_intens_future",
-            name="emission",
-        )
-
-        # Solve the portfolio optimization problem
-        results = portfolio_optimizer.run(sampler, sampler_kwargs)
-        print(results.head())
-
     .. _Herfindahl-Hirschman Index: https://nl.wikipedia.org/wiki/Herfindahl-index
     """
 

@@ -53,7 +53,7 @@ platforms = ["any"]
 version = { attr = "tno.quantum.problems.portfolio_optimization.__version__" }
 
 [tool.setuptools.package-data]
-"*" = ["py.typed"]
+"*" = ["py.typed", "example.png"]
 "tno.quantum.problems.portfolio_optimization.datasets" = ["benchmark_dataset.xlsx"]
 
 [tool.tbump.version]

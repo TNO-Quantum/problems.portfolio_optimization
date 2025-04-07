@@ -12,10 +12,8 @@ The following objectives can be considered
 Additionally, we allow for capital growth factor and arbitrary emission reduction
 constraints to be considered.
 
-The `Pareto front`_, the set of solutions where one objective can't be improved without
-worsening the other objective, can be computed for return on capital and diversification.
-
 Usage example:
+--------------
 
 >>> import numpy as np
 >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
@@ -49,6 +47,108 @@ Usage example:
 2  (17.333333333333332, 509.6666666666667, 24.0, ...  2.979830             -6.397679          1.566499     -29.999988
 3  (15.666666666666666, 491.3333333333333, 25.333...  1.875721             -4.025964          1.531100     -30.000023
 4  (15.666666666666666, 491.3333333333333, 24.0, ...  2.697235             -7.117611          1.555159     -29.999977
+
+The `Pareto front`_, the set of solutions where one objective can't be improved without
+worsening the other objective, can be computed for return on capital and diversification.
+
+>>> import matplotlib.pyplot as plt
+>>> from tno.quantum.problems.portfolio_optimization import plot_front, plot_points
+>>>
+>>> (x1, y1), (x2, y2) = results.slice_results()
+>>> fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
+>>>
+>>> # Plot data points
+>>> plot_points(x2, y2, color="orange", label="QUBO constraint not met", ax=ax1)
+>>> plot_points(x1, y1, color="green", label="QUBO constraint met", ax=ax1)
+>>> ax1.set_title("Points")
+>>>
+>>> # Plot Pareto front
+>>> plot_front(x2, y2, color="orange", label="QUBO constraint not met", ax=ax2)
+>>> plot_front(x1, y1, color="green", label="QUBO constraint met", ax=ax2)
+>>> ax2.set_title("Pareto Front")
+>>> fig.tight_layout()
+>>> plt.show()
+
+.. image:: ../../../images_for_docs/example.png
+    :width: 1200
+    :align: center
+    :alt: (Diversification, ROC)-Graph
+
+Data input
+----------
+
+The data used for the portfolio optimization can be imported via an excel file, csv file,
+json file or as a Pandas :class:`~pandas.DataFrame`.
+The data needs to contain at least the following columns:
+
+    - ``asset``: The name of the asset.
+    - ``outstanding_now``: Current outstanding amount per asset.
+    - ``min_outstanding_future``: Lower bound outstanding amount in the future per asset.
+    - ``max_outstanding_future``: Upper bound outstanding amount in the future per asset.
+    - ``income_now``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
+    - ``regcap_now``: Current regulatory capital per asset.
+
+The table below shows an example dataset with the correct structure.
+Note that this is the least amount of columns that need to be present.
+More columns are allowed and required for some functionalities.
+
+.. list-table:: Example Dataset
+   :widths: 25 25 25 25 25 25
+   :header-rows: 1
+
+   * - asset
+     - outstanding_now
+     - min_outstanding_future
+     - max_outstanding_future
+     - income_now
+     - regcap_now
+   * - Sector 1 COUNTRY 1
+     - 10
+     - 14
+     - 19
+     - 5
+     - 5
+   * - Sector 2 COUNTRY 1
+     - 600
+     - 473
+     - 528
+     - 70
+     - 40
+   * - Sector 3 COUNTRY 1
+     - 20
+     - 24
+     - 28
+     - 5
+     - 10
+   * - Sector 4 COUNTRY 1
+     - 800
+     - 1090
+     - 1410
+     - 1
+     - 2
+   * - Sector 1 COUNTRY 2
+     - 40
+     - 56
+     - 74
+     - 10
+     - 5
+   * - Sector 2 COUNTRY 2
+     - 200
+     - 291
+     - 397
+     - 40
+     - 20
+   * - ...
+     - ...
+     - ...
+     - ...
+     - ...
+     - ...
+
+If the input data file contains the correct information but has different column names,
+you can rename the columns without modifying the input file. For more details and
+examples, refer to the documentation of
+:py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`.
 
 The codebase is based on the following paper:
 
