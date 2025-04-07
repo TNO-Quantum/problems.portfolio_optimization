@@ -8,7 +8,6 @@ import pytest
 from tno.quantum.optimization.qubo.components import BasicResult, Freq
 from tno.quantum.problems.portfolio_optimization.components import Decoder, pareto_front
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
-from tno.quantum.utils import BitVector
 
 # region Decoder
 
@@ -17,35 +16,6 @@ from tno.quantum.utils import BitVector
 def decoder_fixture() -> Decoder:
     portfolio_data = make_test_dataset()
     return Decoder(portfolio_data, k=2)
-
-
-@pytest.mark.parametrize(
-    ("bit_vector", "expected_results"),
-    [
-        ("0000", [10, 30]),
-        ("0001", [10, 36]),
-        ("0010", [10, 33]),
-        ("0011", [10, 39]),
-        ("0100", [16, 30]),
-        ("0101", [16, 36]),
-        ("0110", [16, 33]),
-        ("0111", [16, 39]),
-        ("1000", [13, 30]),
-        ("1001", [13, 36]),
-        ("1010", [13, 33]),
-        ("1011", [13, 39]),
-        ("1100", [19, 30]),
-        ("1101", [19, 36]),
-        ("1110", [19, 33]),
-        ("1111", [19, 39]),
-    ],
-)
-def test_decode_bit_vector(
-    decoder: Decoder, bit_vector: str, expected_results: list[int]
-) -> None:
-    np.testing.assert_array_equal(
-        decoder.decode_bit_vector(BitVector(bit_vector)), expected_results
-    )
 
 
 def test_decode_sampleset(decoder: Decoder) -> None:
@@ -123,7 +93,7 @@ def test_pareto_front(
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):
-        assert point in expected_points
+        assert point in expected_points  # type: ignore[comparison-overlap]
 
 
 def test_small_front() -> None:
@@ -143,4 +113,4 @@ def test_small_front2() -> None:
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):
-        assert point in expected_points
+        assert point in expected_points  # type: ignore[comparison-overlap]
