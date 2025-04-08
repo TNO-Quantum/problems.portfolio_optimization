@@ -57,13 +57,13 @@ class PortfolioOptimizer:
         Args:
             portfolio_data: Portfolio data represented by either the portfolio data
                 object, pandas dataframe or path to where portfolio data is stored. See
-                the docstring of :py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`
+                the docstring of :py:class:`~tno.quantum.problems.portfolio_optimization._components._io.PortfolioData`
                 for data input conventions.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
             columns_rename: can be used to rename data columns. See the docstring of
-                :py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`
+                :py:class:`~tno.quantum.problems.portfolio_optimization._components._io.PortfolioData`
                 for an example.
 
         Raises:

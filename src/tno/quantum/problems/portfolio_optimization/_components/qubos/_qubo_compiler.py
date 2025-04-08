@@ -16,7 +16,9 @@ from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory
 
 if TYPE_CHECKING:
     from tno.quantum.optimization.qubo.components import QUBO
-    from tno.quantum.problems.portfolio_optimization._components.io import PortfolioData
+    from tno.quantum.problems.portfolio_optimization._components._io import (
+        PortfolioData,
+    )
 
 QuboCompilerT = TypeVar("QuboCompilerT", bound="QuboCompiler")
 
@@ -70,7 +72,7 @@ class QuboCompiler:
             - `$x_i$` is the future outstanding amount for asset `$i$`.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
+        :py:meth:`~portfolio_optimization._components.qubos.QuboFactory.calc_minimize_hhi`.
 
         Returns:
             Self.
@@ -129,7 +131,7 @@ class QuboCompiler:
             - `$g_e$` is the target value for the relative emission reduction.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
+        :py:meth:`~portfolio_optimization._components.qubos.QuboFactory.calc_emission_constraint`.
 
         Args:
             emission_now: Name of the column in the portfolio dataset corresponding to
@@ -169,7 +171,7 @@ class QuboCompiler:
             - `$g_c$` is the target value for the total growth factor.
 
         For the QUBO formulation, see the docs of
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
+        :py:meth:`~portfolio_optimization._components.qubos.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.

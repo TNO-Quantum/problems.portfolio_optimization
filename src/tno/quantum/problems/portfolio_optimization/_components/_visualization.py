@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 
-from tno.quantum.problems.portfolio_optimization._components.postprocess import (
+from tno.quantum.problems.portfolio_optimization._components._postprocess import (
     pareto_front,
 )
 

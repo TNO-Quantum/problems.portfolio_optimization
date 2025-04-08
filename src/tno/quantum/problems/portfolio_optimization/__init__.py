@@ -148,7 +148,7 @@ More columns are allowed and required for some functionalities.
 If the input data file contains the correct information but has different column names,
 you can rename the columns without modifying the input file. For more details and
 examples, refer to the documentation of
-:py:class:`~tno.quantum.problems.portfolio_optimization._components.io.PortfolioData`.
+:py:class:`~tno.quantum.problems.portfolio_optimization._components._io.PortfolioData`.
 
 The codebase is based on the following paper:
 

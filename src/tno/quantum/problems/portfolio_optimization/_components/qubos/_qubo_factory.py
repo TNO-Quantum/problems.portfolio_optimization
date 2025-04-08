@@ -13,7 +13,9 @@ import numpy as np
 from tno.quantum.optimization.qubo.components import QUBO
 
 if TYPE_CHECKING:
-    from tno.quantum.problems.portfolio_optimization._components.io import PortfolioData
+    from tno.quantum.problems.portfolio_optimization._components._io import (
+        PortfolioData,
+    )
 
 
 class QuboFactory:
