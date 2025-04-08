@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from dwave.samplers import SimulatedAnnealingSampler
 from numpy.typing import ArrayLike, NDArray
 from pandas import DataFrame
 from tqdm import tqdm
 
-from tno.quantum.problems.portfolio_optimization.components import (
+from tno.quantum.optimization.qubo.solvers import SimulatedAnnealingSolver
+from tno.quantum.problems.portfolio_optimization._components import (
     Decoder,
     PortfolioData,
     QuboCompiler,
@@ -23,15 +23,15 @@ from tno.quantum.problems.portfolio_optimization.components import (
 )
 
 if TYPE_CHECKING:
-    from dimod.core.sampler import Sampler
+    from tno.quantum.optimization.qubo.components import Solver
 
 
 class PortfolioOptimizer:
-    """The ``PortfolioOptimizer`` class.
+    """Class to perform portfolio optimization.
 
-    The ``PortfolioOptimizer`` class is used to convert multi-objective portfolio
-    optimization problems into QUBO problems which can then be solved using QUBO solving
-    techniques such as simulated or quantum annealing.
+    The :py:class:`~PortfolioOptimizer` class is used to convert
+    multi-objective portfolio optimization problems into QUBO problems which can then be
+    solved using QUBO solving techniques such as simulated or quantum annealing.
 
     The following objectives can be considered
 
@@ -43,39 +43,6 @@ class PortfolioOptimizer:
     - `capital growth`, demand a minimum increase in outstanding assets.
     - `emission reduction`, demand a minimum reduction for an arbitrary emission type.
 
-    Usage example:
-
-    .. code-block::
-
-        import numpy as np
-        from dwave.samplers import SimulatedAnnealingSampler
-
-        from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-
-        # Choose sampler for solving qubo
-        sampler = SimulatedAnnealingSampler()
-        sampler_kwargs = {"num_reads": 20, "num_sweeps": 200}
-
-        # Set up penalty coefficients for the constraints
-        lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        lambdas2 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
-        lambdas3 = np.array([1])
-
-        # Create portfolio optimization problem
-        portfolio_optimizer = PortfolioOptimizer("benchmark_dataset")
-        portfolio_optimizer.add_minimize_hhi(weights=lambdas1)
-        portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=lambdas1)
-        portfolio_optimizer.add_emission_constraint(
-            weights=lambdas3,
-            emission_now="emis_intens_now",
-            emission_future="emis_intens_future",
-            name="emission",
-        )
-
-        # Solve the portfolio optimization problem
-        results = portfolio_optimizer.run(sampler, sampler_kwargs)
-        print(results.head())
-
     .. _Herfindahl-Hirschman Index: https://nl.wikipedia.org/wiki/Herfindahl-index
     """
 
@@ -85,24 +52,23 @@ class PortfolioOptimizer:
         k: int = 2,
         columns_rename: dict[str, str] | None = None,
     ) -> None:
-        """Init ``PortfolioOptimizer``.
+        """Init :py:class:`~PortfolioOptimizer`.
 
         Args:
-            portfolio_data: Portfolio data represented by a ``PortfolioData`` object,
-                a pandas ``DataFrame`` or a path to where portfolio data is stored. See
-                the docstring of
-                :py:class:`~portfolio_optimization.components.io.PortfolioData` for data
-                input conventions.
+            portfolio_data: Portfolio data represented by either the portfolio data
+                object, pandas dataframe or path to where portfolio data is stored. See
+                the docstring of :py:class:`~tno.quantum.problems.portfolio_optimization._components._io.PortfolioData`
+                for data input conventions.
             k: The number of bits that are used to represent the outstanding amount for
                 each asset. A fixed point representation is used to represent `$2^k$`
                 different equidistant values in the range `$[LB_i, UB_i]$` for asset i.
             columns_rename: can be used to rename data columns. See the docstring of
-                :py:class:`~portfolio_optimization.components.io.PortfolioData` for
-                example.
+                :py:class:`~tno.quantum.problems.portfolio_optimization._components._io.PortfolioData`
+                for an example.
 
         Raises:
-            TypeError: If the provided ``portfolio_data`` input has the wrong type.
-        """
+            TypeError: If the provided portfolio data input has the wrong type.
+        """  # noqa: E501
         if isinstance(portfolio_data, PortfolioData):
             self.portfolio_data = portfolio_data
         elif isinstance(portfolio_data, DataFrame):
@@ -144,8 +110,7 @@ class PortfolioOptimizer:
 
         As the objective contains non-quadratic terms, a QUBO formulation requires
         approximations. For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_minimize_hhi`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_minimize_hhi`.
 
         Usage example:
 
@@ -207,8 +172,9 @@ class PortfolioOptimizer:
             capital growth. The stabilize qubo requires an extra argument ``ancilla_variables``.
             Use ``weights_roc`` and ``weights_stabilize`` to scale both qubo's accordingly.
 
-        For the different QUBO formulations, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
+        For the QUBO formulation, see the docs of
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_maximize_roc1` and
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_maximize_roc2`.
 
         Usage example:
 
@@ -283,8 +249,7 @@ class PortfolioOptimizer:
         ... )
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_emission_constraint`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_emission_constraint`.
 
         Args:
             emission_now: Name of the column in the portfolio dataset corresponding to
@@ -340,8 +305,7 @@ class PortfolioOptimizer:
         >>> portfolio_optimizer.add_growth_factor_constraint(growth_target=1.2, weights=lambdas)
 
         For the QUBO formulation, see the docs of
-        :py:class:`~portfolio_optimization.components.qubos.QuboFactory`.
-        :py:meth:`~portfolio_optimization.components.qubos.QuboFactory.calc_growth_factor_constraint`.
+        :py:meth:`~tno.quantum.problems.portfolio_optimization.QuboFactory.calc_growth_factor_constraint`.
 
         Args:
             growth_target: target value for growth factor total outstanding amount.
@@ -360,8 +324,7 @@ class PortfolioOptimizer:
 
     def run(
         self,
-        sampler: Sampler | None = None,
-        sampler_kwargs: dict[str, Any] | None = None,
+        solver: Solver[Any] | None = None,
         *,
         verbose: bool = True,
     ) -> Results:
@@ -370,34 +333,26 @@ class PortfolioOptimizer:
         Usage example:
 
         >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-        >>> from dwave.samplers import SimulatedAnnealingSampler
         >>> portfolio_optimizer = PortfolioOptimizer(portfolio_data="benchmark_dataset")
         >>> portfolio_optimizer.add_minimize_hhi()
-        >>> portfolio_optimizer.run(sampler=SimulatedAnnealingSampler(), verbose=False) # doctest: +SKIP
+        >>> portfolio_optimizer.run() # doctest: +SKIP
 
         Args:
-            sampler: Instance of a D-Wave Sampler that can be used to solve the QUBO.
-                More information can be found in the `D-Wave Ocean Documentation`_.
-                By default the ``SimulatedAnnealingSampler`` is being used.
+            solver: Instance of a QUBO solver that can be used to solve the QUBO. By
+                default the :py:class:`~tno.quantum.optimization.qubo.solvers.SimulatedAnnealingSolver` is being used.
             sampler_kwargs: The sampler specific key-word arguments.
             verbose: If True, print detailed information during execution
 
         Returns:
-            results
+            Results.
 
         Raises:
             ValueError: if constraints are not set
-
-        .. _D-Wave Ocean Documentation: https://docs.ocean.dwavesys.com/projects/system/en/stable/reference/samplers.html
-
         """  # noqa: E501
+        solver = solver if solver is not None else SimulatedAnnealingSolver()
+
         if verbose:
             self.portfolio_data.print_portfolio_info()
-
-        sampler = SimulatedAnnealingSampler() if sampler is None else sampler
-        sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
-
-        if verbose:
             self._logger.info("Status: Creating model.")
 
             if self._provided_growth_target is not None:
@@ -431,11 +386,13 @@ class PortfolioOptimizer:
 
         for lambdas in lambdas_iterator:
             # Compile the model and generate QUBO
-            qubo, _ = self._qubo_compiler.make_qubo(*lambdas)
+            qubo = self._qubo_compiler.make_qubo(*lambdas)
+
             # Solve the QUBO
-            response = sampler.sample_qubo(qubo, **sampler_kwargs)
+            result = solver.solve(qubo)
+
             # Postprocess solution. Iterate over all found solutions.
-            outstanding_future_samples = self.decoder.decode_sampleset(response)
+            outstanding_future_samples = self.decoder.decode_result(result)
             results.add_result(outstanding_future_samples)
 
         if verbose:

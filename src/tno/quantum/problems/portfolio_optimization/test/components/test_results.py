@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tno.quantum.problems.portfolio_optimization.components import Results
+from tno.quantum.problems.portfolio_optimization._components import Results
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
 
 

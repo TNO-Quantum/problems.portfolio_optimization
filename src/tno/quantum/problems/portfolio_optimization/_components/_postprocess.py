@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,9 +9,10 @@ from numpy.typing import ArrayLike, NDArray
 from scipy.spatial import ConvexHull
 
 if TYPE_CHECKING:
-    from dimod import SampleSet
-
-    from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+    from tno.quantum.optimization.qubo.components import ResultInterface
+    from tno.quantum.problems.portfolio_optimization._components._io import (
+        PortfolioData,
+    )
 
 
 class Decoder:
@@ -39,46 +39,26 @@ class Decoder:
         self.u_bound = portfolio_data.get_u_bound()
         self.multiplier = (self.u_bound - self.l_bound) / (2**self.k - 1)
 
-    def decode_sample(self, sample: Mapping[int, int]) -> NDArray[np.float64]:
-        """Decodes a sample to the `oustanding_future` array.
+    def decode_result(self, result: ResultInterface) -> NDArray[np.float64]:
+        """Decodes `ResultInterface` to a matrix of `outstanding_future` values.
+
+        Each row in the matrix corresponds to a different solution in the result.
 
         Args:
-            sample: Sample as returned by D-Wave.
-
-        Returns:
-            Array containing all `outstanding future` values.
-        """
-        sample_array = np.array(
-            [sample[i] for i in range(self.number_of_assets * self.k)], dtype=np.uint8
-        )
-        sample_reshaped = sample_array.reshape((self.number_of_assets, self.k))
-        ints = np.sum(sample_reshaped * self.mantissa, axis=1)
-        outstanding_future = self.l_bound + self.multiplier * ints
-        if (self.l_bound > outstanding_future).any() or (
-            self.u_bound < outstanding_future
-        ).any():
-            error_msg = "Bounds are not obeyed."
-            raise ValueError(error_msg)
-
-        return np.asarray(outstanding_future, dtype=np.float64)
-
-    def decode_sampleset(self, sampleset: SampleSet) -> NDArray[np.float64]:
-        """Decodes a `sampleset` to create a matrix of `oustanding_future` values.
-
-        Each row in the matrix corresponds to a different sample in the `sampleset`.
-
-        Args:
-            sampleset: ``SampleSet`` as returned by D-Wave.
+            result: ``ResultInterface`` from a QUBO solver.
 
         Returns:
             Matrix containing all `outstanding future` values.
         """
-        samples_matrix = sampleset.record.sample[:, : self.number_of_assets * self.k]
-        samples_reshaped = samples_matrix.reshape(
-            (len(sampleset), self.number_of_assets, self.k)
+        bv_matrix = np.array(
+            [np.array(bv)[: self.number_of_assets * self.k] for bv, _, _ in result.freq]
         )
 
-        ints = np.sum(samples_reshaped * self.mantissa, axis=2)
+        bv_reshaped = bv_matrix.reshape(
+            (bv_matrix.shape[0], self.number_of_assets, self.k)
+        )
+
+        ints = np.sum(bv_reshaped * self.mantissa, axis=2)
         outstanding_future = self.l_bound + self.multiplier * ints
 
         if (self.l_bound > outstanding_future).any() or (

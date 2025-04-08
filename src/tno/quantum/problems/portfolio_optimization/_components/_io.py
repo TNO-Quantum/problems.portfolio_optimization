@@ -24,14 +24,32 @@ PortfolioDataT = TypeVar("PortfolioDataT", bound="PortfolioData")
 
 
 class PortfolioData:
-    """The ``PortfolioData`` stores the data used for portfolio optimization."""
+    """The :class:`~PortfolioData` stores the data used for portfolio optimization.
+
+    The example below shows how to load and print info for a benchmark dataset.
+
+    >>> from tno.quantum.problems.portfolio_optimization import PortfolioData
+    >>> portfolio_data = PortfolioData.from_file("benchmark_dataset")
+    >>> portfolio_data.print_portfolio_info()
+    PortfolioData: --------- Portfolio information -----------
+    PortfolioData: Total outstanding now: 21252.70
+    PortfolioData: ROC now: 1.0642
+    PortfolioData: HHI now: 1.0000
+    PortfolioData: Total Emission now: 43355508.00
+    PortfolioData: Relative emission intensity now: 2040.00
+    PortfolioData: Expected total outstanding future: 31368.00
+    PortfolioData: Std dev: 886.39
+    PortfolioData: Expected average growth factor: 1.4760
+    PortfolioData: Std dev: 0.0417
+    PortfolioData: --------- --------------------- -----------
+    """
 
     def __init__(
         self,
         portfolio_dataframe: DataFrame,
         columns_rename: dict[str, str] | None = None,
     ) -> None:
-        """Creates a ``PortfolioData`` object from a pandas ``DataFrame``.
+        """Creates a :class:`~PortfolioData` object from a pandas :class:`~pandas.DataFrame`.
 
         The portfolio data is expected to contain at least the following columns names:
 
@@ -42,11 +60,11 @@ class PortfolioData:
             - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
             - ``"regcap_now"``: Current regulatory capital per asset.
 
-        Different column names in the dataset can be used but need to be provided as a
-        renaming dictionary to the ``columns_rename`` argument.
+        Different column names in the dataset can be used, but in that case they need to
+        be provided as a renaming dictionary to the ``columns_rename`` argument.
 
         Args:
-            portfolio_dataframe: Pandas ``DataFrame`` containing the portfolio data.
+            portfolio_dataframe: :class:`~pandas.DataFrame` containing the portfolio data.
             columns_rename: to rename columns provided as dict with new column names as keys
                 and to replace column name as value. Example
                 ``{"outstanding_2021": "outstanding_now"}``.
@@ -80,7 +98,7 @@ class PortfolioData:
         filename: str | Path,
         columns_rename: dict[str, str] | None = None,
     ) -> PortfolioDataT:
-        """Reads portfolio data object into ``PortfolioData``.
+        """Reads portfolio data object into :class:`~PortfolioData`.
 
         The portfolio data is expected to contain at least the following columns names:
 
@@ -91,8 +109,8 @@ class PortfolioData:
             - ``"income_now"``: Current income per asset, corresponds to return multiplied by the current outstanding amount.
             - ``"regcap_now"``: Current regulatory capital per asset.
 
-        Different column names in the dataset can be used but need to be provided as a
-        renaming dictionary to the ``columns_rename`` argument.
+        Different column names in the dataset can be used, but in that case they need to
+        be provided as a renaming dictionary to the ``columns_rename`` argument.
 
         Args:
             filename: path to portfolio data. If instead ``benchmark_dataset`` is
@@ -261,7 +279,7 @@ class PortfolioData:
         return txt
 
     def __str__(self) -> str:
-        """String representation of the ``PortfolioData`` object."""
+        """String representation of the :class:`~PortfolioData` object."""
         txt = f"{self.__class__.__name__} object containing the following data:\n"
         txt += str(self.portfolio_df)
         return txt

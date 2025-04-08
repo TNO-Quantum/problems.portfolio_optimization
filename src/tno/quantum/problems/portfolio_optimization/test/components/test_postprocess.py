@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import numpy as np
 import pytest
-from dimod import SampleSet
-from numpy.typing import NDArray
 
-from tno.quantum.problems.portfolio_optimization.components import Decoder, pareto_front
+from tno.quantum.optimization.qubo.components import BasicResult, Freq
+from tno.quantum.problems.portfolio_optimization._components import (
+    Decoder,
+    pareto_front,
+)
 from tno.quantum.problems.portfolio_optimization.test import make_test_dataset
+
+# region Decoder
 
 
 @pytest.fixture(name="decoder")
@@ -19,53 +21,31 @@ def decoder_fixture() -> Decoder:
     return Decoder(portfolio_data, k=2)
 
 
-@pytest.mark.parametrize(
-    ("sample", "expected_results"),
-    [
-        ({0: 0, 1: 0, 2: 0, 3: 0}, np.array([10, 30])),
-        ({0: 0, 1: 0, 2: 0, 3: 1}, np.array([10, 36])),
-        ({0: 0, 1: 0, 2: 1, 3: 0}, np.array([10, 33])),
-        ({0: 0, 1: 0, 2: 1, 3: 1}, np.array([10, 39])),
-        ({0: 0, 1: 1, 2: 0, 3: 0}, np.array([16, 30])),
-        ({0: 0, 1: 1, 2: 0, 3: 1}, np.array([16, 36])),
-        ({0: 0, 1: 1, 2: 1, 3: 0}, np.array([16, 33])),
-        ({0: 0, 1: 1, 2: 1, 3: 1}, np.array([16, 39])),
-        ({0: 1, 1: 0, 2: 0, 3: 0}, np.array([13, 30])),
-        ({0: 1, 1: 0, 2: 0, 3: 1}, np.array([13, 36])),
-        ({0: 1, 1: 0, 2: 1, 3: 0}, np.array([13, 33])),
-        ({0: 1, 1: 0, 2: 1, 3: 1}, np.array([13, 39])),
-        ({0: 1, 1: 1, 2: 0, 3: 0}, np.array([19, 30])),
-        ({0: 1, 1: 1, 2: 0, 3: 1}, np.array([19, 36])),
-        ({0: 1, 1: 1, 2: 1, 3: 0}, np.array([19, 33])),
-        ({0: 1, 1: 1, 2: 1, 3: 1}, np.array([19, 39])),
-    ],
-)
-def test_decode_sample(
-    decoder: Decoder, sample: Mapping[int, int], expected_results: NDArray[np.float64]
-) -> None:
-    np.testing.assert_array_equal(decoder.decode_sample(sample), expected_results)
-
-
 def test_decode_sampleset(decoder: Decoder) -> None:
-    samples = [
-        {0: 0, 1: 0, 2: 0, 3: 0},
-        {0: 0, 1: 0, 2: 0, 3: 1},
-        {0: 0, 1: 0, 2: 1, 3: 0},
-        {0: 0, 1: 0, 2: 1, 3: 1},
-        {0: 0, 1: 1, 2: 0, 3: 0},
-        {0: 0, 1: 1, 2: 0, 3: 1},
-        {0: 0, 1: 1, 2: 1, 3: 0},
-        {0: 0, 1: 1, 2: 1, 3: 1},
-        {0: 1, 1: 0, 2: 0, 3: 0},
-        {0: 1, 1: 0, 2: 0, 3: 1},
-        {0: 1, 1: 0, 2: 1, 3: 0},
-        {0: 1, 1: 0, 2: 1, 3: 1},
-        {0: 1, 1: 1, 2: 0, 3: 0},
-        {0: 1, 1: 1, 2: 0, 3: 1},
-        {0: 1, 1: 1, 2: 1, 3: 0},
-        {0: 1, 1: 1, 2: 1, 3: 1},
-    ]
-    sampleset = SampleSet.from_samples(samples, "BINARY", [0] * 16)  # type: ignore[no-untyped-call]
+    freq = Freq(
+        bitvectors=[
+            "0000",
+            "0001",
+            "0010",
+            "0011",
+            "0100",
+            "0101",
+            "0110",
+            "0111",
+            "1000",
+            "1001",
+            "1010",
+            "1011",
+            "1100",
+            "1101",
+            "1110",
+            "1111",
+        ],
+        energies=[int(i) for i in range(16)],
+        num_occurrences=[1 for _ in range(16)],
+    )
+    result = BasicResult(best_bitvector="0000", best_value=0.0, freq=freq)
+
     expected_result = np.array(
         [
             [10, 30],
@@ -87,10 +67,10 @@ def test_decode_sampleset(decoder: Decoder) -> None:
         ]
     )
 
-    np.testing.assert_array_equal(decoder.decode_sampleset(sampleset), expected_result)
+    np.testing.assert_array_equal(decoder.decode_result(result), expected_result)
 
 
-# ---- TESTS FOR THE PARETO FRONT ------
+# region Pareto Front
 @pytest.fixture(name="x_y_points")
 def x_y_points_fixture() -> tuple[list[int], list[int]]:
     # Create point with a square in a square inside another square
@@ -116,7 +96,7 @@ def test_pareto_front(
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):
-        assert point in expected_points
+        assert point in expected_points  # type: ignore[comparison-overlap]
 
 
 def test_small_front() -> None:
@@ -136,4 +116,4 @@ def test_small_front2() -> None:
     assert len(x_par) == len(expected_points)
     assert len(y_par) == len(expected_points)
     for point in zip(x_par, y_par):
-        assert point in expected_points
+        assert point in expected_points  # type: ignore[comparison-overlap]

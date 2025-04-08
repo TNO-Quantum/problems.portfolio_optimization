@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from tno.quantum.problems.portfolio_optimization.components import PortfolioData
+from tno.quantum.problems.portfolio_optimization._components import PortfolioData
 from tno.quantum.problems.portfolio_optimization.test.dataset_for_tests import (
     make_test_dataset,
 )
