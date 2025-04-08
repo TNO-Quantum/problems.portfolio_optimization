@@ -1,3 +1,20 @@
+# [2.0.0-beta.1](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v1.0.1-beta.1...v2.0.0-beta.1) (2025-04-08)
+
+
+### Features
+
+* Introduce tno QUBO component ([bc453cb](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/commit/bc453cbe4819bcb97acf47215e4b9d85b2e5d067))
+* PortfolioOptimizer now uses tno.quantum.optimization.qubo solvers ([4ec0e30](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/commit/4ec0e304f480dc7a396330613466e49b6b4f4839))
+
+
+### BREAKING CHANGES
+
+* Input `PortFolioOptimizer` now takes a `solver` instead of a `sampler`.
+
+Resolve "Make use of quantum optimization pipeline"
+
+See merge request quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization!18
+
 ## [1.0.1-beta.1](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v1.0.0...v1.0.1-beta.1) (2025-03-26)
 
 

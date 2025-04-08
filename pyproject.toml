@@ -58,7 +58,7 @@ version = { attr = "tno.quantum.problems.portfolio_optimization.__version__" }
 "tno.quantum.problems.portfolio_optimization.img" = ["example.png"]
 
 [tool.tbump.version]
-current = "1.0.1-beta.1"
+current = "2.0.0-beta.1"
 regex = '''
 \d+\.\d+\.\d+(-(.*))?
 '''
