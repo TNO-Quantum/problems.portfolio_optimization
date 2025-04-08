@@ -69,7 +69,7 @@ worsening the other objective, can be computed for return on capital and diversi
 >>> fig.tight_layout()
 >>> plt.show()  # doctest: +SKIP
 
-.. image:: ../../../images_for_docs/example.png
+.. image:: img/example.png
     :width: 1200
     :align: center
     :alt: (Diversification, ROC)-Graph
