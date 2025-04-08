@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from tno.quantum.problems.portfolio_optimization.components import (
+from tno.quantum.problems.portfolio_optimization._components import (
     QuboCompiler,
     QuboFactory,
 )

@@ -2,7 +2,7 @@
 
 from pandas import DataFrame
 
-from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+from tno.quantum.problems.portfolio_optimization._components._io import PortfolioData
 
 
 def make_test_dataset() -> PortfolioData:

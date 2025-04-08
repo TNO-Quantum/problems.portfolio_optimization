@@ -54,6 +54,8 @@ version = { attr = "tno.quantum.problems.portfolio_optimization.__version__" }
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
+"tno.quantum.problems.portfolio_optimization.datasets" = ["benchmark_dataset.xlsx"]
+"tno.quantum.problems.portfolio_optimization.img" = ["example.png"]
 
 [tool.tbump.version]
 current = "1.0.1-beta.1"
