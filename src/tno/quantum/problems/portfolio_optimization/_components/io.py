@@ -279,7 +279,7 @@ class PortfolioData:
         return txt
 
     def __str__(self) -> str:
-        """String representation of the ``PortfolioData`` object."""
+        """String representation of the :class:`~PortfolioData` object."""
         txt = f"{self.__class__.__name__} object containing the following data:\n"
         txt += str(self.portfolio_df)
         return txt
