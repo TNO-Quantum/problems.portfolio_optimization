@@ -17,10 +17,13 @@ Usage example:
 
 >>> import numpy as np
 >>> from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
->>> from tno.quantum.optimization.qubo.solvers import SimulatedAnnealingSolver
+>>> from tno.quantum.optimization.qubo import SolverConfig
 >>>
 >>> # Choose sampler for solving qubo
->>> solver = SimulatedAnnealingSolver(num_reads=20, num_sweeps=200)
+>>> solver_config = SolverConfig(
+...     name="simulated_annealing_solver",
+...     options={"num_reads": 20, "num_sweeps": 200, "random_state": 42},
+... )
 >>>
 >>> # Set up penalty coefficients for the constraints
 >>> lambdas1 = np.logspace(-16, 1, 25, endpoint=False, base=10.0)
@@ -39,7 +42,7 @@ Usage example:
 ... )
 >>>
 >>> # Solve the portfolio optimization problem
->>> results = portfolio_optimizer.run(solver, verbose=True)
+>>> results = portfolio_optimizer.run(solver_config, verbose=True)
 >>> print(results.head())  # doctest: +SKIP
                                   outstanding amount  diff ROC  diff diversification  diff outstanding  diff emission
 0  (14.0, 473.0, 26.666666666666668, 1410.0, 74.0...  4.105045             -6.102454          1.514694     -29.999998
