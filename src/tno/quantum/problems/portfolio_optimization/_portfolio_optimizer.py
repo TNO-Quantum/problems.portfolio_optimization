@@ -6,24 +6,22 @@ import itertools
 import logging
 import math
 import time
+from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from pandas import DataFrame
 from tqdm import tqdm
 
-from tno.quantum.optimization.qubo.solvers import SimulatedAnnealingSolver
+from tno.quantum.optimization.qubo.components import SolverConfig
 from tno.quantum.problems.portfolio_optimization._components import (
     Decoder,
     PortfolioData,
     QuboCompiler,
     Results,
 )
-
-if TYPE_CHECKING:
-    from tno.quantum.optimization.qubo.components import Solver
 
 
 class PortfolioOptimizer:
@@ -324,7 +322,7 @@ class PortfolioOptimizer:
 
     def run(
         self,
-        solver: Solver[Any] | None = None,
+        solver_config: SolverConfig | Mapping[str, Any] | None = None,
         *,
         verbose: bool = True,
     ) -> Results:
@@ -338,9 +336,10 @@ class PortfolioOptimizer:
         >>> portfolio_optimizer.run() # doctest: +SKIP
 
         Args:
-            solver: Instance of a QUBO solver that can be used to solve the QUBO. By
-                default the :py:class:`~tno.quantum.optimization.qubo.solvers.SimulatedAnnealingSolver` is being used.
-            sampler_kwargs: The sampler specific key-word arguments.
+            solver_config: Configuration for the qubo solver to use. Must be a
+                ``SolverConfig`` or a mapping with ``"name"`` and ``"options"`` keys. If
+                ``None`` (default) is provided, the :py:class:`~tno.quantum.optimization.qubo.solvers.SimulatedAnnealingSolver
+                will be used, i.e. ``{"name": "simulated_annealing_solver", "options": {}}``.
             verbose: If True, print detailed information during execution
 
         Returns:
@@ -349,7 +348,12 @@ class PortfolioOptimizer:
         Raises:
             ValueError: if constraints are not set
         """  # noqa: E501
-        solver = solver if solver is not None else SimulatedAnnealingSolver()
+        solver_config = (
+            SolverConfig.from_mapping(solver_config)
+            if solver_config is not None
+            else SolverConfig(name="simulated_annealing_solver", options={})
+        )
+        solver = solver_config.get_instance()
 
         if verbose:
             self.portfolio_data.print_portfolio_info()
