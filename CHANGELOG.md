@@ -1,3 +1,10 @@
+# [2.0.0-beta.2](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v2.0.0-beta.1...v2.0.0-beta.2) (2025-04-09)
+
+
+### Bug Fixes
+
+* change solver to solver_config ([c3dfa9f](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/commit/c3dfa9f37b827695f9bb77610e931b152720e6f9))
+
 # [2.0.0-beta.1](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v1.0.1-beta.1...v2.0.0-beta.1) (2025-04-08)
 
 
