@@ -1,4 +1,8 @@
+
+variables:
+  PYVERSION: "3.13" # 3.13-slim gives errors when installing, but 3.13 works fine
+
 include:
   - project: quantum/cicd/templates/python
     file: quantum-toolbox-template-microlib.yml
-    ref: "v2.0.3"
+    ref: "v2.0.4"
