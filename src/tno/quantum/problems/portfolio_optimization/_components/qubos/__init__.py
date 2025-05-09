@@ -6,7 +6,12 @@ objectives and constraints with their corresponding penalty or preference parame
 The ``QuboFactory`` class provides a convenient interface for constructing intermediate
 QUBO matrices for different objectives and constraints.
 """
-from ._qubo_compiler import QuboCompiler
-from ._qubo_factory import QuboFactory
+
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_compiler import (  # noqa: E501
+    QuboCompiler,
+)
+from tno.quantum.problems.portfolio_optimization._components.qubos._qubo_factory import (  # noqa: E501
+    QuboFactory,
+)
 
 __all__ = ["QuboCompiler", "QuboFactory"]

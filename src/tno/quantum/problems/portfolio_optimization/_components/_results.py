@@ -1,15 +1,21 @@
 """This module contains a container for Results object."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from tno.quantum.problems.portfolio_optimization.components.io import PortfolioData
+if TYPE_CHECKING:
+    from tno.quantum.problems.portfolio_optimization._components._io import (
+        PortfolioData,
+    )
 
 
 class Results:
-    """Results container"""
+    """Results container."""
 
     def __init__(
         self,
@@ -58,7 +64,7 @@ class Results:
         """Return the number of samples stored in the ``Results`` object."""
         return len(self.results_df)
 
-    def add_result(self, outstanding_future_samples: NDArray[np.float_]) -> None:
+    def add_result(self, outstanding_future_samples: NDArray[np.float64]) -> None:
         """Adds a new outstanding_future data point to results container.
 
         Args:
@@ -115,7 +121,7 @@ class Results:
             self.results_df.loc[len(self.results_df)] = new_data
 
     def head(self, n: int = 5) -> pd.DataFrame:
-        """Returns first n rows of self.results_df DataFrame
+        """Returns first n rows of self.results_df DataFrame.
 
         Args:
             selected_columns: By default all columns
@@ -127,18 +133,20 @@ class Results:
         return self.results_df[selected_columns].head(n)
 
     def drop_duplicates(self) -> None:
-        """Drops duplicates in results DataFrame"""
-        self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)
+        """Drops duplicates in results DataFrame."""
+        self.results_df.drop_duplicates(subset=["outstanding amount"], inplace=True)  # noqa: PD002
 
     def slice_results(
         self, tolerance: float = 0.0
     ) -> tuple[
-        tuple[NDArray[np.float_], NDArray[np.float_]],
-        tuple[NDArray[np.float_], NDArray[np.float_]],
+        tuple[NDArray[np.float64], NDArray[np.float64]],
+        tuple[NDArray[np.float64], NDArray[np.float64]],
     ]:
-        """Helper function that slices the results in two groups, those results that
-        satisfy all constraints and those that violate at least one of the growth factor
-        or emission constraints.
+        """Slices the results in two groups that satisfy and violate constraints.
+
+        Results are split in two groups. One group where all constraints are satisfied
+        and a group in which results violate at least one of the growth factor or
+        emission constraints.
 
         Args:
             tolerance: tolerance on how strict the constraints need to be satisfied (in
@@ -158,7 +166,8 @@ class Results:
             self.provided_growth_target is None
             and len(self.provided_emission_constraints) == 0
         ):
-            raise ValueError("There are no emission or growth constraints set.")
+            error_msg = "There are no emission or growth constraints set."
+            raise ValueError(error_msg)
 
         mask_growth_target = (
             True

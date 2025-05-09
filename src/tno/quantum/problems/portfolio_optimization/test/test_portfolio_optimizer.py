@@ -1,25 +1,37 @@
 """This module contains tests for the ``PortfolioOptimizer`` class."""
+
 from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 import pytest
 from numpy.typing import ArrayLike
 
+from tno.quantum.optimization.qubo.components import SolverConfig
 from tno.quantum.problems.portfolio_optimization import PortfolioOptimizer
-
-# pylint: disable=missing-function-docstring
-# pylint: disable=protected-access
 
 
 @pytest.mark.parametrize(
-    "weight,expected_outcome", [(None, [1.0]), ([1, 2, 3], [1, 2, 3])]
+    ("weight", "expected_outcome"), [(None, [1.0]), ([1, 2, 3], [1, 2, 3])]
 )
 def test_parse_weight(weight: ArrayLike | None, expected_outcome: ArrayLike) -> None:
     parsed_weights = PortfolioOptimizer._parse_weight(weight)
     np.testing.assert_array_equal(parsed_weights, expected_outcome)
 
 
-def test_portfolio_optimizer() -> None:
+@pytest.mark.parametrize(
+    ("solver_config"),
+    [
+        None,
+        {"name": "steepest_descent_solver", "options": {}},
+        SolverConfig(name="tabu_solver", options={}),
+    ],
+)
+def test_portfolio_optimizer(
+    solver_config: SolverConfig | Mapping[str, Any] | None,
+) -> None:
     portfolio_optimizer = PortfolioOptimizer("benchmark_dataset", k=2)
     portfolio_optimizer.add_minimize_hhi(weights=[1])
     portfolio_optimizer.add_maximize_roc(formulation=1, weights_roc=[1])
@@ -29,7 +41,7 @@ def test_portfolio_optimizer() -> None:
         emission_future="emis_intens_future",
         reduction_percentage_target=0.7,
     )
-    portfolio_optimizer.run()
+    portfolio_optimizer.run(solver_config)
 
 
 def test_multiple_growth_factor_constraints() -> None:
