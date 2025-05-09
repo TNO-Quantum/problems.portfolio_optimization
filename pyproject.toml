@@ -8,7 +8,13 @@ description = "Quantum Computing based Portfolio Optimization"
 readme = "README.md"
 authors = [{ name = "TNO Quantum Code Lab", email = "tnoquantum@tno.nl" }]
 maintainers = [{ name = "TNO Quantum Code Lab", email = "tnoquantum@tno.nl" }]
-keywords = ["TNO", "Quantum", "Portfolio Optimization", "QUBO", "Quantum Annealing"]
+keywords = [
+    "TNO",
+    "Quantum",
+    "Portfolio Optimization",
+    "QUBO",
+    "Quantum Annealing"
+]
 license = { text = "Apache License, Version 2.0" }
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -33,7 +39,7 @@ dependencies = [
     "matplotlib",
     "scipy",
     "pandas",
-    "tno.quantum.optimization.qubo[dwave]~=1.0b",
+    "tno.quantum.optimization.qubo[dwave]~=1.0",
     "tqdm",
 ]
 
