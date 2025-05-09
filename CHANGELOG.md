@@ -1,3 +1,10 @@
+# [2.0.0-beta.3](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2025-05-09)
+
+
+### Bug Fixes
+
+* pipeline and dependencies ([29c6222](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/commit/29c622204a3dab75a6f8993a9eb66fce3bc01ef5))
+
 # [2.0.0-beta.2](https://ci.tno.nl/gitlab/quantum/quantum-applications/quantum-toolbox/microlibs/problems/microlibs/portfolio-optimization/compare/v2.0.0-beta.1...v2.0.0-beta.2) (2025-04-09)
 
 

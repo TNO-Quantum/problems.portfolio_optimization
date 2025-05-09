@@ -180,4 +180,4 @@ __all__ = [
     "plot_points",
 ]
 
-__version__ = "2.0.0-beta.2"
+__version__ = "2.0.0-beta.3"
