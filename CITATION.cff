@@ -18,5 +18,5 @@ contact:
 repository-code: https://github.com/TNO-Quantum/problems.portfolio_optimization
 repository-artifact: https://pypi.org/project/tno.quantum.problems.portfolio_optimization
 title: TNO Quantum - Problems - Portfolio Optimization
-version: v1.0.0
+version: v2.0.0
 date-released: 2024-05-01
