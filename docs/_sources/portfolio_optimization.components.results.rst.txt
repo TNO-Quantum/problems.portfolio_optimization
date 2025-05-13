@@ -1,7 +1,0 @@
-portfolio\_optimization.components.results module
-=================================================
-
-.. automodule:: portfolio_optimization.components.results
-   :members:
-   :undoc-members:
-   :show-inheritance:
